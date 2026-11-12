@@ -1,0 +1,9 @@
+[project]
+name = "stack-cookbook-dataset-prelabelling"
+version = "1.0.0"
+description = "Foldbun Stack Cookbook: pre-label an image dataset from text prompts (Python)."
+requires-python = ">=3.12"
+dependencies = ["pillow>=11"]  # review crops only; the client and the RLE codec use the standard library
+
+[tool.uv]
+package = false

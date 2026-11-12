@@ -1,0 +1,30 @@
+# Toolchain commands per language. {dir} is the implementation directory; commands run inside it.
+# The harness appends `--manifest <path> --out <dir>` to `run`.
+
+[python]
+min = "Python 3.12, uv 0.5"
+requires = ["uv"]
+setup = "uv sync --frozen --project {dir}"
+run = "uv run --frozen --project {dir} python main.py"
+lint = "ruff check {dir} && ruff format --check {dir}"
+
+[typescript]
+min = "Node 24, pnpm 10"
+requires = ["node", "pnpm"]
+setup = "pnpm --dir {dir} install --frozen-lockfile"
+run = "node main.ts"
+lint = "pnpm --dir {dir} exec tsc --noEmit"
+
+[go]
+min = "Go 1.22"
+requires = ["go"]
+setup = "go -C {dir} mod download"
+run = "go -C {dir} run ."
+lint = "go -C {dir} vet ./... && test -z \"$(gofmt -l {dir})\""
+
+[curl]
+min = "bash 4, curl 7.76, jq 1.6"
+requires = ["bash", "curl", "jq"]
+setup = ""
+run = "bash run.sh"
+lint = "bash -n run.sh"

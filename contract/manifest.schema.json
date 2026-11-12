@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Foldbun/stack-cookbook/main/contract/manifest.schema.json",
+  "title": "manifest.json",
+  "description": "Input of one run. Ground truth is never here: it lives in truth.json next to it, and only evaluate.py reads it.",
+  "type": "object",
+  "required": [
+    "usecase",
+    "items"
+  ],
+  "properties": {
+    "usecase": {
+      "type": "string"
+    },
+    "params": {
+      "type": "object",
+      "description": "Use-case parameters that apply to every item."
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "image": {
+            "type": "string",
+            "description": "Input file, relative to the directory of the manifest."
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "Expected sha256 of the input file."
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+[project]
+name = "stack-cookbook-receipts-to-json"
+version = "1.0.0"
+description = "Foldbun Stack Cookbook: receipts and invoices to validated JSON (Python)."
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+package = false

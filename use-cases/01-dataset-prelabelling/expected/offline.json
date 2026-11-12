@@ -1,0 +1,230 @@
+{
+  "usecase": "01-dataset-prelabelling",
+  "language": "python",
+  "client": "stack_client 1.0.0",
+  "startedAt": "2026-11-12T04:45:36Z",
+  "elapsedMs": 71,
+  "items": [
+    {
+      "id": "746b596e2148b044",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/segment",
+          "model": "sam3",
+          "list": 0.7,
+          "charged": 0.7,
+          "cache": "miss",
+          "queueMs": 0,
+          "processingMs": 328,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "image": {
+          "width": 768,
+          "height": 1024,
+          "sha256": "cc838047ede6449a0d3cea126b4749a0f66069f199f26b6bb45f5a4159a15f19"
+        },
+        "instances": [
+          {
+            "class": "Dog",
+            "score": 0.9841,
+            "bbox": [
+              446,
+              595,
+              601,
+              984
+            ],
+            "area": 42785,
+            "route": "accept"
+          },
+          {
+            "class": "Dog",
+            "score": 0.9727,
+            "bbox": [
+              484,
+              34,
+              558,
+              216
+            ],
+            "area": 9666,
+            "route": "accept"
+          }
+        ],
+        "counts": {
+          "accept": 2,
+          "review": 0
+        },
+        "missing": []
+      }
+    },
+    {
+      "id": "7803588ebab09921",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/segment",
+          "model": "sam3",
+          "list": 0.7,
+          "charged": 0.7,
+          "cache": "miss",
+          "queueMs": 0,
+          "processingMs": 151,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "image": {
+          "width": 1024,
+          "height": 576,
+          "sha256": "9a79a459e68993d1814e8097a4fc073ea26dde49637aa6b6215d4dd0d26306a6"
+        },
+        "instances": [
+          {
+            "class": "Cat",
+            "score": 0.9681,
+            "bbox": [
+              426,
+              142,
+              731,
+              457
+            ],
+            "area": 71364,
+            "route": "accept"
+          }
+        ],
+        "counts": {
+          "accept": 1,
+          "review": 0
+        },
+        "missing": []
+      }
+    },
+    {
+      "id": "16774edaeacc5aed",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/segment",
+          "model": "sam3",
+          "list": 0.7,
+          "charged": 0.7,
+          "cache": "miss",
+          "queueMs": 0,
+          "processingMs": 273,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "image": {
+          "width": 1024,
+          "height": 685,
+          "sha256": "456029fae38febb48426191e6683c8094f674949a8b182d4942a39e28a638a64"
+        },
+        "instances": [
+          {
+            "class": "Bird",
+            "score": 0.7482,
+            "bbox": [
+              561,
+              127,
+              629,
+              276
+            ],
+            "area": 6551,
+            "route": "accept"
+          },
+          {
+            "class": "Bird",
+            "score": 0.6909,
+            "bbox": [
+              169,
+              254,
+              884,
+              685
+            ],
+            "area": 226293,
+            "route": "accept"
+          },
+          {
+            "class": "Bird",
+            "score": 0.5592,
+            "bbox": [
+              561,
+              126,
+              891,
+              639
+            ],
+            "area": 30577,
+            "route": "review"
+          }
+        ],
+        "counts": {
+          "accept": 2,
+          "review": 1
+        },
+        "missing": []
+      }
+    },
+    {
+      "id": "5da2941bab9c2f4a",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/segment",
+          "model": "sam3",
+          "list": 0.7,
+          "charged": 0.7,
+          "cache": "miss",
+          "queueMs": 0,
+          "processingMs": 209,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "image": {
+          "width": 1024,
+          "height": 768,
+          "sha256": "dae10cb32570c56aa1043bab75a8077e8243e224da6dd64e8009e0426ba30309"
+        },
+        "instances": [
+          {
+            "class": "Boat",
+            "score": 0.9558,
+            "bbox": [
+              538,
+              145,
+              851,
+              656
+            ],
+            "area": 78255,
+            "route": "accept"
+          },
+          {
+            "class": "Boat",
+            "score": 0.9459,
+            "bbox": [
+              196,
+              143,
+              537,
+              622
+            ],
+            "area": 83924,
+            "route": "accept"
+          }
+        ],
+        "counts": {
+          "accept": 2,
+          "review": 0
+        },
+        "missing": []
+      }
+    }
+  ],
+  "ledger": {
+    "calls": 4,
+    "listTotal": 2.8,
+    "chargedTotal": 2.8
+  }
+}

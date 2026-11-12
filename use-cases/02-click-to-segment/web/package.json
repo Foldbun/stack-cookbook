@@ -1,0 +1,19 @@
+{
+  "name": "stack-cookbook-click-to-segment-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Foldbun Stack Cookbook: the <stack-segmenter> Web Component (browser side of use case 02).",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsc && node -e \"require('node:fs').copyFileSync('index.html', 'dist/index.html')\"",
+    "check": "tsc --noEmit -p tsconfig.check.json",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "^7.0.2"
+  }
+}

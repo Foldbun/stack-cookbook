@@ -1,0 +1,388 @@
+{
+  "usecase": "00-quickstart",
+  "language": "python",
+  "client": "stack_client 1.0.0",
+  "startedAt": "2026-11-12T04:45:35Z",
+  "elapsedMs": 202,
+  "items": [
+    {
+      "id": "settings",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/ocr",
+          "model": "ppocr-v6",
+          "list": 0.25,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 753,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "image": {
+          "width": 1100,
+          "height": 760
+        },
+        "lines": [
+          {
+            "text": "Northwind",
+            "confidence": 1.0,
+            "bbox": [
+              55,
+              22,
+              161,
+              47
+            ]
+          },
+          {
+            "text": "Account settings",
+            "confidence": 0.982,
+            "bbox": [
+              270,
+              33,
+              483,
+              60
+            ]
+          },
+          {
+            "text": "Sign out",
+            "confidence": 0.9786,
+            "bbox": [
+              982,
+              32,
+              1053,
+              56
+            ]
+          },
+          {
+            "text": "Overview",
+            "confidence": 0.9999,
+            "bbox": [
+              21,
+              74,
+              96,
+              96
+            ]
+          },
+          {
+            "text": "Settings / Account / Preferences",
+            "confidence": 0.9688,
+            "bbox": [
+              269,
+              69,
+              483,
+              89
+            ]
+          },
+          {
+            "text": "Projects",
+            "confidence": 0.9999,
+            "bbox": [
+              20,
+              113,
+              87,
+              139
+            ]
+          },
+          {
+            "text": "Account",
+            "confidence": 1.0,
+            "bbox": [
+              288,
+              125,
+              369,
+              152
+            ]
+          },
+          {
+            "text": "Billing",
+            "confidence": 0.9365,
+            "bbox": [
+              18,
+              151,
+              75,
+              180
+            ]
+          },
+          {
+            "text": "Display name",
+            "confidence": 1.0,
+            "bbox": [
+              290,
+              166,
+              398,
+              190
+            ]
+          },
+          {
+            "text": "Maya Lindqvist",
+            "confidence": 0.9999,
+            "bbox": [
+              898,
+              177,
+              1010,
+              201
+            ]
+          },
+          {
+            "text": "Shown on comments and shared reports. Changes apply within a few minutes.",
+            "confidence": 0.9994,
+            "bbox": [
+              291,
+              188,
+              793,
+              208
+            ]
+          },
+          {
+            "text": "SETTINGS",
+            "confidence": 1.0,
+            "bbox": [
+              20,
+              199,
+              94,
+              220
+            ]
+          },
+          {
+            "text": "Account",
+            "confidence": 1.0,
+            "bbox": [
+              19,
+              232,
+              92,
+              256
+            ]
+          },
+          {
+            "text": "Language",
+            "confidence": 1.0,
+            "bbox": [
+              291,
+              234,
+              371,
+              254
+            ]
+          },
+          {
+            "text": "English (UK)",
+            "confidence": 0.9998,
+            "bbox": [
+              899,
+              241,
+              990,
+              266
+            ]
+          },
+          {
+            "text": "Used for menus and email templates. Documentation stays in English.",
+            "confidence": 0.9996,
+            "bbox": [
+              290,
+              252,
+              741,
+              273
+            ]
+          },
+          {
+            "text": "Notifications",
+            "confidence": 1.0,
+            "bbox": [
+              21,
+              273,
+              119,
+              294
+            ]
+          },
+          {
+            "text": "Privacy & security",
+            "confidence": 0.9991,
+            "bbox": [
+              20,
+              312,
+              153,
+              338
+            ]
+          },
+          {
+            "text": "Notifications",
+            "confidence": 1.0,
+            "bbox": [
+              290,
+              330,
+              405,
+              353
+            ]
+          },
+          {
+            "text": "API keys",
+            "confidence": 0.9397,
+            "bbox": [
+              18,
+              350,
+              89,
+              378
+            ]
+          },
+          {
+            "text": "Email digest",
+            "confidence": 0.9999,
+            "bbox": [
+              291,
+              371,
+              387,
+              392
+            ]
+          },
+          {
+            "text": "Team members",
+            "confidence": 0.9999,
+            "bbox": [
+              21,
+              394,
+              139,
+              415
+            ]
+          },
+          {
+            "text": "A weekly summary of usage, failed jobs and unpaid invoices.",
+            "confidence": 0.9827,
+            "bbox": [
+              290,
+              392,
+              679,
+              412
+            ]
+          },
+          {
+            "text": "SUPPORT",
+            "confidence": 0.9999,
+            "bbox": [
+              20,
+              437,
+              91,
+              459
+            ]
+          },
+          {
+            "text": "Desktop alerts",
+            "confidence": 1.0,
+            "bbox": [
+              291,
+              436,
+              404,
+              456
+            ]
+          },
+          {
+            "text": "Show a banner when a long-running export has finished.",
+            "confidence": 0.9941,
+            "bbox": [
+              291,
+              456,
+              656,
+              476
+            ]
+          },
+          {
+            "text": "Documentation",
+            "confidence": 1.0,
+            "bbox": [
+              21,
+              473,
+              139,
+              494
+            ]
+          },
+          {
+            "text": "Usage threshold warning",
+            "confidence": 0.9983,
+            "bbox": [
+              293,
+              502,
+              480,
+              522
+            ]
+          },
+          {
+            "text": "Contact support",
+            "confidence": 0.9998,
+            "bbox": [
+              22,
+              514,
+              144,
+              534
+            ]
+          },
+          {
+            "text": "Notify me when monthly spend reaches 80% of the budget limit.",
+            "confidence": 0.9923,
+            "bbox": [
+              292,
+              522,
+              703,
+              541
+            ]
+          },
+          {
+            "text": "Privacy & security",
+            "confidence": 0.9968,
+            "bbox": [
+              291,
+              599,
+              445,
+              622
+            ]
+          },
+          {
+            "text": "Two-factor authentication",
+            "confidence": 0.9998,
+            "bbox": [
+              293,
+              640,
+              487,
+              657
+            ]
+          },
+          {
+            "text": "Require a one-time code from your authenticator app at sign-in.",
+            "confidence": 0.9905,
+            "bbox": [
+              292,
+              660,
+              701,
+              680
+            ]
+          },
+          {
+            "text": "Share anonymous diagnostics",
+            "confidence": 0.9999,
+            "bbox": [
+              291,
+              705,
+              517,
+              724
+            ]
+          },
+          {
+            "text": "Helps us find slow pages. No file contents are ever collected.",
+            "confidence": 0.9919,
+            "bbox": [
+              293,
+              726,
+              676,
+              743
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "ledger": {
+    "calls": 1,
+    "listTotal": 0.25,
+    "chargedTotal": 0.0
+  }
+}

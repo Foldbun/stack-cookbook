@@ -1,0 +1,556 @@
+{
+ "usecase": "05-image-library-search",
+ "set": "smoke",
+ "source": "Open Images Dataset V7 (Google LLC): annotations CC BY 4.0; image CC BY 2.0 by the author listed",
+ "relevance": "queries[].relevant lists original image ids carrying the human-verified positive image-level label (Open Images); all other originals count as not relevant. Variants are never relevant to queries.",
+ "near_duplicates": [
+  {
+   "variant": "dup-010",
+   "source": "f7923c7226760308",
+   "recipe": "crop+resize",
+   "transforms": [
+    {
+     "op": "crop",
+     "box": [
+      15,
+      27,
+      883,
+      814
+     ],
+     "keep": [
+      0.848,
+      0.903
+     ]
+    },
+    {
+     "op": "resize",
+     "scale": 0.451
+    },
+    {
+     "op": "save",
+     "format": "jpeg",
+     "quality": 88,
+     "size": [
+      391,
+      355
+     ]
+    }
+   ],
+   "split": "b"
+  },
+  {
+   "variant": "dup-025",
+   "source": "5177b735e298df6c",
+   "recipe": "flip",
+   "transforms": [
+    {
+     "op": "flip",
+     "axis": "horizontal"
+    },
+    {
+     "op": "save",
+     "format": "jpeg",
+     "quality": 88,
+     "size": [
+      1024,
+      771
+     ]
+    }
+   ],
+   "split": "a"
+  },
+  {
+   "variant": "dup-037",
+   "source": "5803ac5d20687383",
+   "recipe": "resize+jpeg",
+   "transforms": [
+    {
+     "op": "resize",
+     "scale": 0.449
+    },
+    {
+     "op": "jpeg",
+     "quality": 37
+    },
+    {
+     "op": "save",
+     "format": "jpeg",
+     "quality": 37,
+     "size": [
+      460,
+      345
+     ]
+    }
+   ],
+   "split": "b"
+  },
+  {
+   "variant": "dup-047",
+   "source": "8da2bce7dda64c71",
+   "recipe": "resize+jpeg",
+   "transforms": [
+    {
+     "op": "resize",
+     "scale": 0.362
+    },
+    {
+     "op": "jpeg",
+     "quality": 48
+    },
+    {
+     "op": "save",
+     "format": "jpeg",
+     "quality": 48,
+     "size": [
+      371,
+      277
+     ]
+    }
+   ],
+   "split": "a"
+  },
+  {
+   "variant": "dup-050",
+   "source": "bdeb171d607fd9b8",
+   "recipe": "crop+resize",
+   "transforms": [
+    {
+     "op": "crop",
+     "box": [
+      65,
+      9,
+      913,
+      703
+     ],
+     "keep": [
+      0.828,
+      0.904
+     ]
+    },
+    {
+     "op": "resize",
+     "scale": 0.4
+    },
+    {
+     "op": "save",
+     "format": "jpeg",
+     "quality": 88,
+     "size": [
+      339,
+      278
+     ]
+    }
+   ],
+   "split": "b"
+  }
+ ],
+ "queries": [
+  {
+   "id": "q01",
+   "text": "a photo of a monkey",
+   "class": "Monkey",
+   "relevant": [
+    "2a72eb666da926a2",
+    "5177b735e298df6c",
+    "a805ea9c566f3909",
+    "f7923c7226760308"
+   ]
+  },
+  {
+   "id": "q02",
+   "text": "a photo of a flower",
+   "class": "Flower",
+   "relevant": [
+    "8fc05ddaac1c9423",
+    "a49fa34a20c6ea6c",
+    "aaaf093e2c2a45f1",
+    "bdeb171d607fd9b8"
+   ]
+  },
+  {
+   "id": "q03",
+   "text": "a photo of a candle",
+   "class": "Candle",
+   "relevant": [
+    "2fc204f1f507a19b",
+    "393656cddf8e828c",
+    "4dbcb861be92912c",
+    "8289e44957b30080"
+   ]
+  },
+  {
+   "id": "q04",
+   "text": "a photo of a houseplant",
+   "class": "Houseplant",
+   "relevant": [
+    "0867ed7b739f753a",
+    "4fbfda372bc472d7",
+    "5803ac5d20687383",
+    "c62711b2e9c8e009"
+   ]
+  },
+  {
+   "id": "q05",
+   "text": "a photo of a vegetable",
+   "class": "Vegetable",
+   "relevant": [
+    "88a797429b8936a0",
+    "8da2bce7dda64c71",
+    "c79a13e045d4e361",
+    "c9706bcb486110b1"
+   ]
+  }
+ ],
+ "items": {
+  "5177b735e298df6c": {
+   "width": 1024,
+   "height": 771,
+   "labels": [
+    "Baboon",
+    "Fauna",
+    "Macaque",
+    "Monkey",
+    "Old world monkey",
+    "Plant",
+    "Zoo"
+   ],
+   "split": "a"
+  },
+  "a805ea9c566f3909": {
+   "width": 1024,
+   "height": 683,
+   "labels": [
+    "Fauna",
+    "Monkey",
+    "New World monkey",
+    "Old world monkey",
+    "Spider monkey",
+    "Wildlife"
+   ],
+   "split": "b"
+  },
+  "f7923c7226760308": {
+   "width": 1024,
+   "height": 871,
+   "labels": [
+    "Animal",
+    "Close-up",
+    "Fauna",
+    "Monkey",
+    "New World monkey",
+    "Old world monkey",
+    "Wildlife"
+   ],
+   "split": "b"
+  },
+  "2a72eb666da926a2": {
+   "width": 1024,
+   "height": 768,
+   "labels": [
+    "Fauna",
+    "Monkey",
+    "New World monkey",
+    "Old world monkey",
+    "Primate",
+    "Wildlife",
+    "Zoo"
+   ],
+   "split": "a"
+  },
+  "bdeb171d607fd9b8": {
+   "width": 1024,
+   "height": 768,
+   "labels": [
+    "Branch",
+    "Bud",
+    "Close-up",
+    "Flora",
+    "Flower",
+    "Green",
+    "Heliconia",
+    "Leaf",
+    "Macro photography",
+    "Nature",
+    "Plant",
+    "Plant stem",
+    "Yellow"
+   ],
+   "split": "b"
+  },
+  "aaaf093e2c2a45f1": {
+   "width": 1024,
+   "height": 768,
+   "labels": [
+    "Close-up",
+    "Epiphyllum",
+    "Flora",
+    "Flower",
+    "Macro photography",
+    "Petal",
+    "Plant",
+    "Yellow"
+   ],
+   "split": "a"
+  },
+  "8fc05ddaac1c9423": {
+   "width": 1024,
+   "height": 683,
+   "labels": [
+    "Close-up",
+    "Flora",
+    "Flower",
+    "Hellebore",
+    "Macro photography",
+    "Petal",
+    "Plant",
+    "Wildflower"
+   ],
+   "split": "b"
+  },
+  "a49fa34a20c6ea6c": {
+   "width": 1024,
+   "height": 683,
+   "labels": [
+    "Domesticated turkey",
+    "Fauna",
+    "Flower",
+    "Galliformes",
+    "Plant",
+    "Rock",
+    "Turkey",
+    "Wild turkey",
+    "Wildlife"
+   ],
+   "split": "b"
+  },
+  "8289e44957b30080": {
+   "width": 1024,
+   "height": 685,
+   "labels": [
+    "Candle",
+    "Darkness",
+    "Light",
+    "Lighting",
+    "Still life photography",
+    "Yellow"
+   ],
+   "split": "b"
+  },
+  "4dbcb861be92912c": {
+   "width": 1024,
+   "height": 841,
+   "labels": [
+    "Candle",
+    "Juice",
+    "Orange (Color)",
+    "Yellow"
+   ],
+   "split": "b"
+  },
+  "2fc204f1f507a19b": {
+   "width": 1024,
+   "height": 683,
+   "labels": [
+    "Candle",
+    "Darkness",
+    "Decor",
+    "Flame",
+    "Light",
+    "Lighting",
+    "Still life photography",
+    "Yellow"
+   ],
+   "split": "a"
+  },
+  "393656cddf8e828c": {
+   "width": 1024,
+   "height": 683,
+   "labels": [
+    "Candle",
+    "Darkness",
+    "Flame",
+    "Light",
+    "Red"
+   ],
+   "split": "b"
+  },
+  "5803ac5d20687383": {
+   "width": 1024,
+   "height": 768,
+   "labels": [
+    "Annual plant",
+    "Basil",
+    "Flowerpot",
+    "Herb",
+    "Houseplant",
+    "Leaf",
+    "Plant"
+   ],
+   "split": "b"
+  },
+  "4fbfda372bc472d7": {
+   "width": 1024,
+   "height": 768,
+   "labels": [
+    "Barrel",
+    "Brick",
+    "Flowerpot",
+    "Houseplant",
+    "Plant",
+    "Storage tank"
+   ],
+   "split": "b"
+  },
+  "c62711b2e9c8e009": {
+   "width": 1024,
+   "height": 768,
+   "labels": [
+    "Flora",
+    "Floral design",
+    "Flowerpot",
+    "Houseplant",
+    "Leaf",
+    "Produce"
+   ],
+   "split": "b"
+  },
+  "0867ed7b739f753a": {
+   "width": 1024,
+   "height": 1024,
+   "labels": [
+    "Barbary fig",
+    "Cactus",
+    "Flora",
+    "Flowerpot",
+    "Green",
+    "Houseplant",
+    "Leaf",
+    "Plant",
+    "Thorns, spines, and prickles"
+   ],
+   "split": "b"
+  },
+  "8da2bce7dda64c71": {
+   "width": 1024,
+   "height": 766,
+   "labels": [
+    "Eggplant",
+    "Produce",
+    "Purple",
+    "Vegetable"
+   ],
+   "split": "a"
+  },
+  "c79a13e045d4e361": {
+   "width": 1024,
+   "height": 683,
+   "labels": [
+    "Green",
+    "Vegetable"
+   ],
+   "split": "b"
+  },
+  "88a797429b8936a0": {
+   "width": 1024,
+   "height": 683,
+   "labels": [
+    "Cuisine",
+    "Dish",
+    "Meal",
+    "Soup",
+    "Tomato soup",
+    "Vegetable",
+    "Vegetarian food"
+   ],
+   "split": "b"
+  },
+  "c9706bcb486110b1": {
+   "width": 1024,
+   "height": 768,
+   "labels": [
+    "California roll",
+    "Cuisine",
+    "Dish",
+    "Food",
+    "Gimbap",
+    "Steamed rice",
+    "Sushi",
+    "Vegetable"
+   ],
+   "split": "b"
+  },
+  "dup-010": {
+   "width": 391,
+   "height": 355,
+   "labels": [
+    "Animal",
+    "Close-up",
+    "Fauna",
+    "Monkey",
+    "New World monkey",
+    "Old world monkey",
+    "Wildlife"
+   ],
+   "split": "b"
+  },
+  "dup-025": {
+   "width": 1024,
+   "height": 771,
+   "labels": [
+    "Baboon",
+    "Fauna",
+    "Macaque",
+    "Monkey",
+    "Old world monkey",
+    "Plant",
+    "Zoo"
+   ],
+   "split": "a"
+  },
+  "dup-037": {
+   "width": 460,
+   "height": 345,
+   "labels": [
+    "Annual plant",
+    "Basil",
+    "Flowerpot",
+    "Herb",
+    "Houseplant",
+    "Leaf",
+    "Plant"
+   ],
+   "split": "b"
+  },
+  "dup-047": {
+   "width": 371,
+   "height": 277,
+   "labels": [
+    "Eggplant",
+    "Produce",
+    "Purple",
+    "Vegetable"
+   ],
+   "split": "a"
+  },
+  "dup-050": {
+   "width": 339,
+   "height": 278,
+   "labels": [
+    "Branch",
+    "Bud",
+    "Close-up",
+    "Flora",
+    "Flower",
+    "Green",
+    "Heliconia",
+    "Leaf",
+    "Macro photography",
+    "Nature",
+    "Plant",
+    "Plant stem",
+    "Yellow"
+   ],
+   "split": "b"
+  }
+ }
+}

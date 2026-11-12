@@ -1,0 +1,6 @@
+# Extracted from 02-click-to-segment-full.tar.gz (see full.json); not committed.
+images/
+masks/
+truth.json
+manifest.json
+ATTRIBUTION.csv

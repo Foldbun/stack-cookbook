@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "items[].output of use case 05",
+  "description": "A library image (its dimensions per model, nearest neighbours by dinov3, near-duplicate group) or a text query (its ranking by siglip2). Vectors are not part of the output: they are in the index.",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "sha256", "dimensions", "neighbors", "neighborScores", "duplicateGroup", "groupSize"],
+      "properties": {
+        "type": { "const": "image" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "dimensions": {
+          "type": "object",
+          "description": "Vector length per model, as returned by the API.",
+          "additionalProperties": { "type": "integer", "minimum": 1 }
+        },
+        "neighbors": { "type": "array", "description": "Ids of the most similar other images by dinov3, best first.", "items": { "type": "string" } },
+        "neighborScores": { "type": "array", "description": "Cosine similarity of each neighbour, same order.", "items": { "type": "number", "minimum": -1, "maximum": 1.0001 } },
+        "duplicateGroup": { "type": ["string", "null"], "description": "Id of the first image of its near-duplicate group at the default threshold; null when it has no near-duplicate." },
+        "groupSize": { "type": "integer", "minimum": 1 }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "text", "ranking", "scores"],
+      "properties": {
+        "type": { "const": "query" },
+        "text": { "type": "string" },
+        "ranking": { "type": "array", "description": "Ids of the best matching images by siglip2, best first.", "items": { "type": "string" } },
+        "scores": { "type": "array", "items": { "type": "number" } }
+      }
+    }
+  ]
+}

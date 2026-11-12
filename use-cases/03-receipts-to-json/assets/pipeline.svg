@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 250" role="img" aria-labelledby="t d" font-family="system-ui, sans-serif" font-size="14">
+  <title id="t">Receipt pipeline</title>
+  <desc id="d">An image is read by ppocr-v6, fields are extracted by rules and validated. Items that pass are written as JSON. Items that fail are read again by paddleocr-vl on the same handle and validated again; items that still fail go to needs_review.jsonl.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#667"/></marker>
+  </defs>
+  <g fill="#f4f6fa" stroke="#667" stroke-width="1.5">
+    <rect x="10" y="30" width="120" height="60" rx="6"/>
+    <rect x="170" y="30" width="130" height="60" rx="6"/>
+    <rect x="340" y="30" width="130" height="60" rx="6"/>
+    <rect x="510" y="30" width="130" height="60" rx="6"/>
+    <rect x="680" y="30" width="190" height="60" rx="6" fill="#e6f4ea"/>
+    <rect x="340" y="150" width="130" height="60" rx="6"/>
+    <rect x="510" y="150" width="130" height="60" rx="6"/>
+    <rect x="680" y="150" width="190" height="60" rx="6" fill="#fdeceb"/>
+  </g>
+  <g fill="#223" text-anchor="middle">
+    <text x="70" y="55">Image</text><text x="70" y="75" font-size="12">upload once: handle</text>
+    <text x="235" y="55">ppocr-v6</text><text x="235" y="75" font-size="12">0.25 credits</text>
+    <text x="405" y="55">Rules</text><text x="405" y="75" font-size="12">fields + provenance</text>
+    <text x="575" y="55">Validate</text><text x="575" y="75" font-size="12">sums, date, confidence</text>
+    <text x="775" y="55">receipts.jsonl</text><text x="775" y="75" font-size="12">validated JSON</text>
+    <text x="405" y="175">paddleocr-vl</text><text x="405" y="195" font-size="12">2 credits, same handle</text>
+    <text x="575" y="175">Rules + validate</text><text x="575" y="195" font-size="12">same code</text>
+    <text x="775" y="175">needs_review.jsonl</text><text x="775" y="195" font-size="12">a person decides</text>
+  </g>
+  <g stroke="#667" stroke-width="1.5" fill="none" marker-end="url(#a)">
+    <path d="M130 60H168"/><path d="M300 60H338"/><path d="M470 60H508"/><path d="M640 60H678"/>
+    <path d="M575 90V120H405V148"/>
+    <path d="M470 180H508"/><path d="M640 180H678"/>
+  </g>
+  <g fill="#445" font-size="12" text-anchor="middle">
+    <text x="660" y="52">pass</text><text x="520" y="112">fail</text><text x="660" y="172">fail</text>
+  </g>
+</svg>

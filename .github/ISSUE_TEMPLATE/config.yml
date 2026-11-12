@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: API documentation
+    url: https://stack.foldbun.com/docs/
+    about: Questions about the API itself (fields, limits, prices, errors).
+  - name: Security problem
+    url: https://github.com/Foldbun/stack-cookbook/security/advisories/new
+    about: Report a vulnerability privately.

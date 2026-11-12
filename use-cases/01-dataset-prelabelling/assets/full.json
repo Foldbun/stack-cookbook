@@ -1,0 +1,626 @@
+{
+ "usecase": "01-dataset-prelabelling",
+ "version": 1,
+ "set": "full",
+ "note": "The 60 items of the full set. The images are not in git: download 01-dataset-prelabelling-full.tar.gz from the release named in datasets/manifest.json and extract it into this directory (it adds images/, truth.json and its own manifest.json).",
+ "classes": [
+  {
+   "name": "Dog",
+   "prompt": "dog"
+  },
+  {
+   "name": "Cat",
+   "prompt": "cat"
+  },
+  {
+   "name": "Bird",
+   "prompt": "bird"
+  },
+  {
+   "name": "Boat",
+   "prompt": "boat"
+  }
+ ],
+ "items": [
+  {
+   "id": "0bef511619cf3bb4",
+   "image": "images/0bef511619cf3bb4.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "0c46f797871ae5b8",
+   "image": "images/0c46f797871ae5b8.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "08214dada4f6b592",
+   "image": "images/08214dada4f6b592.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "1367cfeb696cbdce",
+   "image": "images/1367cfeb696cbdce.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "746b596e2148b044",
+   "image": "images/746b596e2148b044.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "4d6744437527afa6",
+   "image": "images/4d6744437527afa6.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "44b2830387bfa1c0",
+   "image": "images/44b2830387bfa1c0.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "ca5e25f648f55068",
+   "image": "images/ca5e25f648f55068.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "6521a19adf7c0a59",
+   "image": "images/6521a19adf7c0a59.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "1a4ce99db1425ee1",
+   "image": "images/1a4ce99db1425ee1.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "4aebcf328fb58c35",
+   "image": "images/4aebcf328fb58c35.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "920ada1023b790ba",
+   "image": "images/920ada1023b790ba.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "0deb1303b2c1b311",
+   "image": "images/0deb1303b2c1b311.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "0ac8510707245b9f",
+   "image": "images/0ac8510707245b9f.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "376c88a2570886f3",
+   "image": "images/376c88a2570886f3.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "5d0595903ab095e4",
+   "image": "images/5d0595903ab095e4.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "3f244d0cd047e3b7",
+   "image": "images/3f244d0cd047e3b7.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "afea620099754710",
+   "image": "images/afea620099754710.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "7803588ebab09921",
+   "image": "images/7803588ebab09921.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "09f8e760f60df0da",
+   "image": "images/09f8e760f60df0da.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "b9850603522c0cf7",
+   "image": "images/b9850603522c0cf7.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "ab59703165cd4e16",
+   "image": "images/ab59703165cd4e16.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "3d67b7c7f6a0ca2a",
+   "image": "images/3d67b7c7f6a0ca2a.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "e039a6b738ffea33",
+   "image": "images/e039a6b738ffea33.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "f1289343e71bddfb",
+   "image": "images/f1289343e71bddfb.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "c04beae6efd770bc",
+   "image": "images/c04beae6efd770bc.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "00bdb008eb688497",
+   "image": "images/00bdb008eb688497.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "d750ed238e3a82f8",
+   "image": "images/d750ed238e3a82f8.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "61b0d3b5611efb84",
+   "image": "images/61b0d3b5611efb84.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "864c89394ddef8a1",
+   "image": "images/864c89394ddef8a1.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "ad6a4b8bfef7ceac",
+   "image": "images/ad6a4b8bfef7ceac.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "8b2f7b06abe2b517",
+   "image": "images/8b2f7b06abe2b517.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "c9459208ae6ed435",
+   "image": "images/c9459208ae6ed435.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "905081afdc6f0682",
+   "image": "images/905081afdc6f0682.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "16774edaeacc5aed",
+   "image": "images/16774edaeacc5aed.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "05d58d655a672dbe",
+   "image": "images/05d58d655a672dbe.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "8457b25e4b6c5dd9",
+   "image": "images/8457b25e4b6c5dd9.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "ee1fb664d9867d8f",
+   "image": "images/ee1fb664d9867d8f.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "31113c417de95b38",
+   "image": "images/31113c417de95b38.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "9e990b1d5b809e80",
+   "image": "images/9e990b1d5b809e80.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "232ee775feee3b55",
+   "image": "images/232ee775feee3b55.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "9923ad197c945018",
+   "image": "images/9923ad197c945018.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "f4eba961b1205496",
+   "image": "images/f4eba961b1205496.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "628fe287f198afe9",
+   "image": "images/628fe287f198afe9.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "f1855657e4d27eee",
+   "image": "images/f1855657e4d27eee.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "ca2b82745b17650e",
+   "image": "images/ca2b82745b17650e.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "93b9a35889c80f81",
+   "image": "images/93b9a35889c80f81.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "14e4a032f49301f5",
+   "image": "images/14e4a032f49301f5.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "46977403aba9c410",
+   "image": "images/46977403aba9c410.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "5da2941bab9c2f4a",
+   "image": "images/5da2941bab9c2f4a.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "2756fb2c2948134a",
+   "image": "images/2756fb2c2948134a.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "93ee3893745df977",
+   "image": "images/93ee3893745df977.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "d80b1de25bf176d4",
+   "image": "images/d80b1de25bf176d4.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "65327bb1898a17d6",
+   "image": "images/65327bb1898a17d6.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "da0a440f3af25837",
+   "image": "images/da0a440f3af25837.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "877d27e7b4e269f0",
+   "image": "images/877d27e7b4e269f0.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "6ad82fddc082fa97",
+   "image": "images/6ad82fddc082fa97.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "6458fabd90e53e15",
+   "image": "images/6458fabd90e53e15.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "ee64458a0a735fc2",
+   "image": "images/ee64458a0a735fc2.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "6a252eea451c587a",
+   "image": "images/6a252eea451c587a.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  }
+ ]
+}

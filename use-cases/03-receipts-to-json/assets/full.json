@@ -1,0 +1,328 @@
+{
+ "usecase": "03-receipts-to-json",
+ "version": 1,
+ "set": "full",
+ "note": "The 80 items of the full set. The images are not in git: download 03-receipts-to-json-full.tar.gz from the release named in datasets/manifest.json and extract it into this directory (it adds images/, truth.json and its own manifest.json).",
+ "items": [
+  {
+   "id": "cord-001",
+   "image": "images/cord-001.jpg"
+  },
+  {
+   "id": "cord-002",
+   "image": "images/cord-002.jpg"
+  },
+  {
+   "id": "cord-003",
+   "image": "images/cord-003.jpg"
+  },
+  {
+   "id": "cord-004",
+   "image": "images/cord-004.jpg"
+  },
+  {
+   "id": "cord-005",
+   "image": "images/cord-005.jpg"
+  },
+  {
+   "id": "cord-006",
+   "image": "images/cord-006.jpg"
+  },
+  {
+   "id": "cord-007",
+   "image": "images/cord-007.jpg"
+  },
+  {
+   "id": "cord-008",
+   "image": "images/cord-008.jpg"
+  },
+  {
+   "id": "cord-009",
+   "image": "images/cord-009.jpg"
+  },
+  {
+   "id": "cord-010",
+   "image": "images/cord-010.jpg"
+  },
+  {
+   "id": "cord-011",
+   "image": "images/cord-011.jpg"
+  },
+  {
+   "id": "cord-012",
+   "image": "images/cord-012.jpg"
+  },
+  {
+   "id": "cord-013",
+   "image": "images/cord-013.jpg"
+  },
+  {
+   "id": "cord-014",
+   "image": "images/cord-014.jpg"
+  },
+  {
+   "id": "cord-015",
+   "image": "images/cord-015.jpg"
+  },
+  {
+   "id": "cord-016",
+   "image": "images/cord-016.jpg"
+  },
+  {
+   "id": "cord-017",
+   "image": "images/cord-017.jpg"
+  },
+  {
+   "id": "cord-018",
+   "image": "images/cord-018.jpg"
+  },
+  {
+   "id": "cord-019",
+   "image": "images/cord-019.jpg"
+  },
+  {
+   "id": "cord-020",
+   "image": "images/cord-020.jpg"
+  },
+  {
+   "id": "cord-021",
+   "image": "images/cord-021.jpg"
+  },
+  {
+   "id": "cord-022",
+   "image": "images/cord-022.jpg"
+  },
+  {
+   "id": "cord-023",
+   "image": "images/cord-023.jpg"
+  },
+  {
+   "id": "cord-024",
+   "image": "images/cord-024.jpg"
+  },
+  {
+   "id": "cord-025",
+   "image": "images/cord-025.jpg"
+  },
+  {
+   "id": "cord-026",
+   "image": "images/cord-026.jpg"
+  },
+  {
+   "id": "cord-027",
+   "image": "images/cord-027.jpg"
+  },
+  {
+   "id": "cord-028",
+   "image": "images/cord-028.jpg"
+  },
+  {
+   "id": "cord-029",
+   "image": "images/cord-029.jpg"
+  },
+  {
+   "id": "cord-030",
+   "image": "images/cord-030.jpg"
+  },
+  {
+   "id": "cord-031",
+   "image": "images/cord-031.jpg"
+  },
+  {
+   "id": "cord-032",
+   "image": "images/cord-032.jpg"
+  },
+  {
+   "id": "cord-033",
+   "image": "images/cord-033.jpg"
+  },
+  {
+   "id": "cord-034",
+   "image": "images/cord-034.jpg"
+  },
+  {
+   "id": "cord-035",
+   "image": "images/cord-035.jpg"
+  },
+  {
+   "id": "cord-036",
+   "image": "images/cord-036.jpg"
+  },
+  {
+   "id": "cord-037",
+   "image": "images/cord-037.jpg"
+  },
+  {
+   "id": "cord-038",
+   "image": "images/cord-038.jpg"
+  },
+  {
+   "id": "cord-039",
+   "image": "images/cord-039.jpg"
+  },
+  {
+   "id": "cord-040",
+   "image": "images/cord-040.jpg"
+  },
+  {
+   "id": "cord-041",
+   "image": "images/cord-041.jpg"
+  },
+  {
+   "id": "cord-042",
+   "image": "images/cord-042.jpg"
+  },
+  {
+   "id": "cord-043",
+   "image": "images/cord-043.jpg"
+  },
+  {
+   "id": "cord-044",
+   "image": "images/cord-044.jpg"
+  },
+  {
+   "id": "cord-045",
+   "image": "images/cord-045.jpg"
+  },
+  {
+   "id": "cord-046",
+   "image": "images/cord-046.jpg"
+  },
+  {
+   "id": "cord-047",
+   "image": "images/cord-047.jpg"
+  },
+  {
+   "id": "cord-048",
+   "image": "images/cord-048.jpg"
+  },
+  {
+   "id": "cord-049",
+   "image": "images/cord-049.jpg"
+  },
+  {
+   "id": "cord-050",
+   "image": "images/cord-050.jpg"
+  },
+  {
+   "id": "cord-051",
+   "image": "images/cord-051.jpg"
+  },
+  {
+   "id": "cord-052",
+   "image": "images/cord-052.jpg"
+  },
+  {
+   "id": "cord-053",
+   "image": "images/cord-053.jpg"
+  },
+  {
+   "id": "cord-054",
+   "image": "images/cord-054.jpg"
+  },
+  {
+   "id": "cord-055",
+   "image": "images/cord-055.jpg"
+  },
+  {
+   "id": "cord-056",
+   "image": "images/cord-056.jpg"
+  },
+  {
+   "id": "cord-057",
+   "image": "images/cord-057.jpg"
+  },
+  {
+   "id": "cord-058",
+   "image": "images/cord-058.jpg"
+  },
+  {
+   "id": "cord-059",
+   "image": "images/cord-059.jpg"
+  },
+  {
+   "id": "cord-060",
+   "image": "images/cord-060.jpg"
+  },
+  {
+   "id": "inv-001",
+   "image": "images/inv-001.jpg"
+  },
+  {
+   "id": "inv-002",
+   "image": "images/inv-002.jpg"
+  },
+  {
+   "id": "inv-003",
+   "image": "images/inv-003.jpg"
+  },
+  {
+   "id": "inv-004",
+   "image": "images/inv-004.jpg"
+  },
+  {
+   "id": "inv-005",
+   "image": "images/inv-005.jpg"
+  },
+  {
+   "id": "inv-006",
+   "image": "images/inv-006.jpg"
+  },
+  {
+   "id": "inv-007",
+   "image": "images/inv-007.jpg"
+  },
+  {
+   "id": "inv-008",
+   "image": "images/inv-008.jpg"
+  },
+  {
+   "id": "inv-009",
+   "image": "images/inv-009.jpg"
+  },
+  {
+   "id": "inv-010",
+   "image": "images/inv-010.jpg"
+  },
+  {
+   "id": "inv-011",
+   "image": "images/inv-011.jpg"
+  },
+  {
+   "id": "inv-012",
+   "image": "images/inv-012.jpg"
+  },
+  {
+   "id": "inv-013",
+   "image": "images/inv-013.jpg"
+  },
+  {
+   "id": "inv-014",
+   "image": "images/inv-014.jpg"
+  },
+  {
+   "id": "inv-015",
+   "image": "images/inv-015.jpg"
+  },
+  {
+   "id": "inv-016",
+   "image": "images/inv-016.jpg"
+  },
+  {
+   "id": "inv-017",
+   "image": "images/inv-017.jpg"
+  },
+  {
+   "id": "inv-018",
+   "image": "images/inv-018.jpg"
+  },
+  {
+   "id": "inv-019",
+   "image": "images/inv-019.jpg"
+  },
+  {
+   "id": "inv-020",
+   "image": "images/inv-020.jpg"
+  }
+ ]
+}

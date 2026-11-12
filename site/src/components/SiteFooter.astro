@@ -1,0 +1,32 @@
+---
+// Compact footer of the Foldbun Stack docs: copyright, links to the Foldbun sites, the language links
+// (data-set-lang writes the foldbun_lang cookie, see src/scripts/site.js).
+import { T } from '../i18n.ts'
+import { is404, lpath, type Locale } from '../lib/site.ts'
+
+interface Props { locale: Locale; altHref: string }
+const { locale, altHref } = Astro.props
+const t = T[locale]
+// On a 404 page the current-language link goes to that language's home page (/404/ is not a built page).
+const here = is404(Astro.url.pathname) ? lpath(locale, '/') : Astro.url.pathname
+const enHref = locale === 'en' ? here : altHref
+const zhHref = locale === 'zh' ? here : altHref
+const z = locale === 'zh'
+const foldbun = [
+  { href: z ? 'https://foldbun.com/zh/' : 'https://foldbun.com/', label: t['footer.orgSite'] },
+  { href: z ? 'https://annotation.foldbun.com/zh/' : 'https://annotation.foldbun.com/', label: 'Foldbun Annotation' },
+  { href: 'https://id.foldbun.com/', label: 'Foldbun ID' },
+]
+---
+
+<footer class="site-foot compact">
+  <div class="wrap">
+    <div class="foot-base">
+      <span>{t['footer.copyright']}</span>
+      <nav class="foot-org" aria-label={t['footer.org']}>{foldbun.map((l) => <a href={l.href}>{l.label}</a>)}</nav>
+      <span class="grow"></span>
+      <a href={enHref} hreflang="en-US" lang="en-US" aria-current={locale === 'en' ? 'true' : undefined} data-set-lang="en">English</a>
+      <a href={zhHref} hreflang="zh-CN" lang="zh-CN" aria-current={locale === 'zh' ? 'true' : undefined} data-set-lang="zh">简体中文</a>
+    </div>
+  </div>
+</footer>

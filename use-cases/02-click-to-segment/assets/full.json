@@ -1,0 +1,188 @@
+{
+ "usecase": "02-click-to-segment",
+ "version": 1,
+ "set": "full",
+ "note": "The 30 items of the full set. The images are not in git: download 02-click-to-segment-full.tar.gz from the release named in datasets/manifest.json and extract it into this directory (it adds images/, truth.json and its own manifest.json).",
+ "items": [
+  {
+   "id": "77bfbbef28ac344c-207f2013",
+   "image": "images/77bfbbef28ac344c.jpg",
+   "label": "goose",
+   "maxClicks": 10
+  },
+  {
+   "id": "9314c56f8f11e177-abb80726",
+   "image": "images/9314c56f8f11e177.jpg",
+   "label": "bird",
+   "maxClicks": 10
+  },
+  {
+   "id": "915ac36ff8e610e6-d68c741b",
+   "image": "images/915ac36ff8e610e6.jpg",
+   "label": "platter",
+   "maxClicks": 10
+  },
+  {
+   "id": "7cd3726cefd5dcc3-609a391c",
+   "image": "images/7cd3726cefd5dcc3.jpg",
+   "label": "pitcher (container)",
+   "maxClicks": 10
+  },
+  {
+   "id": "5387aa0e2ce4b45f-0cefa76c",
+   "image": "images/5387aa0e2ce4b45f.jpg",
+   "label": "bear",
+   "maxClicks": 10
+  },
+  {
+   "id": "f54a81df46ae0d9a-8edb5de3",
+   "image": "images/f54a81df46ae0d9a.jpg",
+   "label": "fish",
+   "maxClicks": 10
+  },
+  {
+   "id": "b9984ba1b42427c4-b5a3f1f3",
+   "image": "images/b9984ba1b42427c4.jpg",
+   "label": "duck",
+   "maxClicks": 10
+  },
+  {
+   "id": "be2f530f8265c4b7-254d566f",
+   "image": "images/be2f530f8265c4b7.jpg",
+   "label": "frog",
+   "maxClicks": 10
+  },
+  {
+   "id": "19d768a4a42efd60-54e020ab",
+   "image": "images/19d768a4a42efd60.jpg",
+   "label": "dog",
+   "maxClicks": 10
+  },
+  {
+   "id": "8d279daa12ffc691-7a3cc8c0",
+   "image": "images/8d279daa12ffc691.jpg",
+   "label": "tea",
+   "maxClicks": 10
+  },
+  {
+   "id": "b5bfc85ebf0c0da5-0a04c776",
+   "image": "images/b5bfc85ebf0c0da5.jpg",
+   "label": "heater",
+   "maxClicks": 10
+  },
+  {
+   "id": "178a83688c532568-15ef0fb4",
+   "image": "images/178a83688c532568.jpg",
+   "label": "bull",
+   "maxClicks": 10
+  },
+  {
+   "id": "621d666570933209-fef9e442",
+   "image": "images/621d666570933209.jpg",
+   "label": "pear",
+   "maxClicks": 10
+  },
+  {
+   "id": "6810d6355c7fa115-5cedf6bd",
+   "image": "images/6810d6355c7fa115.jpg",
+   "label": "tea",
+   "maxClicks": 10
+  },
+  {
+   "id": "80d567eb8c139348-a579f4f1",
+   "image": "images/80d567eb8c139348.jpg",
+   "label": "duck",
+   "maxClicks": 10
+  },
+  {
+   "id": "e10a4758270ac022-0105a2aa",
+   "image": "images/e10a4758270ac022.jpg",
+   "label": "vase",
+   "maxClicks": 10
+  },
+  {
+   "id": "c220369f4d5dcb95-70c51f49",
+   "image": "images/c220369f4d5dcb95.jpg",
+   "label": "cake",
+   "maxClicks": 10
+  },
+  {
+   "id": "67034a68f606a071-1016a600",
+   "image": "images/67034a68f606a071.jpg",
+   "label": "peach",
+   "maxClicks": 10
+  },
+  {
+   "id": "7a18cc3a0bb314fe-61a02f23",
+   "image": "images/7a18cc3a0bb314fe.jpg",
+   "label": "box",
+   "maxClicks": 10
+  },
+  {
+   "id": "417c758c430d3b34-1955e6b1",
+   "image": "images/417c758c430d3b34.jpg",
+   "label": "flower",
+   "maxClicks": 10
+  },
+  {
+   "id": "76048660604b83ac-bd96f2f5",
+   "image": "images/76048660604b83ac.jpg",
+   "label": "dice",
+   "maxClicks": 10
+  },
+  {
+   "id": "78757abd46497e4e-9141e550",
+   "image": "images/78757abd46497e4e.jpg",
+   "label": "pig",
+   "maxClicks": 10
+  },
+  {
+   "id": "66b260ca01f408be-e9677e0a",
+   "image": "images/66b260ca01f408be.jpg",
+   "label": "doughnut",
+   "maxClicks": 10
+  },
+  {
+   "id": "bc956e541ad8b3b2-ca55786b",
+   "image": "images/bc956e541ad8b3b2.jpg",
+   "label": "bird",
+   "maxClicks": 10
+  },
+  {
+   "id": "8f1b8dfe77ed4ffd-d50d5cf5",
+   "image": "images/8f1b8dfe77ed4ffd.jpg",
+   "label": "dog",
+   "maxClicks": 10
+  },
+  {
+   "id": "7c455cd7bb04248b-eee4dc68",
+   "image": "images/7c455cd7bb04248b.jpg",
+   "label": "bowl",
+   "maxClicks": 10
+  },
+  {
+   "id": "0f58ef7a6b7c2d90-5c39c8d1",
+   "image": "images/0f58ef7a6b7c2d90.jpg",
+   "label": "fox",
+   "maxClicks": 10
+  },
+  {
+   "id": "c2bf3f54279a6fa8-102e68cb",
+   "image": "images/c2bf3f54279a6fa8.jpg",
+   "label": "cake",
+   "maxClicks": 10
+  },
+  {
+   "id": "d228a83a40891815-569acbcd",
+   "image": "images/d228a83a40891815.jpg",
+   "label": "tortoise",
+   "maxClicks": 10
+  },
+  {
+   "id": "bc02b9aa8b803fcf-c54a6e52",
+   "image": "images/bc02b9aa8b803fcf.jpg",
+   "label": "fish",
+   "maxClicks": 10
+  }
+ ]
+}

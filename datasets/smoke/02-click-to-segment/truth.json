@@ -1,0 +1,50 @@
+{
+ "usecase": "02-click-to-segment",
+ "set": "smoke",
+ "source": "Open Images Dataset V7 (Google LLC): annotations CC BY 4.0; image CC BY 2.0 by the author listed",
+ "mask_format": "PNG, 8-bit, 255 = object, 0 = background, same size as the stored image",
+ "items": {
+  "77bfbbef28ac344c-207f2013": {
+   "label": "Goose",
+   "mask": "masks/77bfbbef28ac344c-207f2013.png",
+   "width": 1024,
+   "height": 768,
+   "bbox": [
+    96,
+    247,
+    712,
+    568
+   ],
+   "area_fraction": 0.1289,
+   "oi_mask_path": "77bfbbef28ac344c_m0dbvp_207f2013.png"
+  },
+  "9314c56f8f11e177-abb80726": {
+   "label": "Bird",
+   "mask": "masks/9314c56f8f11e177-abb80726.png",
+   "width": 1024,
+   "height": 683,
+   "bbox": [
+    122,
+    196,
+    695,
+    489
+   ],
+   "area_fraction": 0.1433,
+   "oi_mask_path": "9314c56f8f11e177_m015p6_abb80726.png"
+  },
+  "915ac36ff8e610e6-d68c741b": {
+   "label": "Platter",
+   "mask": "masks/915ac36ff8e610e6-d68c741b.png",
+   "width": 768,
+   "height": 1024,
+   "bbox": [
+    54,
+    219,
+    686,
+    863
+   ],
+   "area_fraction": 0.4061,
+   "oi_mask_path": "915ac36ff8e610e6_m099ssp_d68c741b.png"
+  }
+ }
+}

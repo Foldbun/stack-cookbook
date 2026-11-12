@@ -1,0 +1,10 @@
+{
+  "usecase": "00-quickstart",
+  "items": [
+    {
+      "id": "settings",
+      "image": "settings.webp",
+      "sha256": "a95e70bff4d650f67fd5a993cf389578e9d0270d3f4ab2ef44f4155be6129194"
+    }
+  ]
+}

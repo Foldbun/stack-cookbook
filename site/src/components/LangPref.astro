@@ -1,0 +1,12 @@
+---
+// Language preference (cookie foldbun_lang, see scripts/lang-pref.js): the blocking script plus, where the page has a
+// counterpart in the other locale, a meta tag that names it. 404 pages pass no altHref: they are never redirected.
+// Put it in <head> after the theme script; the script reads the meta above it, so the meta comes first.
+import langPrefJs from '../scripts/lang-pref.js?url'
+
+interface Props { /** counterpart URL (lib/site.ts counterpart); omitted = no counterpart = never redirect */ altHref?: string }
+const { altHref } = Astro.props
+---
+
+{altHref && <meta name="foldbun-alt" content={altHref} />}
+<script is:inline src={langPrefJs}></script>

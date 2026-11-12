@@ -1,0 +1,29 @@
+name: Example problem
+description: An example fails, gives a wrong result or is unclear.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Never paste an API key. Remove `Authorization` headers and keys from any output."
+  - type: input
+    id: usecase
+    attributes: { label: Use case, placeholder: 03-receipts-to-json }
+    validations: { required: true }
+  - type: dropdown
+    id: language
+    attributes: { label: Language, options: [Python, TypeScript, Go, curl] }
+    validations: { required: true }
+  - type: textarea
+    id: command
+    attributes: { label: Command, description: The exact command you ran, render: shell }
+    validations: { required: true }
+  - type: textarea
+    id: output
+    attributes: { label: Output, description: What it printed, including the error, render: text }
+    validations: { required: true }
+  - type: input
+    id: request-id
+    attributes: { label: X-Request-Id, description: "From the error line, if any (16 hexadecimal characters)" }
+  - type: input
+    id: versions
+    attributes: { label: Versions, description: "Cookbook commit, language toolchain version, operating system" }

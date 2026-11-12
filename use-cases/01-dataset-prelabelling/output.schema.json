@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Foldbun/stack-cookbook/main/use-cases/01-dataset-prelabelling/output.schema.json",
+  "title": "items[].output of 01-dataset-prelabelling",
+  "description": "What routing decided for one image. Geometry (polygons, masks) is not repeated here: it is in coco.json, coco-review.json and yolo/.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["image", "instances", "counts", "missing"],
+  "properties": {
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height", "sha256"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "instances": {
+      "type": "array",
+      "description": "Every instance at or above the review threshold, highest score first.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["class", "score", "bbox", "area", "route"],
+        "properties": {
+          "class": { "type": "string" },
+          "score": { "type": "number", "minimum": 0, "maximum": 1 },
+          "bbox": { "type": "array", "items": { "type": "integer" }, "minItems": 4, "maxItems": 4, "description": "[x1, y1, x2, y2] in pixels of the image; x2 and y2 are exclusive." },
+          "area": { "type": "integer", "minimum": 0 },
+          "route": { "enum": ["accept", "review"] }
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["accept", "review"],
+      "properties": { "accept": { "type": "integer", "minimum": 0 }, "review": { "type": "integer", "minimum": 0 } }
+    },
+    "missing": {
+      "type": "array",
+      "description": "Classes the manifest says the image contains (`expectedClasses`) for which nothing was found; each one is a row in the review queue.",
+      "items": { "type": "string" }
+    }
+  }
+}

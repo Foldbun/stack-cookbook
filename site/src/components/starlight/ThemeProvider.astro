@@ -1,0 +1,14 @@
+---
+// Replaces Starlight's inline theme script: the theme is read from an external file (CSP: no inline script).
+// The file is fingerprinted (src/scripts/theme-init.js -> _astro/theme-init.<hash>.js), so a deploy never pairs it with stale HTML.
+// Also carries the language preference script (LangPref) with the same counterpart rule as Header.astro.
+import themeInitJs from '../../scripts/theme-init.js?url'
+import LangPref from '../LangPref.astro'
+import { counterpart, is404, localeOf } from '../../lib/site.ts'
+
+// 404 pages have no counterpart: they are never redirected by the language preference
+const altHref = is404(Astro.url.pathname) ? undefined : counterpart(Astro.url.pathname, localeOf(Astro.url.pathname) === 'en' ? 'zh' : 'en')
+---
+
+<script is:inline src={themeInitJs}></script>
+<LangPref altHref={altHref} />

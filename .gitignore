@@ -1,0 +1,13 @@
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+dist/
+.astro/
+out/
+tmp/
+.env
+.env.*
+!.env.example
+.DS_Store
+.claude/worktrees/

@@ -1,0 +1,8 @@
+version = 1
+revision = 5
+requires-python = ">=3.12"
+
+[[package]]
+name = "stack-cookbook-click-to-segment"
+version = "1.0.0"
+source = { virtual = "." }

@@ -1,0 +1,282 @@
+openapi: 3.1.0
+info:
+  title: Click-to-segment backend (use case 02)
+  version: 1.0.0
+  license: { name: MIT, identifier: MIT }
+  description: |
+    The HTTP contract that every backend of use case `02-click-to-segment` implements, in every language. The browser
+    component talks only to this backend; the backend holds the Foldbun Stack API key and calls `POST /v1/images` and
+    `POST /v1/refine` of the Stack API. `harness/clickbot.py` drives any backend through this contract, so the results
+    of the languages can be compared one to one.
+
+    **Process.** `<run> --port N [--host H] [--static DIR]` (the `run` command of `harness/languages.toml`; host default `127.0.0.1`; see "Static files").
+    Configuration comes from the same environment variables as every other implementation: `FOLDBUN_API_KEY`
+    (required; when it is missing the backend prints the standard message of the client file and exits with code 2
+    before listening), `FOLDBUN_API_BASE`, `FOLDBUN_MAX_CREDITS`; plus `SEGMENTER_MODELS`, a comma-separated allow-list
+    of models a request may name (default `sam-lite`). When the socket accepts connections the backend prints one line
+    `listening on http://H:N` to stdout. `SIGTERM` and `SIGINT` stop it within 5 s with exit code 0. It logs one line per
+    request (method, path, status, milliseconds) and never logs the key, image bytes or request bodies.
+
+    **Sessions.** Every `/api/*` request except `GET /api/health` carries the header `X-Session-Id`: 1 to 64 characters
+    from `[A-Za-z0-9_-]`, chosen by the caller (the component makes one with `crypto.randomUUID()` per page load; the
+    click simulator uses one per object). A missing or malformed header is `400 invalid_session`. A session is created
+    on first use and lives in memory: a session with no request for more than 30 minutes is dropped, and when the
+    request being served leaves more than 1,000 sessions, the one idle the longest is dropped (so at most 1,000 remain,
+    and the session of the request being served is never the one dropped). Sessions are an accounting and rate-limit unit, not authentication:
+    put the backend behind the site's own login when the page is public. Cookies were not used, so that one page can
+    run several independent sessions and no cross-site request forgery rules are needed.
+
+    **Origin.** The backend sends no CORS headers: serve the page and the backend from the same origin (a reverse
+    proxy, or the backend serving the page's files).
+
+    **Static files.** So that the page and the API share one origin, a backend can serve the files of the browser
+    component. Option `--static <dir>` (default `../web/dist` relative to the implementation directory, i.e. the
+    directory of the program; a given path is relative to the working directory). The rule for every path outside
+    `/api` (nothing under `/api` is ever served from files):
+    `GET` and `HEAD` serve the file, `HEAD` with the same headers and no body: `GET /` serves `index.html` from that
+    directory and `GET /<name>` the regular file `<name>` directly inside it; the query string is ignored. Any other
+    method is `405 method_not_allowed` with the header `Allow: GET, HEAD`, whether or not the name exists and whether
+    or not a directory is configured. A name that is not served is `404 not_found`: a missing directory or file, a name
+    containing `/` or `\` (also percent-encoded, so no sub-directories), a name that starts with `.` (which includes
+    `..`), a symbolic link, anything that is not a regular file. Both errors have the error shape below. A served file
+    carries `Content-Type` by extension: `.html` `text/html; charset=utf-8`, `.js` and `.mjs`
+    `text/javascript; charset=utf-8`, `.css` `text/css; charset=utf-8`, `.json` `application/json`, `.svg`
+    `image/svg+xml`, `.png` `image/png`, `.jpg` and `.jpeg` `image/jpeg`, `.webp` `image/webp`, `.ico` `image/x-icon`,
+    anything else `application/octet-stream`; plus `Cache-Control: no-cache` and `X-Content-Type-Options: nosniff`; no
+    CORS headers. The directory is read at request time, so it may be built after the backend starts.
+
+    **Coordinates.** The convention of the Stack API: pixels of the oriented original (the uploaded image with its EXIF
+    orientation applied, at full resolution), x to the right, y down, origin at the top-left corner of the image.
+    `width` and `height` from `POST /api/images` are the size of the oriented original (the Stack upload response),
+    the same as `naturalWidth` / `naturalHeight` of an `<img>` with the default `image-orientation: from-image`.
+    Points and boxes are numbers (fractions allowed); polygon vertices are integers, each the centre of an outline pixel
+    (`0 <= x <= width - 1`).
+
+    **Stateless refinement.** `POST /api/refine` carries all points of the object every time; the backend keeps no
+    click state. It sends exactly this body to `POST /v1/refine`, with keys in any order:
+    `{"model": M, "image": {"id": <Stack handle>}, "points": [{"x", "y", "positive"}...], "box": [...]}`, where every
+    point carries an explicit `positive` boolean, coordinates are passed through unchanged, `box` is present only when
+    the request has one, and no `options` are sent (the default output: one simplified polygon with holes). Identical
+    bodies in every language let recorded fixtures of the fake API match all of them.
+
+    **Images.** `POST /api/images` uploads the bytes to Stack once per distinct content and caches the Stack handle
+    under `imageId`, which is `im_` plus the first 32 hexadecimal digits of the SHA-256 of the received bytes, so the
+    same file has the same `imageId` in every language and every session. The cache holds the bytes too (the client
+    file uploads again when Stack has evicted an image, `404 image_not_found`) and keeps at most 256 images, dropping
+    the least recently used; an upload of an image and a `refine` that names it each count as a use of it. An `imageId` the backend does not know (never uploaded, dropped, or the backend restarted)
+    is `404 image_not_found`: upload again.
+
+    **Rate limits** (per session, token buckets): refine 60 per minute with a burst of 10; upload 10 per minute with
+    a burst of 5. Over the limit: `429 rate_limited` with `retryAfterMs` and a `Retry-After` header (whole seconds,
+    rounded up). A rejected request (`400`, `404`, `413`, `415`) consumes a token of its session like any other, because the limit is taken
+    after the session is identified and before the request is examined. Under the per-session limits, the client file paces all calls at the per-minute limit of the model's
+    pool on the Stack account, so many sessions queue rather than fail.
+
+    **Limits of a request.** Body of `POST /api/images` at most 20 MiB (the Stack upload limit), `image/jpeg`,
+    `image/png` or `image/webp`; body of `POST /api/refine` at most 64 KiB, at most 20 points (the Stack limit), at least
+    one positive point or a box. Points lie in `[0, width] x [0, height]`; a box is `[x1, y1, x2, y2]` with
+    `0 <= x1 < x2 <= width` and `0 <= y1 < y2 <= height`. The backend checks all of this before calling Stack. An empty image body is `400 invalid_request` and is not sent to
+    Stack, and `"model": null` means that no model was given, so the default applies.
+
+    **Errors.** Every error, from the backend or from Stack, uses one shape:
+    `{"error": {"code", "message", "retryable", "retryAfterMs", "upstreamCode"?, "requestId"?}}`; branch on `code`.
+    `message` is the backend's own text: Stack's messages can mention the account (balance, tier) and are logged by the
+    backend, not forwarded. Mapping of Stack errors, after the client file's own retries:
+
+    | Stack outcome | Backend status and `code` | `retryable` |
+    |---|---|---|
+    | a retryable error that outlived the retries (`429 rate_limited`, `503`, `504 upstream_timeout`), or a network error | `503 upstream_busy`, `retryAfterMs` from Stack (at least 1000) | true |
+    | the client file's credit cap refused the call (`FOLDBUN_MAX_CREDITS`) | `503 credit_cap` | false |
+    | any other Stack error (`402 insufficient_balance`, `403 model_locked`, `429 daily_limit_reached`, `401`, `400`, other `5xx`) | `502 upstream_refused` | false |
+
+    `upstreamCode` is the Stack error code for `upstream_busy` and `upstream_refused` (`network_error` when no response
+    arrived) and `requestId` its `X-Request-Id` when there was one. `404 image_not_found` from Stack never reaches the
+    caller: the client file uploads again and repeats the call. An unexpected internal error, one that is neither a Stack answer nor a network failure, is `500 internal` with the
+    fixed message `internal error` and no detail, which is logged instead. Errors of the backend itself: `400 invalid_request`,
+    `400 invalid_session`, `400 model_not_allowed`, `404 image_not_found`, `404 not_found` (unknown path), `405
+    method_not_allowed`, `413 payload_too_large`, `415 unsupported_media_type`, `429 rate_limited`, `500 internal`.
+
+    **Usage and the ledger.** `GET /api/usage` returns the session's counters and its ledger rows: one row per
+    successful Stack inference call, the same rows the client file records (`calls[]` of `contract/result.schema.json`).
+    Uploads are free and have no row. The click simulator copies these rows into `result.json`, so its `calls[]` and
+    `ledger` are the backend's real ledger and not a reconstruction.
+servers:
+  - url: http://127.0.0.1:8080
+paths:
+  /api/health:
+    get:
+      operationId: health
+      summary: Readiness
+      description: Answers once the backend accepts requests. No session header, no Stack call.
+      responses:
+        '200':
+          description: Ready.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [status, language, client]
+                properties:
+                  status: { const: ok }
+                  language: { enum: [python, typescript, go], description: Language of the backend. }
+                  client: { type: string, description: 'Client file and version, as in `result.json`, e.g. "stackClient 1.0.0".' }
+  /api/images:
+    post:
+      operationId: uploadImage
+      summary: Upload an image once and get its imageId
+      parameters: [ { $ref: '#/components/parameters/SessionId' } ]
+      requestBody:
+        required: true
+        description: The raw image bytes (not multipart).
+        content:
+          image/jpeg: { schema: { type: string, format: binary } }
+          image/png: { schema: { type: string, format: binary } }
+          image/webp: { schema: { type: string, format: binary } }
+      responses:
+        '200':
+          description: 'The image is stored on Stack (or was already). Repeating the upload of the same bytes returns the same body without a second Stack upload.'
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [imageId, width, height]
+                properties:
+                  imageId: { type: string, pattern: '^im_[0-9a-f]{32}$' }
+                  width: { type: integer, minimum: 1, description: Width of the oriented original in pixels. }
+                  height: { type: integer, minimum: 1, description: Height of the oriented original in pixels. }
+        default: { $ref: '#/components/responses/Error' }
+  /api/refine:
+    post:
+      operationId: refine
+      summary: One click (all points of the object) to one polygon
+      parameters: [ { $ref: '#/components/parameters/SessionId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefineRequest' }
+            example:
+              imageId: im_0c3f8e2a91b54d7e8f60a1b2c3d4e5f6
+              points:
+                - { x: 412, y: 230, positive: true }
+                - { x: 80, y: 40, positive: false }
+      responses:
+        '200':
+          description: The refined object.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RefineResponse' }
+        default: { $ref: '#/components/responses/Error' }
+  /api/usage:
+    get:
+      operationId: usage
+      summary: Clicks, cost, cache hits and ledger rows of this session
+      parameters: [ { $ref: '#/components/parameters/SessionId' } ]
+      responses:
+        '200':
+          description: Counters since the session started. A session that made no request yet has zeros and no rows.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Usage' }
+        default: { $ref: '#/components/responses/Error' }
+components:
+  parameters:
+    SessionId:
+      name: X-Session-Id
+      in: header
+      required: true
+      description: The caller's session; see "Sessions".
+      schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,64}$' }
+  responses:
+    Error:
+      description: Any error; see "Errors" for the codes.
+      headers:
+        Retry-After: { description: 'With 429 and 503 when `retryAfterMs` > 0: seconds, rounded up.', schema: { type: integer } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    Point:
+      type: object
+      additionalProperties: false
+      required: [x, y]
+      properties:
+        x: { type: number, description: Horizontal position in pixels of the oriented original. }
+        y: { type: number, description: Vertical position in pixels of the oriented original. }
+        positive: { type: boolean, default: true, description: 'True: on the object (left click). False: on something to exclude (right click or Alt).' }
+    RefineRequest:
+      type: object
+      additionalProperties: false
+      required: [imageId, points]
+      properties:
+        imageId: { type: string, pattern: '^im_[0-9a-f]{32}$' }
+        points: { type: array, maxItems: 20, items: { $ref: '#/components/schemas/Point' }, description: 'All clicks on this object so far, oldest first. May be empty when `box` is given.' }
+        box: { type: array, minItems: 4, maxItems: 4, items: { type: number }, description: '[x1, y1, x2, y2] in pixels of the oriented original.' }
+        model: { type: string, enum: [sam-lite, sam3], default: sam-lite, description: 'Must be in the backend''s `SEGMENTER_MODELS`, otherwise `400 model_not_allowed`.' }
+    PolygonPart:
+      type: object
+      description: One separate piece of the object, exactly as Stack returns it (`PolygonPart` of the Stack API description).
+      required: [outer]
+      properties:
+        outer: { type: array, minItems: 6, items: { type: integer, minimum: 0 }, description: 'Flat [x0, y0, x1, y1, ...], open, clockwise on screen.' }
+        holes: { type: array, items: { type: array, minItems: 6, items: { type: integer, minimum: 0 } } }
+    RefineResponse:
+      type: object
+      additionalProperties: false
+      required: [polygon, bbox, area, score, model, costCredits, listCredits, cache, latencyMs]
+      properties:
+        polygon: { type: array, items: { $ref: '#/components/schemas/PolygonPart' }, description: 'The first instance''s `polygon` from Stack; `[]` when Stack returned none (vertex limit).' }
+        bbox: { type: array, minItems: 4, maxItems: 4, items: { type: number }, description: The instance's `bbox` from Stack. }
+        area: { type: number, minimum: 0, description: The instance's `area` from Stack (mask pixels). }
+        score: { type: number, description: The instance's `score` from Stack. }
+        model: { type: string }
+        costCredits: { type: number, minimum: 0, description: 'Credits charged for this call (Stack `cost`; 0 when a free pool covered it).' }
+        listCredits: { type: number, minimum: 0, description: 'List price of this call (Stack `billing.total`): `sam-lite` 0.01 per click, plus 0.2 for encoding the image when `cache` is `miss`.' }
+        cache: { enum: [hit, miss], description: 'Stack''s image-encoding cache. A hit is not guaranteed: plan for a miss on every click.' }
+        latencyMs: { type: integer, minimum: 0, description: 'Time the backend spent in the Stack call, retries included (wall clock).' }
+    LedgerRow:
+      type: object
+      description: One row of the client file's ledger; the `call` of `contract/result.schema.json`.
+      additionalProperties: false
+      required: [endpoint, model, list, charged, cache, queueMs, processingMs, replayed]
+      properties:
+        endpoint: { type: string }
+        model: { type: [string, 'null'] }
+        list: { type: number }
+        charged: { type: number }
+        cache: { type: [string, 'null'] }
+        queueMs: { type: number }
+        processingMs: { type: number }
+        replayed: { type: boolean }
+    Usage:
+      type: object
+      additionalProperties: false
+      required: [sessionId, uploads, clicks, costCredits, listCredits, cacheHits, cacheMisses, calls]
+      properties:
+        sessionId: { type: string }
+        uploads: { type: integer, minimum: 0, description: 'Successful `POST /api/images` requests, including ones answered from the cache.' }
+        clicks: { type: integer, minimum: 0, description: 'Successful `POST /api/refine` requests.' }
+        costCredits: { type: number, minimum: 0, description: Sum of `charged` over the rows that were not replayed. }
+        listCredits: { type: number, minimum: 0, description: Sum of `list` over the rows that were not replayed. }
+        cacheHits: { type: integer, minimum: 0 }
+        cacheMisses: { type: integer, minimum: 0 }
+        calls: { type: array, items: { $ref: '#/components/schemas/LedgerRow' }, description: 'Oldest first. Kept for the life of the session.' }
+    Error:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message, retryable, retryAfterMs]
+          properties:
+            code:
+              enum: [invalid_request, invalid_session, model_not_allowed, image_not_found, not_found, method_not_allowed, payload_too_large, unsupported_media_type, rate_limited, upstream_busy, upstream_refused, credit_cap, internal]
+            message: { type: string }
+            retryable: { type: boolean }
+            retryAfterMs: { type: integer, minimum: 0 }
+            upstreamCode: { type: string, description: 'Stack error code, with `upstream_busy` and `upstream_refused`.' }
+            requestId: { type: string, description: 'Stack `X-Request-Id`, when Stack answered.' }

@@ -1,0 +1,1884 @@
+{
+  "usecase": "05-image-library-search",
+  "language": "python",
+  "client": "stack_client 1.0.0",
+  "startedAt": "2026-11-12T04:44:15Z",
+  "elapsedMs": 9174,
+  "items": [
+    {
+      "id": "5177b735e298df6c",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 94,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 87,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "4855b6c4c94dd6cd747c95ce575f54a0f3d7f1b6936c4f427b6e51723708060a",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "dup-025",
+          "f7923c7226760308",
+          "dup-010",
+          "a805ea9c566f3909",
+          "a49fa34a20c6ea6c",
+          "c9706bcb486110b1",
+          "5803ac5d20687383",
+          "dup-037",
+          "88a797429b8936a0",
+          "2a72eb666da926a2"
+        ],
+        "neighborScores": [
+          0.979,
+          0.2934,
+          0.2874,
+          0.1968,
+          0.1042,
+          0.0643,
+          0.0561,
+          0.0504,
+          0.0495,
+          0.036
+        ],
+        "duplicateGroup": "5177b735e298df6c",
+        "groupSize": 2
+      },
+      "status": "ok"
+    },
+    {
+      "id": "a805ea9c566f3909",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 90,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 62,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "fc569d765445e5443be6a1839125bd51d2f962b5144259504abd2464eab2929b",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "f7923c7226760308",
+          "dup-010",
+          "dup-025",
+          "5177b735e298df6c",
+          "2a72eb666da926a2",
+          "c9706bcb486110b1",
+          "0867ed7b739f753a",
+          "8289e44957b30080",
+          "aaaf093e2c2a45f1",
+          "8da2bce7dda64c71"
+        ],
+        "neighborScores": [
+          0.4262,
+          0.3943,
+          0.2065,
+          0.1968,
+          0.1816,
+          0.0399,
+          0.0333,
+          0.024,
+          0.0221,
+          0.0132
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "f7923c7226760308",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 63,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 56,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "44765fa46e84e1b83c6cfabf06f497804db11c3088b13ca1d04db1a6ce89305e",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "dup-010",
+          "a805ea9c566f3909",
+          "dup-025",
+          "5177b735e298df6c",
+          "88a797429b8936a0",
+          "2a72eb666da926a2",
+          "2fc204f1f507a19b",
+          "c9706bcb486110b1",
+          "8da2bce7dda64c71",
+          "0867ed7b739f753a"
+        ],
+        "neighborScores": [
+          0.9698,
+          0.4262,
+          0.3038,
+          0.2934,
+          0.133,
+          0.1328,
+          0.083,
+          0.076,
+          0.0749,
+          0.0727
+        ],
+        "duplicateGroup": "f7923c7226760308",
+        "groupSize": 2
+      },
+      "status": "ok"
+    },
+    {
+      "id": "2a72eb666da926a2",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 67,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 61,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "9b08b882ee5cb2fa6c4e9b7d24f8c25e83355b7cb0b9c33e7c5c5b0dfdd38644",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "a805ea9c566f3909",
+          "f7923c7226760308",
+          "dup-010",
+          "bdeb171d607fd9b8",
+          "8fc05ddaac1c9423",
+          "aaaf093e2c2a45f1",
+          "dup-050",
+          "5177b735e298df6c",
+          "c79a13e045d4e361",
+          "dup-025"
+        ],
+        "neighborScores": [
+          0.1816,
+          0.1328,
+          0.1314,
+          0.0726,
+          0.0722,
+          0.0686,
+          0.0656,
+          0.036,
+          0.0332,
+          0.0288
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "bdeb171d607fd9b8",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 60,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 156,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "e61b7e0913a603e2adea556c35df5ef9706042985617ad77630a8c19a4507933",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "dup-050",
+          "393656cddf8e828c",
+          "c79a13e045d4e361",
+          "8da2bce7dda64c71",
+          "aaaf093e2c2a45f1",
+          "2a72eb666da926a2",
+          "2fc204f1f507a19b",
+          "dup-047",
+          "dup-037",
+          "8fc05ddaac1c9423"
+        ],
+        "neighborScores": [
+          0.9579,
+          0.1192,
+          0.1184,
+          0.0922,
+          0.083,
+          0.0726,
+          0.0682,
+          0.0605,
+          0.0593,
+          0.0585
+        ],
+        "duplicateGroup": "bdeb171d607fd9b8",
+        "groupSize": 2
+      },
+      "status": "ok"
+    },
+    {
+      "id": "a49fa34a20c6ea6c",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 58,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 54,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "1eb560fbd5f5c9c587d77c65197a7fe63daf081c591de00290cc9d1652235dca",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "5177b735e298df6c",
+          "dup-025",
+          "c79a13e045d4e361",
+          "bdeb171d607fd9b8",
+          "dup-050",
+          "c9706bcb486110b1",
+          "88a797429b8936a0",
+          "aaaf093e2c2a45f1",
+          "8fc05ddaac1c9423",
+          "c62711b2e9c8e009"
+        ],
+        "neighborScores": [
+          0.1042,
+          0.0979,
+          0.0707,
+          0.0289,
+          0.0251,
+          0.0231,
+          0.0178,
+          0.0143,
+          0.0093,
+          0.0083
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "aaaf093e2c2a45f1",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 55,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 81,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "d71470148505cbb7986bcefb181a56ecd37d1f60b62edb906ded8ace55e49f1d",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "8fc05ddaac1c9423",
+          "0867ed7b739f753a",
+          "88a797429b8936a0",
+          "bdeb171d607fd9b8",
+          "c62711b2e9c8e009",
+          "2a72eb666da926a2",
+          "4fbfda372bc472d7",
+          "c9706bcb486110b1",
+          "2fc204f1f507a19b",
+          "dup-050"
+        ],
+        "neighborScores": [
+          0.2362,
+          0.1738,
+          0.0858,
+          0.083,
+          0.0727,
+          0.0686,
+          0.0667,
+          0.0656,
+          0.0489,
+          0.0449
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "8fc05ddaac1c9423",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 95,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 57,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "a3b9a98b266e91500ac1e6399477bdbb35d26793ba16fa269407624eb11c3465",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "aaaf093e2c2a45f1",
+          "8da2bce7dda64c71",
+          "dup-047",
+          "2a72eb666da926a2",
+          "c79a13e045d4e361",
+          "bdeb171d607fd9b8",
+          "dup-037",
+          "dup-050",
+          "5803ac5d20687383",
+          "88a797429b8936a0"
+        ],
+        "neighborScores": [
+          0.2362,
+          0.1088,
+          0.0932,
+          0.0722,
+          0.0657,
+          0.0585,
+          0.0445,
+          0.0435,
+          0.0365,
+          0.027
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "2fc204f1f507a19b",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 67,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 48,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "9df04fc7358a576ae6dd1cd0157832c1ecc5b11a46745b41a24eacad30c44a29",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "8289e44957b30080",
+          "393656cddf8e828c",
+          "4dbcb861be92912c",
+          "4fbfda372bc472d7",
+          "f7923c7226760308",
+          "dup-010",
+          "bdeb171d607fd9b8",
+          "dup-050",
+          "c62711b2e9c8e009",
+          "aaaf093e2c2a45f1"
+        ],
+        "neighborScores": [
+          0.6597,
+          0.6384,
+          0.302,
+          0.105,
+          0.083,
+          0.0759,
+          0.0682,
+          0.0655,
+          0.0545,
+          0.0489
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "393656cddf8e828c",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 53,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 56,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "d11eb3884a70a0568d0f3bd32491d78c3f64a48dffdb6f34bdd052b3f0081566",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "2fc204f1f507a19b",
+          "8289e44957b30080",
+          "4dbcb861be92912c",
+          "bdeb171d607fd9b8",
+          "dup-050",
+          "4fbfda372bc472d7",
+          "c62711b2e9c8e009",
+          "c79a13e045d4e361",
+          "f7923c7226760308",
+          "2a72eb666da926a2"
+        ],
+        "neighborScores": [
+          0.6384,
+          0.5278,
+          0.2972,
+          0.1192,
+          0.1123,
+          0.0636,
+          0.0274,
+          0.0198,
+          0.0176,
+          0.0134
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "8289e44957b30080",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 117,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 46,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "b1b9f294a27a90be757961132ea991b347f06c1c09ef4729fa5930c463cf17d5",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "2fc204f1f507a19b",
+          "393656cddf8e828c",
+          "4dbcb861be92912c",
+          "f7923c7226760308",
+          "dup-010",
+          "dup-050",
+          "c9706bcb486110b1",
+          "4fbfda372bc472d7",
+          "bdeb171d607fd9b8",
+          "a805ea9c566f3909"
+        ],
+        "neighborScores": [
+          0.6597,
+          0.5278,
+          0.2176,
+          0.0541,
+          0.0496,
+          0.0399,
+          0.0374,
+          0.0276,
+          0.0271,
+          0.024
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "4dbcb861be92912c",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 55,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 48,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "9558692fb88f170b5fde4d72be806212d7e0d25dfd8935c317c0dcdbe4111739",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "2fc204f1f507a19b",
+          "393656cddf8e828c",
+          "8289e44957b30080",
+          "4fbfda372bc472d7",
+          "dup-050",
+          "88a797429b8936a0",
+          "bdeb171d607fd9b8",
+          "c79a13e045d4e361",
+          "c9706bcb486110b1",
+          "8da2bce7dda64c71"
+        ],
+        "neighborScores": [
+          0.302,
+          0.2972,
+          0.2176,
+          0.1742,
+          0.0556,
+          0.0492,
+          0.0492,
+          0.0306,
+          0.0223,
+          0.0122
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "c62711b2e9c8e009",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 65,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 60,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "e04ceb168251bf105d81a76d17a94221d4a8f0807e0254dacbfb78e2662922da",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "0867ed7b739f753a",
+          "dup-047",
+          "aaaf093e2c2a45f1",
+          "8da2bce7dda64c71",
+          "2fc204f1f507a19b",
+          "bdeb171d607fd9b8",
+          "88a797429b8936a0",
+          "4fbfda372bc472d7",
+          "c79a13e045d4e361",
+          "dup-050"
+        ],
+        "neighborScores": [
+          0.1545,
+          0.0822,
+          0.0727,
+          0.0685,
+          0.0545,
+          0.0483,
+          0.0351,
+          0.0341,
+          0.0316,
+          0.0274
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "0867ed7b739f753a",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 67,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 51,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "4bf7fd5c1c28b1953964f4213821164bbeddf1b47d5c6cec5ea6dccb917a95e1",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "aaaf093e2c2a45f1",
+          "c62711b2e9c8e009",
+          "dup-010",
+          "f7923c7226760308",
+          "c9706bcb486110b1",
+          "4fbfda372bc472d7",
+          "dup-047",
+          "a805ea9c566f3909",
+          "8da2bce7dda64c71",
+          "dup-037"
+        ],
+        "neighborScores": [
+          0.1738,
+          0.1545,
+          0.0863,
+          0.0727,
+          0.0627,
+          0.0626,
+          0.0403,
+          0.0333,
+          0.0292,
+          0.0064
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "5803ac5d20687383",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 82,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 57,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "e4ec101292064d8a9f532e7c75b693319cc45c1aaa1045ba17c1b870de2ff092",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "dup-037",
+          "dup-050",
+          "5177b735e298df6c",
+          "bdeb171d607fd9b8",
+          "dup-025",
+          "4fbfda372bc472d7",
+          "c79a13e045d4e361",
+          "8fc05ddaac1c9423",
+          "aaaf093e2c2a45f1",
+          "c9706bcb486110b1"
+        ],
+        "neighborScores": [
+          0.9832,
+          0.0682,
+          0.0561,
+          0.0557,
+          0.0538,
+          0.0467,
+          0.0443,
+          0.0365,
+          0.0137,
+          0.0087
+        ],
+        "duplicateGroup": "5803ac5d20687383",
+        "groupSize": 2
+      },
+      "status": "ok"
+    },
+    {
+      "id": "4fbfda372bc472d7",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 56,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 49,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "7f8e2a693d892d6b4abd56f58404023a7523bc0303d21bf17be1213ca7fc5e06",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "4dbcb861be92912c",
+          "2fc204f1f507a19b",
+          "aaaf093e2c2a45f1",
+          "393656cddf8e828c",
+          "0867ed7b739f753a",
+          "dup-037",
+          "c9706bcb486110b1",
+          "5803ac5d20687383",
+          "c62711b2e9c8e009",
+          "8289e44957b30080"
+        ],
+        "neighborScores": [
+          0.1742,
+          0.105,
+          0.0667,
+          0.0636,
+          0.0626,
+          0.0516,
+          0.0468,
+          0.0467,
+          0.0341,
+          0.0276
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "c79a13e045d4e361",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 59,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 52,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "d532f7daea2fb4cb6e0ba2bf53e923a93a652d92357f595ae9a8c9a03d9def5f",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "dup-050",
+          "bdeb171d607fd9b8",
+          "a49fa34a20c6ea6c",
+          "8fc05ddaac1c9423",
+          "5803ac5d20687383",
+          "dup-037",
+          "2a72eb666da926a2",
+          "c9706bcb486110b1",
+          "c62711b2e9c8e009",
+          "4dbcb861be92912c"
+        ],
+        "neighborScores": [
+          0.1269,
+          0.1184,
+          0.0707,
+          0.0657,
+          0.0443,
+          0.0434,
+          0.0332,
+          0.0331,
+          0.0316,
+          0.0306
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "8da2bce7dda64c71",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 58,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 51,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "c1b5b3ac5229cf4628a2ac94ec50ac8ca70142afd8071685a3d001b0bf74b72a",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "dup-047",
+          "8fc05ddaac1c9423",
+          "dup-050",
+          "bdeb171d607fd9b8",
+          "dup-010",
+          "f7923c7226760308",
+          "c62711b2e9c8e009",
+          "aaaf093e2c2a45f1",
+          "0867ed7b739f753a",
+          "2a72eb666da926a2"
+        ],
+        "neighborScores": [
+          0.9631,
+          0.1088,
+          0.0939,
+          0.0922,
+          0.0811,
+          0.0749,
+          0.0685,
+          0.0361,
+          0.0292,
+          0.0185
+        ],
+        "duplicateGroup": "8da2bce7dda64c71",
+        "groupSize": 2
+      },
+      "status": "ok"
+    },
+    {
+      "id": "88a797429b8936a0",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 58,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 64,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "3ce59c158b43074b2677e6e74970585bbdceffa16752bfed9c981e5d5cc936d6",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "f7923c7226760308",
+          "dup-010",
+          "aaaf093e2c2a45f1",
+          "c9706bcb486110b1",
+          "dup-025",
+          "5177b735e298df6c",
+          "4dbcb861be92912c",
+          "c62711b2e9c8e009",
+          "2fc204f1f507a19b",
+          "8fc05ddaac1c9423"
+        ],
+        "neighborScores": [
+          0.133,
+          0.1227,
+          0.0858,
+          0.0519,
+          0.0499,
+          0.0495,
+          0.0492,
+          0.0351,
+          0.0332,
+          0.027
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "c9706bcb486110b1",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 60,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 50,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "5a5b86d447ade63df015b9b4b659e0748897d94a3426b69bd0939f875a9048d1",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "f7923c7226760308",
+          "aaaf093e2c2a45f1",
+          "dup-025",
+          "5177b735e298df6c",
+          "0867ed7b739f753a",
+          "88a797429b8936a0",
+          "4fbfda372bc472d7",
+          "dup-010",
+          "a805ea9c566f3909",
+          "8289e44957b30080"
+        ],
+        "neighborScores": [
+          0.076,
+          0.0656,
+          0.0646,
+          0.0643,
+          0.0627,
+          0.0519,
+          0.0468,
+          0.0459,
+          0.0399,
+          0.0374
+        ],
+        "duplicateGroup": null,
+        "groupSize": 1
+      },
+      "status": "ok"
+    },
+    {
+      "id": "dup-010",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 58,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 59,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "795c7521f8e91de46d946747fe18ceca1642d5ebf6b0af91e4ee53eed1770ec3",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "f7923c7226760308",
+          "a805ea9c566f3909",
+          "dup-025",
+          "5177b735e298df6c",
+          "2a72eb666da926a2",
+          "88a797429b8936a0",
+          "0867ed7b739f753a",
+          "8da2bce7dda64c71",
+          "2fc204f1f507a19b",
+          "dup-047"
+        ],
+        "neighborScores": [
+          0.9698,
+          0.3943,
+          0.2996,
+          0.2874,
+          0.1314,
+          0.1227,
+          0.0863,
+          0.0811,
+          0.0759,
+          0.0719
+        ],
+        "duplicateGroup": "f7923c7226760308",
+        "groupSize": 2
+      },
+      "status": "ok"
+    },
+    {
+      "id": "dup-025",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 59,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 52,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "deb6697d739925010affd1a509d55e3195a30836172b1c5f4db477007fcc78f8",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "5177b735e298df6c",
+          "f7923c7226760308",
+          "dup-010",
+          "a805ea9c566f3909",
+          "a49fa34a20c6ea6c",
+          "c9706bcb486110b1",
+          "5803ac5d20687383",
+          "88a797429b8936a0",
+          "dup-037",
+          "aaaf093e2c2a45f1"
+        ],
+        "neighborScores": [
+          0.979,
+          0.3038,
+          0.2996,
+          0.2065,
+          0.0979,
+          0.0646,
+          0.0538,
+          0.0499,
+          0.0481,
+          0.0352
+        ],
+        "duplicateGroup": "5177b735e298df6c",
+        "groupSize": 2
+      },
+      "status": "ok"
+    },
+    {
+      "id": "dup-037",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 58,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 60,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "ed5a3803ca5e1c5baa0fea10eb4eaf2d333e2b8538dff4e4240c7a91016f5c8c",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "5803ac5d20687383",
+          "dup-050",
+          "bdeb171d607fd9b8",
+          "4fbfda372bc472d7",
+          "5177b735e298df6c",
+          "dup-025",
+          "8fc05ddaac1c9423",
+          "c79a13e045d4e361",
+          "aaaf093e2c2a45f1",
+          "c9706bcb486110b1"
+        ],
+        "neighborScores": [
+          0.9832,
+          0.069,
+          0.0593,
+          0.0516,
+          0.0504,
+          0.0481,
+          0.0445,
+          0.0434,
+          0.0159,
+          0.0095
+        ],
+        "duplicateGroup": "5803ac5d20687383",
+        "groupSize": 2
+      },
+      "status": "ok"
+    },
+    {
+      "id": "dup-047",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 57,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 79,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "9b050505f60e574dd0376e4c1850e513454aabc0fdacc3b8bb051cf1c8969941",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "8da2bce7dda64c71",
+          "8fc05ddaac1c9423",
+          "c62711b2e9c8e009",
+          "dup-010",
+          "f7923c7226760308",
+          "dup-050",
+          "bdeb171d607fd9b8",
+          "0867ed7b739f753a",
+          "aaaf093e2c2a45f1",
+          "2a72eb666da926a2"
+        ],
+        "neighborScores": [
+          0.9631,
+          0.0932,
+          0.0822,
+          0.0719,
+          0.0633,
+          0.0607,
+          0.0605,
+          0.0403,
+          0.0302,
+          0.004
+        ],
+        "duplicateGroup": "8da2bce7dda64c71",
+        "groupSize": 2
+      },
+      "status": "ok"
+    },
+    {
+      "id": "dup-050",
+      "calls": [
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "dinov3",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 58,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/batch/embeddings",
+          "model": "siglip2",
+          "list": 0.05,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 56,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "image",
+        "sha256": "cf830ce3977fc966e85d094a6ced28483d15772c3faead88f3a64c4bcaaecbbb",
+        "dimensions": {
+          "dinov3": 768,
+          "siglip2": 768
+        },
+        "neighbors": [
+          "bdeb171d607fd9b8",
+          "c79a13e045d4e361",
+          "393656cddf8e828c",
+          "8da2bce7dda64c71",
+          "dup-037",
+          "5803ac5d20687383",
+          "2a72eb666da926a2",
+          "2fc204f1f507a19b",
+          "dup-047",
+          "4dbcb861be92912c"
+        ],
+        "neighborScores": [
+          0.9579,
+          0.1269,
+          0.1123,
+          0.0939,
+          0.069,
+          0.0682,
+          0.0656,
+          0.0655,
+          0.0607,
+          0.0556
+        ],
+        "duplicateGroup": "bdeb171d607fd9b8",
+        "groupSize": 2
+      },
+      "status": "ok"
+    },
+    {
+      "id": "q01",
+      "calls": [
+        {
+          "endpoint": "/v1/embeddings",
+          "model": "siglip2",
+          "list": 0.01,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 51,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "query",
+        "text": "a photo of a monkey",
+        "ranking": [
+          "f7923c7226760308",
+          "dup-010",
+          "a805ea9c566f3909",
+          "2a72eb666da926a2",
+          "5177b735e298df6c",
+          "dup-025",
+          "bdeb171d607fd9b8",
+          "dup-050",
+          "dup-047",
+          "8da2bce7dda64c71",
+          "a49fa34a20c6ea6c",
+          "8fc05ddaac1c9423",
+          "8289e44957b30080",
+          "c62711b2e9c8e009",
+          "c9706bcb486110b1",
+          "c79a13e045d4e361",
+          "aaaf093e2c2a45f1",
+          "5803ac5d20687383",
+          "4dbcb861be92912c",
+          "0867ed7b739f753a",
+          "dup-037",
+          "393656cddf8e828c",
+          "2fc204f1f507a19b",
+          "4fbfda372bc472d7",
+          "88a797429b8936a0"
+        ],
+        "scores": [
+          0.1527,
+          0.1527,
+          0.1401,
+          0.1235,
+          0.1221,
+          0.1193,
+          0.0403,
+          0.0398,
+          0.0375,
+          0.0318,
+          0.0314,
+          0.0266,
+          0.0145,
+          0.0133,
+          0.0126,
+          0.0125,
+          0.01,
+          0.0072,
+          0.0063,
+          0.0048,
+          0.0035,
+          0.0017,
+          -0.0033,
+          -0.009,
+          -0.0348
+        ]
+      },
+      "status": "ok"
+    },
+    {
+      "id": "q02",
+      "calls": [
+        {
+          "endpoint": "/v1/embeddings",
+          "model": "siglip2",
+          "list": 0.01,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 57,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "query",
+        "text": "a photo of a flower",
+        "ranking": [
+          "dup-050",
+          "bdeb171d607fd9b8",
+          "8fc05ddaac1c9423",
+          "aaaf093e2c2a45f1",
+          "5803ac5d20687383",
+          "dup-037",
+          "0867ed7b739f753a",
+          "c79a13e045d4e361",
+          "c62711b2e9c8e009",
+          "8289e44957b30080",
+          "4dbcb861be92912c",
+          "393656cddf8e828c",
+          "a49fa34a20c6ea6c",
+          "dup-047",
+          "a805ea9c566f3909",
+          "dup-010",
+          "c9706bcb486110b1",
+          "f7923c7226760308",
+          "8da2bce7dda64c71",
+          "2a72eb666da926a2",
+          "2fc204f1f507a19b",
+          "5177b735e298df6c",
+          "4fbfda372bc472d7",
+          "dup-025",
+          "88a797429b8936a0"
+        ],
+        "scores": [
+          0.1219,
+          0.1186,
+          0.1116,
+          0.1102,
+          0.0786,
+          0.0763,
+          0.0725,
+          0.0652,
+          0.0482,
+          0.0457,
+          0.0451,
+          0.0402,
+          0.0347,
+          0.0331,
+          0.032,
+          0.031,
+          0.0306,
+          0.029,
+          0.0273,
+          0.0244,
+          0.0222,
+          0.016,
+          0.0153,
+          0.0136,
+          -0.0032
+        ]
+      },
+      "status": "ok"
+    },
+    {
+      "id": "q03",
+      "calls": [
+        {
+          "endpoint": "/v1/embeddings",
+          "model": "siglip2",
+          "list": 0.01,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 47,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "query",
+        "text": "a photo of a candle",
+        "ranking": [
+          "8289e44957b30080",
+          "393656cddf8e828c",
+          "2fc204f1f507a19b",
+          "4dbcb861be92912c",
+          "dup-050",
+          "c79a13e045d4e361",
+          "aaaf093e2c2a45f1",
+          "bdeb171d607fd9b8",
+          "dup-037",
+          "5803ac5d20687383",
+          "8fc05ddaac1c9423",
+          "0867ed7b739f753a",
+          "c9706bcb486110b1",
+          "c62711b2e9c8e009",
+          "dup-047",
+          "dup-010",
+          "f7923c7226760308",
+          "a805ea9c566f3909",
+          "8da2bce7dda64c71",
+          "2a72eb666da926a2",
+          "88a797429b8936a0",
+          "4fbfda372bc472d7",
+          "a49fa34a20c6ea6c",
+          "5177b735e298df6c",
+          "dup-025"
+        ],
+        "scores": [
+          0.1584,
+          0.1545,
+          0.1373,
+          0.1172,
+          0.06,
+          0.0442,
+          0.0439,
+          0.0419,
+          0.0372,
+          0.0354,
+          0.0347,
+          0.0323,
+          0.0299,
+          0.0248,
+          0.0193,
+          0.018,
+          0.0121,
+          0.0119,
+          0.0095,
+          -0.0008,
+          -0.0024,
+          -0.0046,
+          -0.0052,
+          -0.0079,
+          -0.0095
+        ]
+      },
+      "status": "ok"
+    },
+    {
+      "id": "q04",
+      "calls": [
+        {
+          "endpoint": "/v1/embeddings",
+          "model": "siglip2",
+          "list": 0.01,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 56,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "query",
+        "text": "a photo of a houseplant",
+        "ranking": [
+          "5803ac5d20687383",
+          "0867ed7b739f753a",
+          "c62711b2e9c8e009",
+          "dup-037",
+          "dup-050",
+          "bdeb171d607fd9b8",
+          "aaaf093e2c2a45f1",
+          "c79a13e045d4e361",
+          "8fc05ddaac1c9423",
+          "8289e44957b30080",
+          "dup-047",
+          "4fbfda372bc472d7",
+          "a805ea9c566f3909",
+          "2fc204f1f507a19b",
+          "4dbcb861be92912c",
+          "8da2bce7dda64c71",
+          "dup-010",
+          "393656cddf8e828c",
+          "f7923c7226760308",
+          "2a72eb666da926a2",
+          "a49fa34a20c6ea6c",
+          "c9706bcb486110b1",
+          "5177b735e298df6c",
+          "dup-025",
+          "88a797429b8936a0"
+        ],
+        "scores": [
+          0.1187,
+          0.1159,
+          0.1154,
+          0.1089,
+          0.099,
+          0.0931,
+          0.075,
+          0.0692,
+          0.0664,
+          0.0422,
+          0.029,
+          0.0264,
+          0.0259,
+          0.0248,
+          0.0247,
+          0.0224,
+          0.0222,
+          0.0217,
+          0.0197,
+          0.0195,
+          0.0065,
+          0.0011,
+          -0.0065,
+          -0.0087,
+          -0.0134
+        ]
+      },
+      "status": "ok"
+    },
+    {
+      "id": "q05",
+      "calls": [
+        {
+          "endpoint": "/v1/embeddings",
+          "model": "siglip2",
+          "list": 0.01,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 46,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "type": "query",
+        "text": "a photo of a vegetable",
+        "ranking": [
+          "c79a13e045d4e361",
+          "dup-047",
+          "8da2bce7dda64c71",
+          "dup-037",
+          "5803ac5d20687383",
+          "c9706bcb486110b1",
+          "dup-050",
+          "0867ed7b739f753a",
+          "8fc05ddaac1c9423",
+          "bdeb171d607fd9b8",
+          "88a797429b8936a0",
+          "aaaf093e2c2a45f1",
+          "4dbcb861be92912c",
+          "c62711b2e9c8e009",
+          "4fbfda372bc472d7",
+          "a49fa34a20c6ea6c",
+          "dup-010",
+          "8289e44957b30080",
+          "f7923c7226760308",
+          "a805ea9c566f3909",
+          "393656cddf8e828c",
+          "dup-025",
+          "5177b735e298df6c",
+          "2a72eb666da926a2",
+          "2fc204f1f507a19b"
+        ],
+        "scores": [
+          0.1236,
+          0.1179,
+          0.1102,
+          0.1013,
+          0.0979,
+          0.0818,
+          0.0649,
+          0.0629,
+          0.0603,
+          0.0586,
+          0.0574,
+          0.0451,
+          0.0415,
+          0.0373,
+          0.0365,
+          0.0338,
+          0.0317,
+          0.0305,
+          0.0283,
+          0.0279,
+          0.0233,
+          0.0213,
+          0.0211,
+          0.0196,
+          0.0108
+        ]
+      },
+      "status": "ok"
+    }
+  ],
+  "ledger": {
+    "calls": 55,
+    "listTotal": 2.55,
+    "chargedTotal": 0.0
+  }
+}

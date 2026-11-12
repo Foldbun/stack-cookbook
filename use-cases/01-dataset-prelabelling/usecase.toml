@@ -1,0 +1,42 @@
+id = "01-dataset-prelabelling"
+order = 1
+title = { en = "Pre-label an image dataset from text prompts", zh = "用文字提示词预标注图像数据集" }
+summary = { en = "Segment a folder of images in batches from text prompts, accept confident labels, queue the uncertain ones for review and export COCO and YOLO-seg.", zh = "按文字提示词分批分割一个图片目录，接受高置信度标注，把不确定的送入复核队列，并导出 COCO 与 YOLO-seg。" }
+models = ["sam3", "sam-lite"]
+tier = "billed"
+languages = ["python", "go"]
+reference = "python"
+docs = ["/docs/use-cases/concept-segmentation/", "/docs/post-processing/"]
+playground = "/playground/?model=sam3&sample=street"
+
+# The smoke set stays in datasets/ (4 images, 0.9 MB, attribution there) instead of being copied here.
+[sizes.smoke]
+manifest = "../../datasets/smoke/01-dataset-prelabelling/manifest.json"
+budget_credits = 2.80
+
+# The 60 images are a release asset: extract 01-dataset-prelabelling-full.tar.gz into assets/ (see assets/full.json).
+[sizes.full]
+manifest = "assets/full.json"
+budget_credits = 42.0
+languages = ["python"]
+
+[compare]
+"items[].output.image.sha256" = { exact = true }
+"items[].output.instances" = { len = true }
+"items[].output.instances[].class" = { exact = true }
+"items[].output.instances[].route" = { exact = true }
+"items[].output.instances[].score" = { abs = 0.03 }
+"items[].output.instances[].bbox" = { abs = 6 }
+"items[].output.counts.accept" = { abs = 1 }
+"items[].output.counts.review" = { abs = 1 }
+"items[].output.missing" = { set = true }
+"ledger.calls" = { exact = true }
+
+# Regression floors for the full run (evaluate.py); the maintainers tighten them after the first recorded run.
+[quality]
+# Floors on the full set (60 images, 4 classes), set with a margin around the first recorded run
+# (expected/full-summary.json).
+"precision@0.5.macro" = { min = 0.75 }
+"recall_with_review@0.5.macro" = { min = 0.80 }
+"review_share" = { max = 0.40 }
+"cost_per_1000_images" = { max = 800 }

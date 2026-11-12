@@ -1,0 +1,88 @@
+{
+ "release": "datasets-v1",
+ "sets": {
+  "01-dataset-prelabelling": {
+   "file": "01-dataset-prelabelling-full.tar.gz",
+   "bytes": 10586565,
+   "sha256": "c6865cb9baacaa15b18295a93e4ec1fa4ae86c974c10f147d9476c5abaeada70",
+   "files": 63,
+   "smoke": {
+    "ATTRIBUTION.csv": "e415909e6a728dfa6a5af6b2f9d7e92dcbed1d9a8303c9d3a1f0a514508a4b35",
+    "images/16774edaeacc5aed.jpg": "456029fae38febb48426191e6683c8094f674949a8b182d4942a39e28a638a64",
+    "images/5da2941bab9c2f4a.jpg": "dae10cb32570c56aa1043bab75a8077e8243e224da6dd64e8009e0426ba30309",
+    "images/746b596e2148b044.jpg": "cc838047ede6449a0d3cea126b4749a0f66069f199f26b6bb45f5a4159a15f19",
+    "images/7803588ebab09921.jpg": "9a79a459e68993d1814e8097a4fc073ea26dde49637aa6b6215d4dd0d26306a6",
+    "manifest.json": "0361fd11305700192df52a9cf74355adc4198998b855ad606071d1bfa6f889a9",
+    "truth.json": "711f6747d7b11d3924220cb802598489de6a1f3057899b4a1b189227d31cfe87"
+   }
+  },
+  "02-click-to-segment": {
+   "file": "02-click-to-segment-full.tar.gz",
+   "bytes": 4624731,
+   "sha256": "f8f4dc3aee51cef89c92ebe4053cc6ab37734195a15813bb5496120ffb1306f6",
+   "files": 63,
+   "smoke": {
+    "ATTRIBUTION.csv": "2da63516e6398561f4cd8ef6936fb6af06aa5843c96e924ef5c84ffbf17d1a7b",
+    "images/77bfbbef28ac344c.jpg": "db2d012362693637f343e9f58d6ab9e6a3a6dadf3e6353003ecea527343a11d0",
+    "images/915ac36ff8e610e6.jpg": "fc2388a562f14b5f7f3659ba761e73d3febda4cd80beeb425b33e348b9bb0131",
+    "images/9314c56f8f11e177.jpg": "586917b3da80287cb37fd86a7db09697f0d0711f29346a78442ebfc59333a3a6",
+    "manifest.json": "8d808247159f95e584e67318166361a766f715f4e129cfd738475e1876b838d1",
+    "masks/77bfbbef28ac344c-207f2013.png": "8165a4eca62791c02282cb4ad9c0be88a7788e69a16bfbb35adc51f09c12d8af",
+    "masks/915ac36ff8e610e6-d68c741b.png": "f4b22807eef8ff1644cf3a6def27a3a5654556be667c98c8ed7719aadb623bae",
+    "masks/9314c56f8f11e177-abb80726.png": "07a89465755bae534e3a83f4a9cee293eb7f7cf45d88f52fa5d022a2be09a2bf",
+    "truth.json": "607fa6e13563a81add8819b7acc9d34ddcef94db04557cb6aa6775fd7cd70ffb"
+   }
+  },
+  "03-receipts-to-json": {
+   "file": "03-receipts-to-json-full.tar.gz",
+   "bytes": 11698693,
+   "sha256": "2c0a1eb947d6919197eb70ac4a4fe5bc6f48d942d2aadfe601620bfbb9f98264",
+   "files": 83,
+   "smoke": {
+    "ATTRIBUTION.csv": "04745ea42d8ebb2c73f8a9d496e2e33c3424b939075133015117e65ed2e1d535",
+    "images/cord-001.jpg": "49c15b2640381c9ddd7b12227cc290d4e4eea6d3218d6ca0343df9fbbdf1d2da",
+    "images/cord-002.jpg": "91bf03a4724b29ca40b3d34e995c91ff89ca2daaeab61f718509340fd4b4f1ac",
+    "images/cord-003.jpg": "9d39a6a24d60a7647ea0c8096f6ea58fcbf1aa99d4534002ebf4dac66c40918f",
+    "images/inv-011.jpg": "826a22576c6234a63cf9a9c28fd19c482292756ee86b10ae42e928e9f7b6841c",
+    "manifest.json": "fef4c8501038555d084474511196ce19b94238e4c25bff81d279aa72df3e6c63",
+    "truth.json": "c0b9fa826fda24f605957d41c75450e3e1aff0809f93edc572be51c1430a3377"
+   }
+  },
+  "05-image-library-search": {
+   "file": "05-image-library-search-full.tar.gz",
+   "bytes": 73655115,
+   "sha256": "13317cc9c68cbbf11a723625c15afe0ccf6b3f47d38ae1d16d7a86b3f636462f",
+   "files": 503,
+   "smoke": {
+    "ATTRIBUTION.csv": "b0fc537f68a9fbcc5c1ab20c3613e7eccef847ed494616493703ac3aa5bed431",
+    "images/0867ed7b739f753a.jpg": "4bf7fd5c1c28b1953964f4213821164bbeddf1b47d5c6cec5ea6dccb917a95e1",
+    "images/2a72eb666da926a2.jpg": "9b08b882ee5cb2fa6c4e9b7d24f8c25e83355b7cb0b9c33e7c5c5b0dfdd38644",
+    "images/2fc204f1f507a19b.jpg": "9df04fc7358a576ae6dd1cd0157832c1ecc5b11a46745b41a24eacad30c44a29",
+    "images/393656cddf8e828c.jpg": "d11eb3884a70a0568d0f3bd32491d78c3f64a48dffdb6f34bdd052b3f0081566",
+    "images/4dbcb861be92912c.jpg": "9558692fb88f170b5fde4d72be806212d7e0d25dfd8935c317c0dcdbe4111739",
+    "images/4fbfda372bc472d7.jpg": "7f8e2a693d892d6b4abd56f58404023a7523bc0303d21bf17be1213ca7fc5e06",
+    "images/5177b735e298df6c.jpg": "4855b6c4c94dd6cd747c95ce575f54a0f3d7f1b6936c4f427b6e51723708060a",
+    "images/5803ac5d20687383.jpg": "e4ec101292064d8a9f532e7c75b693319cc45c1aaa1045ba17c1b870de2ff092",
+    "images/8289e44957b30080.jpg": "b1b9f294a27a90be757961132ea991b347f06c1c09ef4729fa5930c463cf17d5",
+    "images/88a797429b8936a0.jpg": "3ce59c158b43074b2677e6e74970585bbdceffa16752bfed9c981e5d5cc936d6",
+    "images/8da2bce7dda64c71.jpg": "c1b5b3ac5229cf4628a2ac94ec50ac8ca70142afd8071685a3d001b0bf74b72a",
+    "images/8fc05ddaac1c9423.jpg": "a3b9a98b266e91500ac1e6399477bdbb35d26793ba16fa269407624eb11c3465",
+    "images/a49fa34a20c6ea6c.jpg": "1eb560fbd5f5c9c587d77c65197a7fe63daf081c591de00290cc9d1652235dca",
+    "images/a805ea9c566f3909.jpg": "fc569d765445e5443be6a1839125bd51d2f962b5144259504abd2464eab2929b",
+    "images/aaaf093e2c2a45f1.jpg": "d71470148505cbb7986bcefb181a56ecd37d1f60b62edb906ded8ace55e49f1d",
+    "images/bdeb171d607fd9b8.jpg": "e61b7e0913a603e2adea556c35df5ef9706042985617ad77630a8c19a4507933",
+    "images/c62711b2e9c8e009.jpg": "e04ceb168251bf105d81a76d17a94221d4a8f0807e0254dacbfb78e2662922da",
+    "images/c79a13e045d4e361.jpg": "d532f7daea2fb4cb6e0ba2bf53e923a93a652d92357f595ae9a8c9a03d9def5f",
+    "images/c9706bcb486110b1.jpg": "5a5b86d447ade63df015b9b4b659e0748897d94a3426b69bd0939f875a9048d1",
+    "images/dup-010.jpg": "795c7521f8e91de46d946747fe18ceca1642d5ebf6b0af91e4ee53eed1770ec3",
+    "images/dup-025.jpg": "deb6697d739925010affd1a509d55e3195a30836172b1c5f4db477007fcc78f8",
+    "images/dup-037.jpg": "ed5a3803ca5e1c5baa0fea10eb4eaf2d333e2b8538dff4e4240c7a91016f5c8c",
+    "images/dup-047.jpg": "9b050505f60e574dd0376e4c1850e513454aabc0fdacc3b8bb051cf1c8969941",
+    "images/dup-050.jpg": "cf830ce3977fc966e85d094a6ced28483d15772c3faead88f3a64c4bcaaecbbb",
+    "images/f7923c7226760308.jpg": "44765fa46e84e1b83c6cfabf06f497804db11c3088b13ca1d04db1a6ce89305e",
+    "manifest.json": "8f824ddda075308a10883db16e25e07aa2f762ee19381f76a1c89a85ba5f4018",
+    "truth.json": "7191345b8e578083902b22f81de676eb1c96283600e0a917cf6445c5d3168218"
+   }
+  }
+ }
+}

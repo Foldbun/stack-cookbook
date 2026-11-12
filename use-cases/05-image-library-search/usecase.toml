@@ -1,0 +1,50 @@
+id = "05-image-library-search"
+order = 5
+title = { en = "Search an image library by image, by text, and for near-duplicates", zh = "按图、按文字搜索图库，并找出近重复图片" }
+summary = { en = "Embed a library with dinov3 and siglip2, keep the vectors in a local index that is updated incrementally, and answer image, text and near-duplicate queries with exact cosine search.", zh = "用 dinov3 和 siglip2 为图库生成向量，存进可增量更新的本地索引，再用精确的余弦检索完成以图搜图、文字搜图和近重复检测。" }
+models = ["dinov3", "siglip2"]
+tier = "public"
+languages = ["python", "go"]
+reference = "python"
+docs = ["/docs/use-cases/embeddings/", "/docs/models/dinov3/", "/docs/models/siglip2/", "/docs/rate-limits/"]
+playground = "/playground/?model=siglip2"
+
+[sizes.smoke]
+manifest = "assets/smoke/manifest.json"
+budget_credits = 3.0
+
+# The 500 images (400 originals + 100 near-duplicate variants) and 40 text queries are a release asset: extract
+# 05-image-library-search-full.tar.gz into assets/ (see assets/full.json). Worst case at list price: every image is
+# embedded by dinov3 (0.05) and siglip2 (0.05), every query is one siglip2 text (0.01):
+# 500 x (0.05 + 0.05) + 40 x 0.01 = 50.4, planned as 51 to leave room for rounding. A second indexing pass sends nothing.
+[sizes.full]
+manifest = "assets/full.json"
+budget_credits = 51.0
+languages = ["python"]
+
+[compare]
+"items[].output.type" = { exact = true }
+"items[].output.sha256" = { exact = true }
+"items[].output.dimensions" = { exact = true }
+"items[].output.neighbors" = { set = true }
+"items[].output.neighborScores" = { abs = 0.02 }
+"items[].output.groupSize" = { abs = 1 }
+"items[].output.duplicateGroup" = { ignore = true }
+"items[].output.text" = { exact = true }
+"items[].output.ranking" = { set = true }
+"items[].output.scores" = { abs = 0.02 }
+"ledger.calls" = { exact = true }
+
+# Floors for the numbers evaluate.py prints for a live run on the full set (500 images, 40 text queries), set with a margin
+# around the first recorded run (expected/full-summary.json). They do not apply to offline runs: the fake API returns
+# vectors that carry no semantics.
+[quality]
+i2i_recall_at_1 = { min = 0.95 }
+i2i_recall_at_10 = { min = 0.98 }
+text_precision_at_10 = { min = 0.70 }
+text_recall_at_10 = { min = 0.65 }
+text_map = { min = 0.75 }
+dup_precision = { min = 0.95 }
+dup_recall = { min = 0.80 }
+cost_per_1000_images_list = { max = 110 }
+second_pass_api_calls = { max = 0 }

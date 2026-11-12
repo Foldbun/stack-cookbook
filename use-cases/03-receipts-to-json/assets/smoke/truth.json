@@ -1,0 +1,183 @@
+{
+ "usecase": "03-receipts-to-json",
+ "set": "smoke",
+ "source": "CORD v2 (NAVER Clova, CC BY 4.0) and synthetic invoices (CC0)",
+ "fields": "total, subtotal, discount, tax, service: integer (CORD, IDR) or number with 2 decimals (invoices); line_items[].amount likewise; date: ISO 8601 (invoices) or null (CORD has no date field); line_item_count: number of top-level line items. `raw` keeps the unmodified CORD gt_parse.",
+ "items": {
+  "cord-001": {
+   "kind": "cord",
+   "vendor": null,
+   "date": null,
+   "currency": "IDR",
+   "line_items": [
+    {
+     "description": "Nasi (MLY)",
+     "quantity": 1,
+     "amount": 6000,
+     "amount_text": "6.000"
+    }
+   ],
+   "line_item_count": 1,
+   "subtotal": 6000,
+   "discount": null,
+   "service": null,
+   "tax": null,
+   "total": 6000,
+   "total_text": "6.000",
+   "raw": {
+    "menu": {
+     "nm": "Nasi (MLY)",
+     "cnt": "1",
+     "price": "6.000"
+    },
+    "sub_total": {
+     "subtotal_price": "6.000"
+    },
+    "total": {
+     "total_price": "6.000",
+     "emoneyprice": "6.000"
+    }
+   },
+   "width": 960,
+   "height": 1280,
+   "source_index": 32
+  },
+  "cord-002": {
+   "kind": "cord",
+   "vendor": null,
+   "date": null,
+   "currency": "IDR",
+   "line_items": [
+    {
+     "description": "Populaire Chocolate",
+     "quantity": 1,
+     "amount": 4500,
+     "amount_text": "4,500"
+    },
+    {
+     "description": "Paddle Pop Choco Magma",
+     "quantity": 1,
+     "amount": 3000,
+     "amount_text": "3,000"
+    }
+   ],
+   "line_item_count": 2,
+   "subtotal": 7500,
+   "discount": null,
+   "service": null,
+   "tax": 750,
+   "total": 8250,
+   "total_text": "8,250",
+   "raw": {
+    "menu": [
+     {
+      "nm": "Populaire Chocolate",
+      "unitprice": "4,500",
+      "cnt": "1",
+      "price": "4,500"
+     },
+     {
+      "nm": "Paddle Pop Choco Magma",
+      "unitprice": "3,000",
+      "cnt": "1",
+      "price": "3,000"
+     }
+    ],
+    "sub_total": {
+     "subtotal_price": "7,500",
+     "tax_price": "750"
+    },
+    "total": {
+     "total_price": "8,250",
+     "total_etc": "50",
+     "cashprice": "10,000",
+     "changeprice": "1,800"
+    }
+   },
+   "width": 761,
+   "height": 1300,
+   "source_index": 61
+  },
+  "cord-003": {
+   "kind": "cord",
+   "vendor": null,
+   "date": null,
+   "currency": "IDR",
+   "line_items": [
+    {
+     "description": "Hulk Topper Package",
+     "quantity": 1,
+     "amount": 100000,
+     "amount_text": "100.000"
+    }
+   ],
+   "line_item_count": 1,
+   "subtotal": null,
+   "discount": null,
+   "service": null,
+   "tax": null,
+   "total": 100000,
+   "total_text": "100.000",
+   "raw": {
+    "menu": {
+     "nm": "Hulk Topper Package",
+     "cnt": "1",
+     "price": "100.000"
+    },
+    "total": {
+     "total_price": "100.000",
+     "cashprice": "100.000",
+     "changeprice": "0"
+    }
+   },
+   "width": 576,
+   "height": 864,
+   "source_index": 98
+  },
+  "inv-011": {
+   "kind": "photographed",
+   "vendor": "Brightwater Print Studio",
+   "customer": "Birchwood Veterinary Group",
+   "invoice_number": "RE-2026-5028",
+   "date": "2026-08-04",
+   "due_date": "2026-09-18",
+   "currency": "USD",
+   "number_format": "en",
+   "total_label": "Total",
+   "line_items": [
+    {
+     "description": "Software licence, per seat",
+     "quantity": 1,
+     "unit_price": 16.0,
+     "amount": 16.0
+    },
+    {
+     "description": "Brake pad set",
+     "quantity": 10,
+     "unit_price": 34.34,
+     "amount": 343.4
+    },
+    {
+     "description": "Design consultation (hours)",
+     "quantity": 1,
+     "unit_price": 94.1,
+     "amount": 94.1
+    },
+    {
+     "description": "Catering, per head",
+     "quantity": 1,
+     "unit_price": 17.74,
+     "amount": 17.74
+    }
+   ],
+   "line_item_count": 4,
+   "subtotal": 471.24,
+   "discount": 23.56,
+   "tax_rate_percent": 6,
+   "tax": 26.86,
+   "total": 474.54,
+   "width": 1183,
+   "height": 1500
+  }
+ }
+}

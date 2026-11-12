@@ -1,0 +1,2358 @@
+[
+ {
+  "endpoint": "/v1/ocr",
+  "model": "ppocr-v6",
+  "image": "9d39a6a24d60a7647ea0c8096f6ea58fcbf1aa99d4534002ebf4dac66c40918f",
+  "request": {
+   "options": {
+    "words": false
+   }
+  },
+  "response": {
+   "lines": [
+    {
+     "text": "100.000",
+     "confidence": 0.9999,
+     "bbox": [
+      429,
+      265,
+      509,
+      294
+     ],
+     "quad": [
+      [
+       429,
+       265
+      ],
+      [
+       509,
+       265
+      ],
+      [
+       509,
+       294
+      ],
+      [
+       429,
+       294
+      ]
+     ]
+    },
+    {
+     "text": "Hulk Topper Package",
+     "confidence": 0.9986,
+     "bbox": [
+      145,
+      270,
+      336,
+      304
+     ],
+     "quad": [
+      [
+       145,
+       277
+      ],
+      [
+       335,
+       270
+      ],
+      [
+       336,
+       297
+      ],
+      [
+       146,
+       304
+      ]
+     ]
+    },
+    {
+     "text": "100.000",
+     "confidence": 0.968,
+     "bbox": [
+      430,
+      313,
+      515,
+      359
+     ],
+     "quad": [
+      [
+       430,
+       313
+      ],
+      [
+       515,
+       313
+      ],
+      [
+       515,
+       359
+      ],
+      [
+       430,
+       359
+      ]
+     ]
+    },
+    {
+     "text": "TOTAL",
+     "confidence": 0.9999,
+     "bbox": [
+      300,
+      334,
+      357,
+      364
+     ],
+     "quad": [
+      [
+       300,
+       334
+      ],
+      [
+       357,
+       334
+      ],
+      [
+       357,
+       364
+      ],
+      [
+       300,
+       364
+      ]
+     ]
+    },
+    {
+     "text": "100.000",
+     "confidence": 0.9972,
+     "bbox": [
+      434,
+      373,
+      516,
+      404
+     ],
+     "quad": [
+      [
+       434,
+       375
+      ],
+      [
+       515,
+       373
+      ],
+      [
+       516,
+       402
+      ],
+      [
+       435,
+       404
+      ]
+     ]
+    },
+    {
+     "text": "CASH",
+     "confidence": 0.9999,
+     "bbox": [
+      105,
+      383,
+      153,
+      412
+     ],
+     "quad": [
+      [
+       105,
+       385
+      ],
+      [
+       152,
+       383
+      ],
+      [
+       153,
+       410
+      ],
+      [
+       106,
+       412
+      ]
+     ]
+    },
+    {
+     "text": "CHANGED",
+     "confidence": 0.9999,
+     "bbox": [
+      105,
+      408,
+      181,
+      436
+     ],
+     "quad": [
+      [
+       105,
+       410
+      ],
+      [
+       180,
+       408
+      ],
+      [
+       181,
+       434
+      ],
+      [
+       106,
+       436
+      ]
+     ]
+    },
+    {
+     "text": "0",
+     "confidence": 0.9911,
+     "bbox": [
+      498,
+      401,
+      518,
+      428
+     ],
+     "quad": [
+      [
+       498,
+       401
+      ],
+      [
+       518,
+       401
+      ],
+      [
+       518,
+       428
+      ],
+      [
+       498,
+       428
+      ]
+     ]
+    }
+   ]
+  },
+  "timing": {
+   "queueMs": 0,
+   "processingMs": 174
+  }
+ },
+ {
+  "endpoint": "/v1/ocr",
+  "model": "ppocr-v6",
+  "image": "91bf03a4724b29ca40b3d34e995c91ff89ca2daaeab61f718509340fd4b4f1ac",
+  "request": {
+   "options": {
+    "words": false
+   }
+  },
+  "response": {
+   "lines": [
+    {
+     "text": "Populaire Cholate",
+     "confidence": 0.9983,
+     "bbox": [
+      67,
+      605,
+      421,
+      650
+     ],
+     "quad": [
+      [
+       67,
+       605
+      ],
+      [
+       421,
+       605
+      ],
+      [
+       421,
+       650
+      ],
+      [
+       67,
+       650
+      ]
+     ]
+    },
+    {
+     "text": "14,500",
+     "confidence": 0.9997,
+     "bbox": [
+      104,
+      647,
+      278,
+      693
+     ],
+     "quad": [
+      [
+       104,
+       647
+      ],
+      [
+       278,
+       647
+      ],
+      [
+       278,
+       693
+      ],
+      [
+       104,
+       693
+      ]
+     ]
+    },
+    {
+     "text": "4,500",
+     "confidence": 0.9998,
+     "bbox": [
+      559,
+      641,
+      665,
+      692
+     ],
+     "quad": [
+      [
+       559,
+       645
+      ],
+      [
+       664,
+       641
+      ],
+      [
+       665,
+       688
+      ],
+      [
+       561,
+       692
+      ]
+     ]
+    },
+    {
+     "text": "Paddle Pop Ch :0 Magma",
+     "confidence": 0.9461,
+     "bbox": [
+      65,
+      686,
+      481,
+      731
+     ],
+     "quad": [
+      [
+       65,
+       688
+      ],
+      [
+       480,
+       686
+      ],
+      [
+       481,
+       729
+      ],
+      [
+       66,
+       731
+      ]
+     ]
+    },
+    {
+     "text": "13,000",
+     "confidence": 0.9997,
+     "bbox": [
+      102,
+      725,
+      276,
+      770
+     ],
+     "quad": [
+      [
+       102,
+       725
+      ],
+      [
+       276,
+       725
+      ],
+      [
+       276,
+       770
+      ],
+      [
+       102,
+       770
+      ]
+     ]
+    },
+    {
+     "text": "3,000",
+     "confidence": 0.9998,
+     "bbox": [
+      568,
+      721,
+      676,
+      771
+     ],
+     "quad": [
+      [
+       568,
+       724
+      ],
+      [
+       675,
+       721
+      ],
+      [
+       676,
+       769
+      ],
+      [
+       570,
+       771
+      ]
+     ]
+    },
+    {
+     "text": "Sub Total",
+     "confidence": 0.999,
+     "bbox": [
+      93,
+      806,
+      275,
+      854
+     ],
+     "quad": [
+      [
+       93,
+       806
+      ],
+      [
+       275,
+       806
+      ],
+      [
+       275,
+       854
+      ],
+      [
+       93,
+       854
+      ]
+     ]
+    },
+    {
+     "text": "7,500",
+     "confidence": 0.9999,
+     "bbox": [
+      578,
+      806,
+      690,
+      858
+     ],
+     "quad": [
+      [
+       578,
+       806
+      ],
+      [
+       690,
+       806
+      ],
+      [
+       690,
+       858
+      ],
+      [
+       578,
+       858
+      ]
+     ]
+    },
+    {
+     "text": "Pajak Resto (10%)",
+     "confidence": 0.977,
+     "bbox": [
+      89,
+      850,
+      432,
+      901
+     ],
+     "quad": [
+      [
+       89,
+       850
+      ],
+      [
+       432,
+       850
+      ],
+      [
+       432,
+       901
+      ],
+      [
+       89,
+       901
+      ]
+     ]
+    },
+    {
+     "text": "750",
+     "confidence": 1,
+     "bbox": [
+      621,
+      851,
+      695,
+      903
+     ],
+     "quad": [
+      [
+       621,
+       851
+      ],
+      [
+       695,
+       851
+      ],
+      [
+       695,
+       903
+      ],
+      [
+       621,
+       903
+      ]
+     ]
+    },
+    {
+     "text": "Total Bayar",
+     "confidence": 0.9952,
+     "bbox": [
+      86,
+      893,
+      319,
+      949
+     ],
+     "quad": [
+      [
+       87,
+       893
+      ],
+      [
+       319,
+       895
+      ],
+      [
+       319,
+       949
+      ],
+      [
+       86,
+       947
+      ]
+     ]
+    },
+    {
+     "text": "8,250",
+     "confidence": 0.9995,
+     "bbox": [
+      585,
+      897,
+      701,
+      951
+     ],
+     "quad": [
+      [
+       585,
+       897
+      ],
+      [
+       701,
+       897
+      ],
+      [
+       701,
+       951
+      ],
+      [
+       585,
+       951
+      ]
+     ]
+    },
+    {
+     "text": "Uang Bayar",
+     "confidence": 0.997,
+     "bbox": [
+      80,
+      940,
+      299,
+      996
+     ],
+     "quad": [
+      [
+       81,
+       940
+      ],
+      [
+       299,
+       944
+      ],
+      [
+       298,
+       996
+      ],
+      [
+       80,
+       993
+      ]
+     ]
+    },
+    {
+     "text": "10,000",
+     "confidence": 0.9995,
+     "bbox": [
+      574,
+      944,
+      704,
+      998
+     ],
+     "quad": [
+      [
+       574,
+       944
+      ],
+      [
+       704,
+       944
+      ],
+      [
+       704,
+       998
+      ],
+      [
+       574,
+       998
+      ]
+     ]
+    },
+    {
+     "text": "Free Kembal,n",
+     "confidence": 0.9625,
+     "bbox": [
+      81,
+      1037,
+      385,
+      1094
+     ],
+     "quad": [
+      [
+       82,
+       1037
+      ],
+      [
+       385,
+       1040
+      ],
+      [
+       384,
+       1094
+      ],
+      [
+       81,
+       1092
+      ]
+     ]
+    },
+    {
+     "text": "50",
+     "confidence": 1,
+     "bbox": [
+      652,
+      1041,
+      701,
+      1086
+     ],
+     "quad": [
+      [
+       652,
+       1041
+      ],
+      [
+       701,
+       1041
+      ],
+      [
+       701,
+       1086
+      ],
+      [
+       652,
+       1086
+      ]
+     ]
+    },
+    {
+     "text": "Total Kembajian",
+     "confidence": 0.9342,
+     "bbox": [
+      83,
+      1086,
+      404,
+      1144
+     ],
+     "quad": [
+      [
+       84,
+       1086
+      ],
+      [
+       404,
+       1089
+      ],
+      [
+       404,
+       1144
+      ],
+      [
+       83,
+       1140
+      ]
+     ]
+    },
+    {
+     "text": "1,800",
+     "confidence": 0.9993,
+     "bbox": [
+      593,
+      1080,
+      700,
+      1136
+     ],
+     "quad": [
+      [
+       593,
+       1082
+      ],
+      [
+       699,
+       1080
+      ],
+      [
+       700,
+       1133
+      ],
+      [
+       595,
+       1136
+      ]
+     ]
+    }
+   ]
+  },
+  "timing": {
+   "queueMs": 0,
+   "processingMs": 216
+  }
+ },
+ {
+  "endpoint": "/v1/ocr",
+  "model": "ppocr-v6",
+  "image": "49c15b2640381c9ddd7b12227cc290d4e4eea6d3218d6ca0343df9fbbdf1d2da",
+  "request": {
+   "options": {
+    "words": false
+   }
+  },
+  "response": {
+   "lines": [
+    {
+     "text": "1 Nasi (MLY)",
+     "confidence": 0.9964,
+     "bbox": [
+      138,
+      751,
+      366,
+      799
+     ],
+     "quad": [
+      [
+       138,
+       751
+      ],
+      [
+       366,
+       751
+      ],
+      [
+       366,
+       799
+      ],
+      [
+       138,
+       799
+      ]
+     ]
+    },
+    {
+     "text": "6.000",
+     "confidence": 0.9998,
+     "bbox": [
+      640,
+      750,
+      748,
+      798
+     ],
+     "quad": [
+      [
+       640,
+       750
+      ],
+      [
+       748,
+       750
+      ],
+      [
+       748,
+       798
+      ],
+      [
+       640,
+       798
+      ]
+     ]
+    },
+    {
+     "text": "Subtotal",
+     "confidence": 0.9997,
+     "bbox": [
+      138,
+      842,
+      294,
+      888
+     ],
+     "quad": [
+      [
+       138,
+       842
+      ],
+      [
+       294,
+       842
+      ],
+      [
+       294,
+       888
+      ],
+      [
+       138,
+       888
+      ]
+     ]
+    },
+    {
+     "text": "6.000",
+     "confidence": 0.9999,
+     "bbox": [
+      639,
+      842,
+      746,
+      890
+     ],
+     "quad": [
+      [
+       639,
+       842
+      ],
+      [
+       746,
+       842
+      ],
+      [
+       746,
+       890
+      ],
+      [
+       639,
+       890
+      ]
+     ]
+    },
+    {
+     "text": "TOTAL",
+     "confidence": 1,
+     "bbox": [
+      137,
+      887,
+      240,
+      939
+     ],
+     "quad": [
+      [
+       137,
+       887
+      ],
+      [
+       240,
+       887
+      ],
+      [
+       240,
+       939
+      ],
+      [
+       137,
+       939
+      ]
+     ]
+    },
+    {
+     "text": "6.000",
+     "confidence": 0.9999,
+     "bbox": [
+      638,
+      889,
+      745,
+      936
+     ],
+     "quad": [
+      [
+       638,
+       889
+      ],
+      [
+       745,
+       889
+      ],
+      [
+       745,
+       936
+      ],
+      [
+       638,
+       936
+      ]
+     ]
+    },
+    {
+     "text": "Go-Pay static QR",
+     "confidence": 0.9708,
+     "bbox": [
+      131,
+      985,
+      444,
+      1037
+     ],
+     "quad": [
+      [
+       131,
+       988
+      ],
+      [
+       444,
+       985
+      ],
+      [
+       444,
+       1034
+      ],
+      [
+       131,
+       1037
+      ]
+     ]
+    },
+    {
+     "text": "6.000",
+     "confidence": 0.9999,
+     "bbox": [
+      641,
+      984,
+      747,
+      1033
+     ],
+     "quad": [
+      [
+       641,
+       984
+      ],
+      [
+       747,
+       984
+      ],
+      [
+       747,
+       1033
+      ],
+      [
+       641,
+       1033
+      ]
+     ]
+    }
+   ]
+  },
+  "timing": {
+   "queueMs": 0,
+   "processingMs": 346
+  }
+ },
+ {
+  "endpoint": "/v1/ocr",
+  "model": "ppocr-v6",
+  "image": "826a22576c6234a63cf9a9c28fd19c482292756ee86b10ae42e928e9f7b6841c",
+  "request": {
+   "options": {
+    "words": false
+   }
+  },
+  "response": {
+   "lines": [
+    {
+     "text": "INVOICE",
+     "confidence": 0.9999,
+     "bbox": [
+      752,
+      138,
+      929,
+      192
+     ],
+     "quad": [
+      [
+       752,
+       146
+      ],
+      [
+       927,
+       138
+      ],
+      [
+       929,
+       184
+      ],
+      [
+       754,
+       192
+      ]
+     ]
+    },
+    {
+     "text": "Brightwater Print Studio",
+     "confidence": 0.9805,
+     "bbox": [
+      180,
+      162,
+      539,
+      222
+     ],
+     "quad": [
+      [
+       180,
+       181
+      ],
+      [
+       537,
+       162
+      ],
+      [
+       539,
+       203
+      ],
+      [
+       182,
+       222
+      ]
+     ]
+    },
+    {
+     "text": "14 Alder Lane",
+     "confidence": 0.9869,
+     "bbox": [
+      184,
+      219,
+      279,
+      243
+     ],
+     "quad": [
+      [
+       184,
+       223
+      ],
+      [
+       278,
+       219
+      ],
+      [
+       279,
+       239
+      ],
+      [
+       184,
+       243
+      ]
+     ]
+    },
+    {
+     "text": "Fairhaven, WA 98225",
+     "confidence": 0.9889,
+     "bbox": [
+      184,
+      236,
+      329,
+      263
+     ],
+     "quad": [
+      [
+       184,
+       243
+      ],
+      [
+       328,
+       236
+      ],
+      [
+       329,
+       256
+      ],
+      [
+       184,
+       263
+      ]
+     ]
+    },
+    {
+     "text": "Invoice no.:",
+     "confidence": 0.9616,
+     "bbox": [
+      646,
+      320,
+      739,
+      344
+     ],
+     "quad": [
+      [
+       646,
+       323
+      ],
+      [
+       738,
+       320
+      ],
+      [
+       739,
+       341
+      ],
+      [
+       647,
+       344
+      ]
+     ]
+    },
+    {
+     "text": "RE-2026-5028",
+     "confidence": 1,
+     "bbox": [
+      767,
+      315,
+      874,
+      338
+     ],
+     "quad": [
+      [
+       767,
+       318
+      ],
+      [
+       874,
+       315
+      ],
+      [
+       874,
+       335
+      ],
+      [
+       768,
+       338
+      ]
+     ]
+    },
+    {
+     "text": "Bill to",
+     "confidence": 0.9865,
+     "bbox": [
+      190,
+      344,
+      235,
+      363
+     ],
+     "quad": [
+      [
+       190,
+       344
+      ],
+      [
+       235,
+       344
+      ],
+      [
+       235,
+       363
+      ],
+      [
+       190,
+       363
+      ]
+     ]
+    },
+    {
+     "text": "Date:",
+     "confidence": 0.9999,
+     "bbox": [
+      648,
+      348,
+      692,
+      367
+     ],
+     "quad": [
+      [
+       648,
+       348
+      ],
+      [
+       692,
+       348
+      ],
+      [
+       692,
+       367
+      ],
+      [
+       648,
+       367
+      ]
+     ]
+    },
+    {
+     "text": "2026-08-04",
+     "confidence": 0.9939,
+     "bbox": [
+      768,
+      339,
+      853,
+      362
+     ],
+     "quad": [
+      [
+       768,
+       341
+      ],
+      [
+       853,
+       339
+      ],
+      [
+       853,
+       360
+      ],
+      [
+       769,
+       362
+      ]
+     ]
+    },
+    {
+     "text": "Birchwood Veterinary Group",
+     "confidence": 0.9968,
+     "bbox": [
+      189,
+      358,
+      392,
+      387
+     ],
+     "quad": [
+      [
+       189,
+       364
+      ],
+      [
+       391,
+       358
+      ],
+      [
+       392,
+       381
+      ],
+      [
+       189,
+       387
+      ]
+     ]
+    },
+    {
+     "text": "Due date:",
+     "confidence": 0.9999,
+     "bbox": [
+      647,
+      368,
+      725,
+      391
+     ],
+     "quad": [
+      [
+       647,
+       370
+      ],
+      [
+       724,
+       368
+      ],
+      [
+       725,
+       389
+      ],
+      [
+       648,
+       391
+      ]
+     ]
+    },
+    {
+     "text": "2026-09-18",
+     "confidence": 1,
+     "bbox": [
+      769,
+      363,
+      855,
+      386
+     ],
+     "quad": [
+      [
+       769,
+       365
+      ],
+      [
+       855,
+       363
+      ],
+      [
+       855,
+       384
+      ],
+      [
+       770,
+       386
+      ]
+     ]
+    },
+    {
+     "text": "Accounts payable",
+     "confidence": 0.9995,
+     "bbox": [
+      191,
+      387,
+      296,
+      407
+     ],
+     "quad": [
+      [
+       191,
+       389
+      ],
+      [
+       296,
+       387
+      ],
+      [
+       296,
+       405
+      ],
+      [
+       191,
+       407
+      ]
+     ]
+    },
+    {
+     "text": "Qty",
+     "confidence": 0.9999,
+     "bbox": [
+      642,
+      458,
+      673,
+      479
+     ],
+     "quad": [
+      [
+       642,
+       458
+      ],
+      [
+       673,
+       458
+      ],
+      [
+       673,
+       479
+      ],
+      [
+       642,
+       479
+      ]
+     ]
+    },
+    {
+     "text": "Unit price",
+     "confidence": 0.9998,
+     "bbox": [
+      727,
+      452,
+      806,
+      476
+     ],
+     "quad": [
+      [
+       727,
+       454
+      ],
+      [
+       805,
+       452
+      ],
+      [
+       806,
+       474
+      ],
+      [
+       728,
+       476
+      ]
+     ]
+    },
+    {
+     "text": "Amount",
+     "confidence": 1,
+     "bbox": [
+      871,
+      449,
+      938,
+      470
+     ],
+     "quad": [
+      [
+       871,
+       449
+      ],
+      [
+       938,
+       449
+      ],
+      [
+       938,
+       470
+      ],
+      [
+       871,
+       470
+      ]
+     ]
+    },
+    {
+     "text": "Description",
+     "confidence": 0.9999,
+     "bbox": [
+      193,
+      471,
+      278,
+      494
+     ],
+     "quad": [
+      [
+       193,
+       473
+      ],
+      [
+       277,
+       471
+      ],
+      [
+       278,
+       492
+      ],
+      [
+       193,
+       494
+      ]
+     ]
+    },
+    {
+     "text": "$16.00",
+     "confidence": 0.9303,
+     "bbox": [
+      753,
+      496,
+      807,
+      518
+     ],
+     "quad": [
+      [
+       753,
+       496
+      ],
+      [
+       807,
+       496
+      ],
+      [
+       807,
+       518
+      ],
+      [
+       753,
+       518
+      ]
+     ]
+    },
+    {
+     "text": "$16.00",
+     "confidence": 0.9998,
+     "bbox": [
+      883,
+      492,
+      938,
+      514
+     ],
+     "quad": [
+      [
+       883,
+       492
+      ],
+      [
+       938,
+       492
+      ],
+      [
+       938,
+       514
+      ],
+      [
+       883,
+       514
+      ]
+     ]
+    },
+    {
+     "text": "1",
+     "confidence": 0.9995,
+     "bbox": [
+      661,
+      503,
+      673,
+      520
+     ],
+     "quad": [
+      [
+       661,
+       503
+      ],
+      [
+       673,
+       503
+      ],
+      [
+       673,
+       520
+      ],
+      [
+       661,
+       520
+      ]
+     ]
+    },
+    {
+     "text": "Software licence, per seat",
+     "confidence": 0.9986,
+     "bbox": [
+      196,
+      510,
+      366,
+      535
+     ],
+     "quad": [
+      [
+       196,
+       515
+      ],
+      [
+       365,
+       510
+      ],
+      [
+       366,
+       530
+      ],
+      [
+       196,
+       535
+      ]
+     ]
+    },
+    {
+     "text": "10",
+     "confidence": 1,
+     "bbox": [
+      654,
+      537,
+      678,
+      559
+     ],
+     "quad": [
+      [
+       654,
+       537
+      ],
+      [
+       678,
+       537
+      ],
+      [
+       678,
+       559
+      ],
+      [
+       654,
+       559
+      ]
+     ]
+    },
+    {
+     "text": "$34.34",
+     "confidence": 0.9997,
+     "bbox": [
+      754,
+      532,
+      809,
+      557
+     ],
+     "quad": [
+      [
+       754,
+       532
+      ],
+      [
+       809,
+       532
+      ],
+      [
+       809,
+       557
+      ],
+      [
+       754,
+       557
+      ]
+     ]
+    },
+    {
+     "text": "$343.40",
+     "confidence": 1,
+     "bbox": [
+      875,
+      527,
+      939,
+      552
+     ],
+     "quad": [
+      [
+       875,
+       530
+      ],
+      [
+       939,
+       527
+      ],
+      [
+       939,
+       549
+      ],
+      [
+       876,
+       552
+      ]
+     ]
+    },
+    {
+     "text": "Brake pad set",
+     "confidence": 0.9995,
+     "bbox": [
+      197,
+      548,
+      292,
+      572
+     ],
+     "quad": [
+      [
+       197,
+       551
+      ],
+      [
+       291,
+       548
+      ],
+      [
+       292,
+       569
+      ],
+      [
+       197,
+       572
+      ]
+     ]
+    },
+    {
+     "text": "1",
+     "confidence": 0.9974,
+     "bbox": [
+      663,
+      574,
+      677,
+      595
+     ],
+     "quad": [
+      [
+       663,
+       574
+      ],
+      [
+       677,
+       574
+      ],
+      [
+       677,
+       595
+      ],
+      [
+       663,
+       595
+      ]
+     ]
+    },
+    {
+     "text": "$94.10",
+     "confidence": 0.9934,
+     "bbox": [
+      755,
+      568,
+      810,
+      594
+     ],
+     "quad": [
+      [
+       755,
+       571
+      ],
+      [
+       809,
+       568
+      ],
+      [
+       810,
+       591
+      ],
+      [
+       756,
+       594
+      ]
+     ]
+    },
+    {
+     "text": "$94.10",
+     "confidence": 0.9979,
+     "bbox": [
+      886,
+      567,
+      941,
+      589
+     ],
+     "quad": [
+      [
+       886,
+       567
+      ],
+      [
+       941,
+       567
+      ],
+      [
+       941,
+       589
+      ],
+      [
+       886,
+       589
+      ]
+     ]
+    },
+    {
+     "text": "Design consultation (hours)",
+     "confidence": 0.9844,
+     "bbox": [
+      198,
+      581,
+      378,
+      610
+     ],
+     "quad": [
+      [
+       198,
+       586
+      ],
+      [
+       377,
+       581
+      ],
+      [
+       378,
+       605
+      ],
+      [
+       198,
+       610
+      ]
+     ]
+    },
+    {
+     "text": "1",
+     "confidence": 0.9993,
+     "bbox": [
+      663,
+      611,
+      679,
+      634
+     ],
+     "quad": [
+      [
+       663,
+       611
+      ],
+      [
+       679,
+       611
+      ],
+      [
+       679,
+       634
+      ],
+      [
+       663,
+       634
+      ]
+     ]
+    },
+    {
+     "text": "$17.74",
+     "confidence": 0.9963,
+     "bbox": [
+      757,
+      608,
+      811,
+      630
+     ],
+     "quad": [
+      [
+       757,
+       608
+      ],
+      [
+       811,
+       608
+      ],
+      [
+       811,
+       630
+      ],
+      [
+       757,
+       630
+      ]
+     ]
+    },
+    {
+     "text": "$17.74",
+     "confidence": 0.9992,
+     "bbox": [
+      886,
+      605,
+      942,
+      627
+     ],
+     "quad": [
+      [
+       886,
+       605
+      ],
+      [
+       942,
+       605
+      ],
+      [
+       942,
+       627
+      ],
+      [
+       886,
+       627
+      ]
+     ]
+    },
+    {
+     "text": "Catering, per head",
+     "confidence": 0.9866,
+     "bbox": [
+      200,
+      619,
+      324,
+      643
+     ],
+     "quad": [
+      [
+       200,
+       623
+      ],
+      [
+       323,
+       619
+      ],
+      [
+       324,
+       640
+      ],
+      [
+       200,
+       643
+      ]
+     ]
+    },
+    {
+     "text": "Subtotal",
+     "confidence": 0.9999,
+     "bbox": [
+      607,
+      668,
+      669,
+      689
+     ],
+     "quad": [
+      [
+       607,
+       668
+      ],
+      [
+       669,
+       668
+      ],
+      [
+       669,
+       689
+      ],
+      [
+       607,
+       689
+      ]
+     ]
+    },
+    {
+     "text": "$471.24",
+     "confidence": 0.9963,
+     "bbox": [
+      880,
+      662,
+      944,
+      683
+     ],
+     "quad": [
+      [
+       880,
+       662
+      ],
+      [
+       944,
+       662
+      ],
+      [
+       944,
+       683
+      ],
+      [
+       880,
+       683
+      ]
+     ]
+    },
+    {
+     "text": "Discount (5%)",
+     "confidence": 0.9999,
+     "bbox": [
+      609,
+      693,
+      708,
+      714
+     ],
+     "quad": [
+      [
+       609,
+       693
+      ],
+      [
+       708,
+       693
+      ],
+      [
+       708,
+       714
+      ],
+      [
+       609,
+       714
+      ]
+     ]
+    },
+    {
+     "text": "-$23.56",
+     "confidence": 0.9973,
+     "bbox": [
+      885,
+      686,
+      944,
+      710
+     ],
+     "quad": [
+      [
+       885,
+       688
+      ],
+      [
+       944,
+       686
+      ],
+      [
+       944,
+       708
+      ],
+      [
+       886,
+       710
+      ]
+     ]
+    },
+    {
+     "text": "Tax (6%)",
+     "confidence": 0.9614,
+     "bbox": [
+      608,
+      717,
+      676,
+      739
+     ],
+     "quad": [
+      [
+       608,
+       717
+      ],
+      [
+       676,
+       717
+      ],
+      [
+       676,
+       739
+      ],
+      [
+       608,
+       739
+      ]
+     ]
+    },
+    {
+     "text": "$26.86",
+     "confidence": 0.9992,
+     "bbox": [
+      891,
+      712,
+      945,
+      733
+     ],
+     "quad": [
+      [
+       891,
+       712
+      ],
+      [
+       945,
+       712
+      ],
+      [
+       945,
+       733
+      ],
+      [
+       891,
+       733
+      ]
+     ]
+    },
+    {
+     "text": "Total",
+     "confidence": 1,
+     "bbox": [
+      609,
+      753,
+      665,
+      779
+     ],
+     "quad": [
+      [
+       609,
+       753
+      ],
+      [
+       665,
+       753
+      ],
+      [
+       665,
+       779
+      ],
+      [
+       609,
+       779
+      ]
+     ]
+    },
+    {
+     "text": "$474.54",
+     "confidence": 1,
+     "bbox": [
+      865,
+      749,
+      947,
+      777
+     ],
+     "quad": [
+      [
+       865,
+       749
+      ],
+      [
+       947,
+       749
+      ],
+      [
+       947,
+       777
+      ],
+      [
+       865,
+       777
+      ]
+     ]
+    },
+    {
+     "text": "Payment terms: net 45 days. Bank transfer to the account on file.",
+     "confidence": 0.9943,
+     "bbox": [
+      227,
+      1248,
+      579,
+      1271
+     ],
+     "quad": [
+      [
+       227,
+       1248
+      ],
+      [
+       579,
+       1254
+      ],
+      [
+       578,
+       1271
+      ],
+      [
+       227,
+       1265
+      ]
+     ]
+    },
+    {
+     "text": "Fictional invoice generated for software testing. Any resembiance to a real business is coincidental",
+     "confidence": 0.9924,
+     "bbox": [
+      228,
+      1265,
+      769,
+      1298
+     ],
+     "quad": [
+      [
+       228,
+       1265
+      ],
+      [
+       769,
+       1278
+      ],
+      [
+       768,
+       1298
+      ],
+      [
+       228,
+       1285
+      ]
+     ]
+    }
+   ]
+  },
+  "timing": {
+   "queueMs": 0,
+   "processingMs": 731
+  }
+ },
+ {
+  "endpoint": "/v1/documents/parse",
+  "model": "paddleocr-vl",
+  "image": "826a22576c6234a63cf9a9c28fd19c482292756ee86b10ae42e928e9f7b6841c",
+  "request": {
+   "options": {
+    "blocks": true
+   }
+  },
+  "response": {
+   "pages": 1,
+   "markdown": "# Brightwater Print Studio\n\nBill to\n\nBirchwood Veterinary Group\n\nAccounts payable\n\nInvoice no.: RE-2026-5028\n\nDate: 2026-08-04\n\nDue date: 2026-09-18\n\n<table border=1 style='margin: auto; word-wrap: break-word;'><tr><td style='text-align: center; word-wrap: break-word;'>Description</td><td style='text-align: center; word-wrap: break-word;'>Qty</td><td style='text-align: center; word-wrap: break-word;'>Unit price</td><td style='text-align: center; word-wrap: break-word;'>Amount</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Software licence, per seat</td><td style='text-align: center; word-wrap: break-word;'>1</td><td style='text-align: center; word-wrap: break-word;'>$16.00</td><td style='text-align: center; word-wrap: break-word;'>$16.00</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Brake pad set</td><td style='text-align: center; word-wrap: break-word;'>10</td><td style='text-align: center; word-wrap: break-word;'>$34.34</td><td style='text-align: center; word-wrap: break-word;'>$343.40</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Design consultation (hours)</td><td style='text-align: center; word-wrap: break-word;'>1</td><td style='text-align: center; word-wrap: break-word;'>$94.10</td><td style='text-align: center; word-wrap: break-word;'>$94.10</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Catering, per head</td><td style='text-align: center; word-wrap: break-word;'>1</td><td style='text-align: center; word-wrap: break-word;'>$17.74</td><td style='text-align: center; word-wrap: break-word;'>$17.74</td></tr><tr><td style='text-align: center; word-wrap: break-word;'></td><td colspan=\"2\">Subtotal</td><td style='text-align: center; word-wrap: break-word;'>$471.24</td></tr><tr><td style='text-align: center; word-wrap: break-word;'></td><td colspan=\"2\">Discount (5%)</td><td style='text-align: center; word-wrap: break-word;'>-$23.56</td></tr><tr><td style='text-align: center; word-wrap: break-word;'></td><td colspan=\"2\">Tax (6%)</td><td style='text-align: center; word-wrap: break-word;'>$26.86</td></tr><tr><td style='text-align: center; word-wrap: break-word;'></td><td colspan=\"2\">Total</td><td style='text-align: center; word-wrap: break-word;'>$474.54</td></tr></table>",
+   "blocks": [
+    {
+     "type": "title",
+     "order": 0,
+     "bbox": [
+      184,
+      166,
+      537,
+      221
+     ],
+     "text": "Brightwater Print Studio",
+     "markdown": "# Brightwater Print Studio"
+    },
+    {
+     "type": "header",
+     "order": 1,
+     "bbox": [
+      756,
+      142,
+      927,
+      195
+     ],
+     "text": "INVOICE",
+     "markdown": "INVOICE"
+    },
+    {
+     "type": "header",
+     "order": 2,
+     "bbox": [
+      185,
+      220,
+      330,
+      266
+     ],
+     "text": "14 Alder Lane\nFairhaven, WA 98225",
+     "markdown": "14 Alder Lane\nFairhaven, WA 98225"
+    },
+    {
+     "type": "text",
+     "order": 3,
+     "bbox": [
+      189,
+      336,
+      395,
+      412
+     ],
+     "text": "Bill to\nBirchwood Veterinary Group\nAccounts payable",
+     "markdown": "Bill to\n\nBirchwood Veterinary Group\n\nAccounts payable"
+    },
+    {
+     "type": "text",
+     "order": 4,
+     "bbox": [
+      648,
+      314,
+      876,
+      347
+     ],
+     "text": "Invoice no.: RE-2026-5028",
+     "markdown": "Invoice no.: RE-2026-5028"
+    },
+    {
+     "type": "text",
+     "order": 5,
+     "bbox": [
+      649,
+      340,
+      856,
+      370
+     ],
+     "text": "Date: 2026-08-04",
+     "markdown": "Date: 2026-08-04"
+    },
+    {
+     "type": "text",
+     "order": 6,
+     "bbox": [
+      649,
+      364,
+      858,
+      394
+     ],
+     "text": "Due date: 2026-09-18",
+     "markdown": "Due date: 2026-09-18"
+    },
+    {
+     "type": "table",
+     "order": 7,
+     "bbox": [
+      190,
+      443,
+      952,
+      785
+     ],
+     "text": "<table><tr><td>Description</td><td>Qty</td><td>Unit price</td><td>Amount</td></tr><tr><td>Software licence, per seat</td><td>1</td><td>$16.00</td><td>$16.00</td></tr><tr><td>Brake pad set</td><td>10</td><td>$34.34</td><td>$343.40</td></tr><tr><td>Design consultation (hours)</td><td>1</td><td>$94.10</td><td>$94.10</td></tr><tr><td>Catering, per head</td><td>1</td><td>$17.74</td><td>$17.74</td></tr><tr><td></td><td colspan=\"2\">Subtotal</td><td>$471.24</td></tr><tr><td></td><td colspan=\"2\">Discount (5%)</td><td>-$23.56</td></tr><tr><td></td><td colspan=\"2\">Tax (6%)</td><td>$26.86</td></tr><tr><td></td><td colspan=\"2\">Total</td><td>$474.54</td></tr></table>",
+     "markdown": "<table><tr><td>Description</td><td>Qty</td><td>Unit price</td><td>Amount</td></tr><tr><td>Software licence, per seat</td><td>1</td><td>$16.00</td><td>$16.00</td></tr><tr><td>Brake pad set</td><td>10</td><td>$34.34</td><td>$343.40</td></tr><tr><td>Design consultation (hours)</td><td>1</td><td>$94.10</td><td>$94.10</td></tr><tr><td>Catering, per head</td><td>1</td><td>$17.74</td><td>$17.74</td></tr><tr><td></td><td colspan=\"2\">Subtotal</td><td>$471.24</td></tr><tr><td></td><td colspan=\"2\">Discount (5%)</td><td>-$23.56</td></tr><tr><td></td><td colspan=\"2\">Tax (6%)</td><td>$26.86</td></tr><tr><td></td><td colspan=\"2\">Total</td><td>$474.54</td></tr></table>"
+    },
+    {
+     "type": "footer",
+     "order": 8,
+     "bbox": [
+      225,
+      1247,
+      772,
+      1299
+     ],
+     "text": "Payment terms: net 45 days. Bank transfer to the account on file.\nFictional invoice generated for software testing. Any resemblance to a real business is coincidental.",
+     "markdown": "Payment terms: net 45 days. Bank transfer to the account on file.\nFictional invoice generated for software testing. Any resemblance to a real business is coincidental."
+    }
+   ]
+  },
+  "timing": {
+   "queueMs": 0,
+   "processingMs": 1007
+  }
+ }
+]

@@ -1,0 +1,12 @@
+---
+// Starlight pagination, then the compact site footer.
+import Pagination from 'virtual:starlight/components/Pagination'
+import SiteFooter from '../SiteFooter.astro'
+import { counterpart, localeOf } from '../../lib/site.ts'
+
+const locale = localeOf(Astro.url.pathname)
+const altHref = counterpart(Astro.url.pathname, locale === 'en' ? 'zh' : 'en')
+---
+
+<Pagination />
+<SiteFooter locale={locale} altHref={altHref} />

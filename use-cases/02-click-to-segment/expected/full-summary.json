@@ -1,0 +1,23 @@
+{
+  "objects": 30,
+  "objects_ok": 30,
+  "noc85_mean": 1.5,
+  "noc85_reached": 1.0,
+  "noc90_mean": 1.8,
+  "noc90_reached": 0.967,
+  "miou_at_1": 0.7706,
+  "miou_at_2": 0.8975,
+  "miou_at_3": 0.9338,
+  "miou_at_4": 0.9429,
+  "miou_at_5": 0.9473,
+  "miou_at_6": 0.949,
+  "miou_at_7": 0.9489,
+  "miou_at_8": 0.9487,
+  "miou_at_9": 0.9485,
+  "miou_at_10": 0.9213,
+  "clicks_per_object": 1.8,
+  "list_credits_per_object": 0.024667,
+  "planning_credits_per_object": 0.378,
+  "charged_credits_per_object": 0.024667,
+  "cache_hit_rate": 0.9815
+}

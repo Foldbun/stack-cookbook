@@ -1,0 +1,19 @@
+{
+  "name": "stack-cookbook-click-to-segment-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Foldbun Stack Cookbook: click-to-segment backend (TypeScript).",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node main.ts",
+    "check": "tsc --noEmit",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "^7.0.2"
+  }
+}

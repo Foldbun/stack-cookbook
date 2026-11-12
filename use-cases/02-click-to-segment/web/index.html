@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Click to segment</title>
+<style>
+  /* Colours and corners follow the Foldbun look: flat, 2px corners, no shadows. */
+  :root {
+    --bg: #f7f7f4; --surface: #ffffff; --surface-3: #e7e9e2; --border: #d7dad1; --border-strong: #858b7e;
+    --text: #262a23; --text-2: #5d6557; --accent: #8b502d; --danger: #a3343d; --success: #22663f;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #181c18; --surface: #222722; --surface-3: #353d33; --border: #485145; --border-strong: #818b7b;
+      --text: #f0f2eb; --text-2: #b8c0b0; --accent: #e9bb8e; --danger: #f6b6bd; --success: #a8dab6;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 56rem; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { margin: 0 0 8px; font-size: 1.5rem; line-height: 1.25; }
+  p { margin: 0 0 16px; }
+  .note { color: var(--text-2); font-size: .9rem; }
+  code { padding: 1px 4px; background: var(--surface-3); border-radius: 2px; font-size: .9em; }
+  stack-segmenter {
+    --seg-accent: var(--accent); --seg-positive: var(--success); --seg-negative: var(--danger);
+    --seg-text: var(--text); --seg-muted: var(--text-2); --seg-surface: var(--surface); --seg-border: var(--border-strong);
+    --seg-hover: var(--surface-3); --seg-radius: 2px;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Click to segment</h1>
+  <p>Choose or drop an image, click the object to outline it (right click or Alt+click marks what to leave out), then export the polygon.</p>
+  <stack-segmenter></stack-segmenter>
+  <p class="note" style="margin-top: 16px">The API key stays on the backend that serves this page: the browser sends only the image and the clicks, and never sees the key.</p>
+</main>
+<script type="module" src="./stack-segmenter.js"></script>
+</body>
+</html>

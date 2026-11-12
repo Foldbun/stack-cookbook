@@ -1,0 +1,51 @@
+---
+// The use case x language matrix of the home page. Data: src/generated/usecases.json, written by scripts/sync-usecases.mjs
+// from the usecase.toml files. The language filter is progressive: without JavaScript every row is shown and the filter
+// buttons stay hidden; src/scripts/site.js does the filtering.
+import data from '../generated/usecases.json'
+import { T } from '../i18n.ts'
+import { lpath, type Locale } from '../lib/site.ts'
+import { iconSvg } from '../icons/icon-svg.mjs'
+
+interface Props { locale: Locale }
+const { locale } = Astro.props
+const t = T[locale]
+const { languages, useCases } = data
+---
+
+<div class="matrix" data-matrix data-active="all">
+  <div class="matrix-filter" role="group" aria-label={t['home.filterLabel']}>
+    <span class="matrix-filter-label">{t['home.filterLabel']}</span>
+    <button type="button" class="btn" data-filter="all" data-label="" aria-pressed="true" hidden>{t['home.filterAll']}</button>
+    {languages.map((l) => <button type="button" class="btn" data-filter={l.key} data-label={l.name} aria-pressed="false" hidden>{l.name}</button>)}
+  </div>
+  <div class="matrix-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">{t['home.colUseCase']}</th>
+          <th scope="col">{t['home.colTier']}</th>
+          {languages.map((l) => <th scope="col" class="mark">{l.name}</th>)}
+        </tr>
+      </thead>
+      <tbody>
+        {useCases.map((u) => (
+          <tr data-langs={u.languages.join(' ')}>
+            <th scope="row">
+              <a href={lpath(locale, `/use-cases/${u.id}/`)}><span class="num">{u.num}</span> {u.title[locale]}</a>
+              <span class="sum">{u.summary[locale]}</span>
+            </th>
+            <td class="tier">{t[`tier.${u.tier}`]}</td>
+            {languages.map((l) => (
+              <td class="mark">
+                {u.languages.includes(l.key)
+                  ? <span title={t['home.hasImpl']}><Fragment set:html={iconSvg('check', { cls: 'ic yes', label: `${l.name}: ${t['home.hasImpl']}` })} /></span>
+                  : <span class="no" title={t['home.noImpl']} aria-label={`${l.name}: ${t['home.noImpl']}`}>–</span>}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>

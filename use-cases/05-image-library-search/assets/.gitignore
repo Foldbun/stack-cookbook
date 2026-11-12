@@ -1,0 +1,5 @@
+# Extracted from 05-image-library-search-full.tar.gz (see full.json); not committed.
+images/
+truth.json
+manifest.json
+ATTRIBUTION.csv

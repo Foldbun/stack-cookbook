@@ -1,0 +1,23 @@
+{
+ "usecase": "03-receipts-to-json",
+ "version": 1,
+ "set": "smoke",
+ "items": [
+  {
+   "id": "cord-001",
+   "image": "images/cord-001.jpg"
+  },
+  {
+   "id": "cord-002",
+   "image": "images/cord-002.jpg"
+  },
+  {
+   "id": "cord-003",
+   "image": "images/cord-003.jpg"
+  },
+  {
+   "id": "inv-011",
+   "image": "images/inv-011.jpg"
+  }
+ ]
+}

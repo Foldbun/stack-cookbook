@@ -1,0 +1,154 @@
+{
+ "usecase": "05-image-library-search",
+ "version": 1,
+ "queries": [
+  {
+   "id": "q01",
+   "text": "a photo of a monkey"
+  },
+  {
+   "id": "q02",
+   "text": "a photo of a flower"
+  },
+  {
+   "id": "q03",
+   "text": "a photo of a candle"
+  },
+  {
+   "id": "q04",
+   "text": "a photo of a houseplant"
+  },
+  {
+   "id": "q05",
+   "text": "a photo of a vegetable"
+  }
+ ],
+ "set": "smoke",
+ "items": [
+  {
+   "id": "5177b735e298df6c",
+   "image": "images/5177b735e298df6c.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "a805ea9c566f3909",
+   "image": "images/a805ea9c566f3909.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "f7923c7226760308",
+   "image": "images/f7923c7226760308.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "2a72eb666da926a2",
+   "image": "images/2a72eb666da926a2.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "bdeb171d607fd9b8",
+   "image": "images/bdeb171d607fd9b8.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "a49fa34a20c6ea6c",
+   "image": "images/a49fa34a20c6ea6c.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "aaaf093e2c2a45f1",
+   "image": "images/aaaf093e2c2a45f1.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "8fc05ddaac1c9423",
+   "image": "images/8fc05ddaac1c9423.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "2fc204f1f507a19b",
+   "image": "images/2fc204f1f507a19b.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "393656cddf8e828c",
+   "image": "images/393656cddf8e828c.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "8289e44957b30080",
+   "image": "images/8289e44957b30080.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "4dbcb861be92912c",
+   "image": "images/4dbcb861be92912c.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "c62711b2e9c8e009",
+   "image": "images/c62711b2e9c8e009.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "0867ed7b739f753a",
+   "image": "images/0867ed7b739f753a.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "5803ac5d20687383",
+   "image": "images/5803ac5d20687383.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "4fbfda372bc472d7",
+   "image": "images/4fbfda372bc472d7.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "c79a13e045d4e361",
+   "image": "images/c79a13e045d4e361.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "8da2bce7dda64c71",
+   "image": "images/8da2bce7dda64c71.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "88a797429b8936a0",
+   "image": "images/88a797429b8936a0.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "c9706bcb486110b1",
+   "image": "images/c9706bcb486110b1.jpg",
+   "kind": "original"
+  },
+  {
+   "id": "dup-010",
+   "image": "images/dup-010.jpg",
+   "kind": "variant"
+  },
+  {
+   "id": "dup-025",
+   "image": "images/dup-025.jpg",
+   "kind": "variant"
+  },
+  {
+   "id": "dup-037",
+   "image": "images/dup-037.jpg",
+   "kind": "variant"
+  },
+  {
+   "id": "dup-047",
+   "image": "images/dup-047.jpg",
+   "kind": "variant"
+  },
+  {
+   "id": "dup-050",
+   "image": "images/dup-050.jpg",
+   "kind": "variant"
+  }
+ ]
+}

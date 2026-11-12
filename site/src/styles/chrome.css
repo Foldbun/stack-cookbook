@@ -1,0 +1,109 @@
+/* Shared chrome of marketing pages and docs: new tokens, top bar, footer base row. Loads after tokens.css and components.css. */
+/* ---------- New tokens (site only) ---------- */
+/* Latin glyphs for EN text: on systems without Segoe UI / San Francisco the stack fell through to a CJK font,
+   whose curly apostrophe is full width ("pool’ s"). zh keeps the CJK-first order of tokens.css. */
+:root:lang(en) { --font: "Segoe UI", -apple-system, BlinkMacSystemFont, "Noto Sans", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif; }
+:root {
+  --fs-3xl: 36px;           /* landing h1 only (28px on phones) */
+  --site-w: 1200px;         /* content max width */
+  --gutter: 32px;           /* side padding; 24px tablet, 16px phone */
+  --band-y: 56px;           /* vertical padding of a section band; 40px tablet, 32px phone */
+  --control-h-lg: 40px;     /* hero + closing CTA buttons only */
+  /* instrument colours (theme-independent, sit on photos) */
+  --inst-1: #2f6fe0; --inst-2: #12a594; --inst-3: #e5732a; --inst-4: #8f5fd6;
+  --checker-a: #ffffff; --checker-b: #e6e6e6;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --checker-a: #2a2a2a; --checker-b: #333333; } }
+:root[data-theme="dark"] { --checker-a: #2a2a2a; --checker-b: #333333; }
+@media (max-width: 1099px) { :root { --gutter: 24px; --band-y: 40px; } }
+@media (max-width: 720px)  { :root { --gutter: 16px; --band-y: 32px; } }
+
+body.site { background: var(--surface); }
+.wrap { max-width: calc(var(--site-w) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter); }
+.band { padding: var(--band-y) 0; border-top: 1px solid var(--border); }
+.band.alt { background: var(--bg); }
+.band-head { display: flex; align-items: flex-end; gap: var(--sp-4); margin-bottom: var(--sp-5); }
+.band-head .titles { flex: 1; max-width: 760px; }
+.band-head h2 { font-size: var(--fs-xl); }
+.band-head p { margin-top: var(--sp-1); color: var(--text-2); }
+.btn-lg { height: var(--control-h-lg); padding: 0 var(--sp-4); font-size: var(--fs-md); }
+.btn .ic, .btn-subtle .ic { margin-right: 2px; }
+
+/* ---------- Top bar (shared by site, docs; same component as console/playground) ---------- */
+/* The marketing pages get these from shared base.css; the docs cannot load base.css (it would fight Starlight's
+   content styles), so the pieces the top bar needs are scoped to .site-top here (identical values). */
+:where(.site-top) a { color: var(--accent); text-decoration: none; }
+:where(.site-top) a:hover { text-decoration: none; }
+:where(.site-top) .ic { width: 16px; height: 16px; flex: none; vertical-align: -3px; }
+.site-top .brand { display: flex; align-items: center; gap: var(--sp-2); color: var(--text); font-weight: 600; font-size: var(--fs-md); line-height: 1.45; white-space: nowrap; }
+.site-top .brand .logo { width: 22px; height: 22px; flex: none; }
+.site-top .brand .bsub { font-weight: 400; color: var(--text-2); }
+.site-top .brand .tag { font-weight: 400; color: var(--text-3); font-size: var(--fs-sm); }
+.site-top { position: sticky; top: 0; z-index: 30; background: var(--surface); border-bottom: 1px solid var(--border); }
+.site-top .bar { height: var(--topbar-h); display: flex; align-items: center; gap: var(--sp-5); }
+.site-top .brand .tag { display: none; }
+.site-top.docs .brand .tag { display: inline; }
+.site-nav { display: flex; align-items: stretch; height: 100%; gap: var(--sp-1); }
+.site-top .site-nav a { display: flex; align-items: center; padding: 0 var(--sp-2); color: var(--text); font-size: var(--fs-sm); border-bottom: 2px solid transparent; transition: background var(--t-fast); }
+.site-top .site-nav a:hover { background: var(--surface-3); text-decoration: none; }
+.site-top .site-nav a[aria-current="page"] { border-bottom-color: var(--accent); font-weight: 600; }
+.site-top .spacer { flex: 1; }
+.site-top .acts { display: flex; align-items: center; gap: var(--sp-2); }
+.site-top .lang-link { font-size: var(--fs-sm); color: var(--text); }
+.site-top .lang-link:hover { text-decoration: none; }
+.site-top .more { display: none; }
+@media (max-width: 860px) {
+  .site-nav, .site-top .acts .opt { display: none; }
+  .site-top .more { display: block; }
+}
+@media (max-width: 720px) { .site-top .bar { gap: var(--sp-2); } .site-top .acts .btn-primary { min-width: 0; } }
+.more .menu-pop { min-width: 220px; }
+
+
+/* ---------- Footer ---------- */
+.site-foot { background: var(--surface-2); border-top: 1px solid var(--border); padding: 40px 0 var(--sp-5); font-size: var(--fs-sm); }
+.foot-base { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; margin-top: 32px; padding-top: var(--sp-3); border-top: 1px solid var(--border); color: var(--text-3); font-size: var(--fs-xs); }
+.foot-base .grow { flex: 1; }
+.foot-base a { color: var(--text-2); }
+.foot-base a[aria-current="true"] { color: var(--text); font-weight: 600; }
+.site-foot a { text-decoration: none; }
+.site-foot a:hover { text-decoration: underline; }
+.site-foot .brand:hover { text-decoration: none; }
+.foot-org { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-4); }
+.site-foot.compact { padding: var(--sp-3) 0; border-top: 1px solid var(--border); }
+.site-foot.compact .foot-base { margin: 0; padding: 0; border: 0; }
+
+/* ---------- "Coming soon" stand-ins for gated Console / Playground links (lib/site.ts LAUNCH) ---------- */
+.soon { color: var(--text-3); cursor: default; }
+.soon-tag { margin-left: var(--sp-2); padding: 0 6px; border: 1px solid var(--border); border-radius: var(--radius); font: 400 var(--fs-xs)/16px var(--font); color: var(--text-3); white-space: nowrap; }
+.btn.soon { gap: 0; }
+.btn.soon:hover { background: var(--surface-3); }
+.site-top .site-nav .soon-nav { display: flex; align-items: center; padding: 0 var(--sp-2); font-size: var(--fs-sm); }
+.menu-pop .mi.soon { cursor: default; }
+.menu-pop .mi.soon:hover { background: none; }
+.site-foot .soon { display: inline-flex; align-items: center; }
+
+/* ---------- Language suggestion bar (components/LangHint.astro, src/scripts/lang-hint.js) ---------- */
+:root { --lang-hint-h: 36px; }
+.lang-hint { height: var(--lang-hint-h); background: var(--surface-2); border-bottom: 1px solid var(--border); font-size: var(--fs-sm); color: var(--text); }
+.lang-hint[hidden] { display: none; }
+.lang-hint .lh-in { height: 100%; display: flex; align-items: center; gap: var(--sp-3); }
+.lang-hint .lh-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* phones: the text may take two lines instead of being cut off */
+@media (max-width: 480px) {
+  :root { --lang-hint-h: 44px; }
+  .lang-hint { font-size: var(--fs-xs); }
+  .lang-hint .lh-in { gap: var(--sp-2); }
+  .lang-hint .lh-text { white-space: normal; line-height: 1.3; overflow: visible; }
+}
+.lang-hint .lh-go { flex: none; text-decoration: none; }
+.lang-hint .grow { flex: 1; }
+.lang-hint .lh-x { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; color: var(--text-2); background: none; border: 0; border-radius: var(--radius); cursor: pointer; }
+.lang-hint .lh-x:hover { background: var(--surface-3); color: var(--text); }
+.lang-hint .ic { width: 16px; height: 16px; }
+/* docs: the bar sits inside Starlight's fixed header, above the top bar; the header grows by the bar's height */
+.lang-hint.in-docs { position: absolute; inset: 0 0 auto 0; z-index: 1; }
+.lang-hint.in-docs .lh-in { max-width: none; }
+html:root[data-lang-hint] { --sl-nav-height: calc(var(--topbar-h) + var(--lang-hint-h)); }
+html:root[data-lang-hint] header.header { padding-top: var(--lang-hint-h); }
+html:root[data-lang-hint] .sl-menu-button { top: calc(var(--lang-hint-h) + (var(--topbar-h) - var(--sl-menu-button-size)) / 2); }

@@ -1,0 +1,5 @@
+# Extracted from 01-dataset-prelabelling-full.tar.gz (see full.json); not committed.
+images/
+truth.json
+manifest.json
+ATTRIBUTION.csv

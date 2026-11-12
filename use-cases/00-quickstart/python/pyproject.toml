@@ -1,0 +1,9 @@
+[project]
+name = "stack-cookbook-quickstart"
+version = "1.0.0"
+description = "Foldbun Stack Cookbook: first call (Python)."
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+package = false

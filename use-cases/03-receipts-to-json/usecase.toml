@@ -1,0 +1,49 @@
+id = "03-receipts-to-json"
+order = 3
+title = { en = "Receipts and invoices to validated JSON", zh = "收据和发票转为经过校验的 JSON" }
+summary = { en = "Read receipts with ppocr-v6, extract the fields by rules, check that the sums add up, and read only the items that fail again with paddleocr-vl.", zh = "用 ppocr-v6 读取收据，按规则抽取字段，校验金额是否对得上，只把校验失败的项用 paddleocr-vl 重读。" }
+models = ["ppocr-v6", "paddleocr-vl"]
+tier = "billed"
+languages = ["python", "typescript", "go"]
+reference = "python"
+docs = ["/docs/use-cases/text-recognition/", "/docs/use-cases/document-parsing/", "/docs/rate-limits/", "/docs/billing/"]
+playground = "/playground/?model=ppocr-v6"
+
+[sizes.smoke]
+manifest = "assets/smoke/manifest.json"
+budget_credits = 5.0
+
+# The 80 documents (60 CORD receipts + 20 synthetic invoices) are a release asset: extract 03-receipts-to-json-full.tar.gz
+# into assets/ (see assets/full.json). Worst case at list price: every document is read by ppocr-v6 (0.25) and every one
+# fails validation and is read again by paddleocr-vl (2 per page, one page each): 80 x (0.25 + 2) = 180.
+# The expected cost is far lower: 80 x 0.25 = 20 plus 2 per document that falls back (about 60 with a fallback rate of 0.25).
+[sizes.full]
+manifest = "assets/full.json"
+budget_credits = 180.0
+languages = ["python"]
+
+[compare]
+"items[].output.outcome" = { exact = true }
+"items[].output.model" = { exact = true }
+"items[].output.receipt.merchant" = { exact = true }
+"items[].output.receipt.date" = { exact = true }
+"items[].output.receipt.total" = { abs = 0.01 }
+"items[].output.receipt.subtotal" = { abs = 0.01 }
+"items[].output.receipt.discount" = { abs = 0.01 }
+"items[].output.receipt.tax" = { abs = 0.01 }
+"items[].output.receipt.lineItems" = { len = true }
+"items[].output.receipt.lineItems[].amount" = { abs = 0.01 }
+"ledger.calls" = { exact = true }
+
+[quality]
+# Floors for the metrics `evaluate.py` prints on the held-out half of the full set (the even-numbered documents; the extraction
+# rules were developed on the odd ones). MEASURED on the full run replayed from recorded answers: held-out validation_pass_rate
+# 0.725, needs_review_rate 0.275, total_accuracy 0.95, accepted_total_accuracy 1.0, line_item_count_accuracy 0.775, list cost
+# 950 per 1,000. Each floor leaves a margin of about one in ten documents of the half (4 of 40) for another run of the real API.
+heldout_validation_pass_rate = { min = 0.65 }
+heldout_needs_review_rate = { max = 0.35 }
+heldout_total_accuracy = { min = 0.90 }
+heldout_accepted_total_accuracy = { min = 0.95 }
+heldout_line_item_count_accuracy = { min = 0.70 }
+# 250 for OCR only; the hybrid adds 2,000 per share of documents that fall back (at most 0.4 here).
+heldout_hybrid_cost_per_1000_list = { max = 1050 }

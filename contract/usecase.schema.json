@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Foldbun/stack-cookbook/main/contract/usecase.schema.json",
+  "title": "usecase.toml",
+  "description": "Metadata of one use case; read by the harness and the site.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "order",
+    "title",
+    "summary",
+    "models",
+    "tier",
+    "languages",
+    "reference",
+    "docs",
+    "sizes"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9]{2}-[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Directory name and URL slug."
+    },
+    "order": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "title": {
+      "$ref": "#/$defs/text"
+    },
+    "summary": {
+      "$ref": "#/$defs/text"
+    },
+    "models": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "enum": [
+          "sam3",
+          "sam-lite",
+          "ppocr-v6",
+          "paddleocr-vl",
+          "dinov3",
+          "siglip2",
+          "birefnet"
+        ]
+      }
+    },
+    "tier": {
+      "enum": [
+        "public",
+        "funded",
+        "billed"
+      ]
+    },
+    "kind": {
+      "enum": [
+        "batch",
+        "server"
+      ],
+      "default": "batch",
+      "description": "batch: every implementation is a command-line program (CONTRIBUTING.md). server: every implementation is an HTTP backend that the harness starts with `--port N` and drives with harness/clickbot.py (contract/02-backend.yaml)."
+    },
+    "languages": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/language"
+      }
+    },
+    "reference": {
+      "$ref": "#/$defs/language"
+    },
+    "docs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^/docs/"
+      }
+    },
+    "playground": {
+      "type": "string",
+      "pattern": "^/playground/"
+    },
+    "sizes": {
+      "type": "object",
+      "required": [
+        "smoke"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "smoke": {
+          "$ref": "#/$defs/size"
+        },
+        "full": {
+          "$ref": "#/$defs/size"
+        }
+      }
+    },
+    "compare": {
+      "type": "object",
+      "description": "Tolerances keyed by result.json path; see harness/compare.py.",
+      "additionalProperties": {
+        "$ref": "#/$defs/rule"
+      }
+    },
+    "compare_live": {
+      "type": "object",
+      "description": "Rules that replace those of `compare` in runs against the real API, for values it does not promise (e.g. the cache state of a call).",
+      "additionalProperties": {
+        "$ref": "#/$defs/rule"
+      }
+    },
+    "quality": {
+      "type": "object",
+      "description": "Bounds on metrics printed by evaluate.py (full runs).",
+      "additionalProperties": {
+        "type": "object",
+        "minProperties": 1,
+        "additionalProperties": false,
+        "properties": {
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "language": {
+      "enum": [
+        "curl",
+        "python",
+        "typescript",
+        "go"
+      ]
+    },
+    "text": {
+      "type": "object",
+      "required": [
+        "en",
+        "zh"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "en": {
+          "type": "string",
+          "minLength": 1
+        },
+        "zh": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "size": {
+      "type": "object",
+      "required": [
+        "manifest",
+        "budget_credits"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "manifest": {
+          "type": "string",
+          "description": "Path relative to the use case directory."
+        },
+        "budget_credits": {
+          "type": "number",
+          "minimum": 0,
+          "description": "List-price cap of one run in one language."
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/language"
+          },
+          "description": "Languages that run this size (default: all)."
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "exact": {
+          "const": true
+        },
+        "ignore": {
+          "const": true
+        },
+        "len": {
+          "const": true
+        },
+        "set": {
+          "const": true
+        },
+        "abs": {
+          "type": "number",
+          "minimum": 0
+        },
+        "rel": {
+          "type": "number",
+          "minimum": 0
+        },
+        "match_iou": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        }
+      }
+    }
+  }
+}

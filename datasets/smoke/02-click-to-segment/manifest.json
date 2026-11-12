@@ -1,0 +1,22 @@
+{
+ "usecase": "02-click-to-segment",
+ "version": 1,
+ "set": "smoke",
+ "items": [
+  {
+   "id": "77bfbbef28ac344c-207f2013",
+   "image": "images/77bfbbef28ac344c.jpg",
+   "label": "goose"
+  },
+  {
+   "id": "9314c56f8f11e177-abb80726",
+   "image": "images/9314c56f8f11e177.jpg",
+   "label": "bird"
+  },
+  {
+   "id": "915ac36ff8e610e6-d68c741b",
+   "image": "images/915ac36ff8e610e6.jpg",
+   "label": "platter"
+  }
+ ]
+}

@@ -1,0 +1,9 @@
+[project]
+name = "stack-cookbook-click-to-segment"
+version = "1.0.0"
+description = "Foldbun Stack Cookbook: the key-holding backend of a click-to-segment component (Python, standard library only)."
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+package = false

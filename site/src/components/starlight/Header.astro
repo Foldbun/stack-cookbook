@@ -1,0 +1,17 @@
+---
+// Starlight header = the shared site top bar with Starlight's search between nav and controls.
+import Search from 'virtual:starlight/components/Search'
+import config from 'virtual:starlight/user-config'
+import SiteHeader from '../SiteHeader.astro'
+import siteJs from '../../scripts/site.js?url'
+import { counterpart, localeOf } from '../../lib/site.ts'
+
+const locale = localeOf(Astro.url.pathname)
+const altHref = counterpart(Astro.url.pathname, locale === 'en' ? 'zh' : 'en')
+const shouldRenderSearch = config.pagefind || config.components.Search !== '@astrojs/starlight/components/Search.astro'
+---
+
+<SiteHeader locale={locale} altHref={altHref}>
+  {shouldRenderSearch && <div class="docs-search"><Search /></div>}
+</SiteHeader>
+<script is:inline src={siteJs} defer></script>

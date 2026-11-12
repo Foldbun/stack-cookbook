@@ -1,0 +1,167 @@
+{
+ "usecase": "01-dataset-prelabelling",
+ "set": "smoke",
+ "source": "Open Images Dataset V7 (Google LLC): annotations CC BY 4.0; image CC BY 2.0 by the author listed",
+ "bbox_format": "xyxy pixels in the stored image",
+ "verified": "1 = class present (boxes), 0 = human-verified absent, null = not verified (do not count false positives)",
+ "items": {
+  "746b596e2148b044": {
+   "width": 768,
+   "height": 1024,
+   "classes": {
+    "Dog": {
+     "verified": 1,
+     "boxes": [
+      {
+       "bbox": [
+        443.2,
+        591.3,
+        603.2,
+        983.9
+       ],
+       "oi_class": "Dog",
+       "occluded": false,
+       "truncated": false
+      },
+      {
+       "bbox": [
+        484.8,
+        32.1,
+        556.8,
+        216.3
+       ],
+       "oi_class": "Dog",
+       "occluded": false,
+       "truncated": false
+      }
+     ]
+    },
+    "Cat": {
+     "verified": 0,
+     "boxes": []
+    },
+    "Bird": {
+     "verified": null,
+     "boxes": []
+    },
+    "Boat": {
+     "verified": null,
+     "boxes": []
+    }
+   }
+  },
+  "7803588ebab09921": {
+   "width": 1024,
+   "height": 576,
+   "classes": {
+    "Dog": {
+     "verified": null,
+     "boxes": []
+    },
+    "Cat": {
+     "verified": 1,
+     "boxes": [
+      {
+       "bbox": [
+        407.4,
+        131.9,
+        744.1,
+        465.0
+       ],
+       "oi_class": "Cat",
+       "occluded": false,
+       "truncated": false
+      }
+     ]
+    },
+    "Bird": {
+     "verified": 0,
+     "boxes": []
+    },
+    "Boat": {
+     "verified": null,
+     "boxes": []
+    }
+   }
+  },
+  "16774edaeacc5aed": {
+   "width": 1024,
+   "height": 685,
+   "classes": {
+    "Dog": {
+     "verified": 0,
+     "boxes": []
+    },
+    "Cat": {
+     "verified": null,
+     "boxes": []
+    },
+    "Bird": {
+     "verified": 1,
+     "boxes": [
+      {
+       "bbox": [
+        161.8,
+        121.0,
+        893.9,
+        685.0
+       ],
+       "oi_class": "Ostrich",
+       "occluded": false,
+       "truncated": true
+      }
+     ]
+    },
+    "Boat": {
+     "verified": null,
+     "boxes": []
+    }
+   }
+  },
+  "5da2941bab9c2f4a": {
+   "width": 1024,
+   "height": 768,
+   "classes": {
+    "Dog": {
+     "verified": null,
+     "boxes": []
+    },
+    "Cat": {
+     "verified": null,
+     "boxes": []
+    },
+    "Bird": {
+     "verified": null,
+     "boxes": []
+    },
+    "Boat": {
+     "verified": 1,
+     "boxes": [
+      {
+       "bbox": [
+        195.2,
+        136.0,
+        547.2,
+        620.8
+       ],
+       "oi_class": "Boat",
+       "occluded": false,
+       "truncated": false
+      },
+      {
+       "bbox": [
+        536.0,
+        136.0,
+        849.6,
+        657.6
+       ],
+       "oi_class": "Boat",
+       "occluded": false,
+       "truncated": false
+      }
+     ]
+    }
+   }
+  }
+ }
+}

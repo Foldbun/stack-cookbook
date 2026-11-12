@@ -1,0 +1,30 @@
+/* Cookbook-specific styles (the home matrix, the use case meta row). Everything else comes from the Stack theme files. */
+.matrix { margin-top: var(--sp-3); }
+.matrix-filter { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.matrix-filter-label { color: var(--text-2); font-size: var(--fs-sm); margin-right: var(--sp-1); }
+.matrix-filter .btn[aria-pressed='true'] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.matrix-scroll { overflow-x: auto; }
+.sl-markdown-content .matrix table { width: 100%; border-collapse: collapse; margin: 0; }
+.sl-markdown-content .matrix :is(th, td) { padding: 0.6rem 0.75rem; vertical-align: top; text-align: left; }
+.sl-markdown-content .matrix th.mark, .sl-markdown-content .matrix td.mark { text-align: center; width: 6rem; white-space: nowrap; }
+.sl-markdown-content .matrix tbody th { font-weight: 400; background: none; min-width: 16rem; }
+.matrix tr[hidden] { display: none; }
+.matrix .num { color: var(--text-3); font-variant-numeric: tabular-nums; margin-right: 0.25rem; }
+.matrix tbody th a { font-weight: 600; }
+.matrix .sum { display: block; margin-top: 0.15rem; color: var(--text-2); font-size: var(--fs-sm); line-height: 1.45; }
+.matrix .tier { color: var(--text-2); font-size: var(--fs-sm); white-space: nowrap; }
+.matrix .ic.yes { color: var(--success); width: 18px; height: 18px; }
+.matrix .no { color: var(--text-3); }
+.matrix [data-empty] { color: var(--text-2); }
+/* the splash template: keep the home page in the docs column width */
+.home { max-width: 60rem; margin-inline: auto; }
+/* the meta row of a use case page and the "Run it" tabs */
+.sl-markdown-content starlight-tabs .tab > [role='tabpanel'] > p:first-child { color: var(--text-2); font-size: var(--fs-sm); }
+
+/* Figures are SVG files drawn with fixed colours for a light ground, and an <img> cannot follow the page theme:
+   in the dark theme they get a light panel of their own. */
+:root[data-theme='dark'] .sl-markdown-content img[src$='.svg'] {
+  background: #f7f7f4;
+  padding: 12px;
+  border-radius: 2px;
+}

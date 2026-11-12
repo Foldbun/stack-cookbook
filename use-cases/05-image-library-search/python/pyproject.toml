@@ -1,0 +1,9 @@
+[project]
+name = "stack-cookbook-image-library-search"
+version = "1.0.0"
+description = "Foldbun Stack Cookbook: visual search, text search and near-duplicate detection for an image library (Python)."
+requires-python = ">=3.12"
+dependencies = ["numpy>=2.0"]
+
+[tool.uv]
+package = false

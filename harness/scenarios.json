@@ -1,0 +1,26 @@
+{
+  "retry-model-busy": {
+    "description": "The first /v1/ocr call answers 503 model_busy with retryAfterMs 1200. A client waits at least 1.2 s and repeats the call with the same Idempotency-Key; the second attempt succeeds.",
+    "rules": [{"path": "/v1/ocr", "times": 1, "error": {"code": "model_busy", "retryAfterMs": 1200}}]
+  },
+  "rate-limited": {
+    "description": "The first two /v1/segment calls answer 429 rate_limited with retryAfterMs 0 (Retry-After: 1). A client waits at least 1 s each time and succeeds on the third attempt.",
+    "rules": [{"path": "/v1/segment", "times": 2, "error": {"code": "rate_limited", "retryAfterMs": 0}}]
+  },
+  "not-retryable": {
+    "description": "The first /v1/ocr call answers 502 bad_model_output (retryable false). A client raises a typed error at once, without repeating the call.",
+    "rules": [{"path": "/v1/ocr", "times": 1, "error": {"code": "bad_model_output"}}]
+  },
+  "image-evicted": {
+    "description": "The second /v1/ocr call finds every stored image evicted and answers 404 image_not_found. A client that uploaded the image uploads it again and repeats the call once.",
+    "rules": [{"path": "/v1/ocr", "skip": 1, "times": 1, "evictImages": true}]
+  },
+  "batch-partial": {
+    "description": "A batch of 4 or more items: item 1 fails with bad_model_output, items from index 3 expire. A client records items 0 and 2 in the ledger, item 1 as an error and items 3+ as expired.",
+    "rules": [{"path": "/v1/batch/*", "times": 1, "itemErrors": {"1": "bad_model_output"}, "expireFrom": 3}]
+  },
+  "batch-dropped": {
+    "description": "The event stream of the first batch closes after 2 items without a summary. Repeating the batch with the same Idempotency-Key replays the finished items (replayed: true, not charged) and runs the rest.",
+    "rules": [{"path": "/v1/batch/*", "times": 1, "disconnectAfterItems": 2}]
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "usecase": "02-click-to-segment",
+  "language": "typescript",
+  "client": "stackClient 1.0.0",
+  "startedAt": "2026-11-12T10:06:58.909669Z",
+  "elapsedMs": 3741,
+  "items": [
+    {
+      "id": "77bfbbef28ac344c-207f2013",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.21,
+          "charged": 0,
+          "cache": "miss",
+          "queueMs": 0,
+          "processingMs": 131,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "goose",
+        "imageId": "im_db2d012362693637f343e9f58d6ab9e6",
+        "width": 1024,
+        "height": 768,
+        "maxClicks": 4,
+        "clicks": [
+          {
+            "x": 521,
+            "y": 424,
+            "positive": true,
+            "iou": 0.9077,
+            "score": 0.95703125,
+            "cache": "miss",
+            "costCredits": 0,
+            "listCredits": 0.21
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9077
+      }
+    },
+    {
+      "id": "9314c56f8f11e177-abb80726",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.21,
+          "charged": 0,
+          "cache": "miss",
+          "queueMs": 0,
+          "processingMs": 189,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "bird",
+        "imageId": "im_586917b3da80287cb37fd86a7db09697",
+        "width": 1024,
+        "height": 683,
+        "maxClicks": 4,
+        "clicks": [
+          {
+            "x": 355,
+            "y": 312,
+            "positive": true,
+            "iou": 0.9374,
+            "score": 0.98046875,
+            "cache": "miss",
+            "costCredits": 0,
+            "listCredits": 0.21
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9374
+      }
+    },
+    {
+      "id": "915ac36ff8e610e6-d68c741b",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.21,
+          "charged": 0,
+          "cache": "miss",
+          "queueMs": 0,
+          "processingMs": 377,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 57,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "platter",
+        "imageId": "im_fc2388a562f14b5f7f3659ba761e73d3",
+        "width": 768,
+        "height": 1024,
+        "maxClicks": 4,
+        "clicks": [
+          {
+            "x": 369,
+            "y": 539,
+            "positive": true,
+            "iou": 0.8099,
+            "score": 0.828125,
+            "cache": "miss",
+            "costCredits": 0,
+            "listCredits": 0.21
+          },
+          {
+            "x": 73,
+            "y": 530,
+            "positive": true,
+            "iou": 0.9822,
+            "score": 0.93359375,
+            "cache": "hit",
+            "costCredits": 0,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 2,
+        "noc90": 2,
+        "finalIou": 0.9822
+      }
+    }
+  ],
+  "ledger": {
+    "calls": 4,
+    "listTotal": 0.64,
+    "chargedTotal": 0
+  }
+}

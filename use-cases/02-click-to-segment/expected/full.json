@@ -1,0 +1,1634 @@
+{
+  "usecase": "02-click-to-segment",
+  "language": "typescript",
+  "client": "stackClient 1.0.0",
+  "startedAt": "2026-11-12T12:18:10.057948Z",
+  "elapsedMs": 38241,
+  "items": [
+    {
+      "id": "77bfbbef28ac344c-207f2013",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 80,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "goose",
+        "imageId": "im_db2d012362693637f343e9f58d6ab9e6",
+        "width": 1024,
+        "height": 768,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 521,
+            "y": 424,
+            "positive": true,
+            "iou": 0.9077,
+            "score": 0.95703125,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9077
+      }
+    },
+    {
+      "id": "9314c56f8f11e177-abb80726",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 87,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "bird",
+        "imageId": "im_586917b3da80287cb37fd86a7db09697",
+        "width": 1024,
+        "height": 683,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 355,
+            "y": 312,
+            "positive": true,
+            "iou": 0.9374,
+            "score": 0.98046875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9374
+      }
+    },
+    {
+      "id": "915ac36ff8e610e6-d68c741b",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 77,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 47,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "platter",
+        "imageId": "im_fc2388a562f14b5f7f3659ba761e73d3",
+        "width": 768,
+        "height": 1024,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 369,
+            "y": 539,
+            "positive": true,
+            "iou": 0.8099,
+            "score": 0.828125,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 73,
+            "y": 530,
+            "positive": true,
+            "iou": 0.9822,
+            "score": 0.93359375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 2,
+        "noc90": 2,
+        "finalIou": 0.9822
+      }
+    },
+    {
+      "id": "7cd3726cefd5dcc3-609a391c",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 79,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 51,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "pitcher (container)",
+        "imageId": "im_6c50c2a0a2f28a0322732596f664303f",
+        "width": 768,
+        "height": 1024,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 365,
+            "y": 498,
+            "positive": true,
+            "iou": 0.0897,
+            "score": 0.49609375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 373,
+            "y": 262,
+            "positive": true,
+            "iou": 0.9567,
+            "score": 0.97265625,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 2,
+        "noc90": 2,
+        "finalIou": 0.9567
+      }
+    },
+    {
+      "id": "5387aa0e2ce4b45f-0cefa76c",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 49,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "bear",
+        "imageId": "im_2d0dc8d762d401a8a3817feb3860f7c7",
+        "width": 1024,
+        "height": 768,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 457,
+            "y": 453,
+            "positive": true,
+            "iou": 0.946,
+            "score": 0.98046875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.946
+      }
+    },
+    {
+      "id": "f54a81df46ae0d9a-8edb5de3",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 51,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "fish",
+        "imageId": "im_1782798ebe959c38db45739a54bde2f3",
+        "width": 1024,
+        "height": 686,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 533,
+            "y": 330,
+            "positive": true,
+            "iou": 0.9665,
+            "score": 0.9765625,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9665
+      }
+    },
+    {
+      "id": "b9984ba1b42427c4-b5a3f1f3",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 49,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 69,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "duck",
+        "imageId": "im_e3ee88c02ec1373f65e8b5cc3af16ec4",
+        "width": 538,
+        "height": 1024,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 197,
+            "y": 409,
+            "positive": true,
+            "iou": 0.0383,
+            "score": 0.9609375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 174,
+            "y": 532,
+            "positive": true,
+            "iou": 0.904,
+            "score": 0.7578125,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 2,
+        "noc90": 2,
+        "finalIou": 0.904
+      }
+    },
+    {
+      "id": "be2f530f8265c4b7-254d566f",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 53,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "frog",
+        "imageId": "im_f6eea02720c3b75fb373bafb1d5ccf79",
+        "width": 1024,
+        "height": 853,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 448,
+            "y": 430,
+            "positive": true,
+            "iou": 0.9315,
+            "score": 0.890625,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9315
+      }
+    },
+    {
+      "id": "19d768a4a42efd60-54e020ab",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 52,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "dog",
+        "imageId": "im_5c27c98b750c66bbc310a28b795428c9",
+        "width": 1024,
+        "height": 683,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 502,
+            "y": 386,
+            "positive": true,
+            "iou": 0.9602,
+            "score": 0.98046875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9602
+      }
+    },
+    {
+      "id": "8d279daa12ffc691-7a3cc8c0",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 49,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 81,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 47,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 45,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "tea",
+        "imageId": "im_2d30de530226d03dc80c62a86f918859",
+        "width": 1024,
+        "height": 726,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 510,
+            "y": 211,
+            "positive": true,
+            "iou": 0.8124,
+            "score": 0.91796875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 387,
+            "y": 160,
+            "positive": true,
+            "iou": 0.3167,
+            "score": 0.8828125,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 631,
+            "y": 405,
+            "positive": false,
+            "iou": 0.8841,
+            "score": 0.90234375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 359,
+            "y": 293,
+            "positive": false,
+            "iou": 0.9645,
+            "score": 0.90625,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 3,
+        "noc90": 4,
+        "finalIou": 0.9645
+      }
+    },
+    {
+      "id": "b5bfc85ebf0c0da5-0a04c776",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 159,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 46,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 47,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 47,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 51,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 53,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "heater",
+        "imageId": "im_fceff12142e7e37929184515b8b7436c",
+        "width": 1024,
+        "height": 767,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 643,
+            "y": 450,
+            "positive": true,
+            "iou": 0.0994,
+            "score": 0.90625,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 714,
+            "y": 382,
+            "positive": true,
+            "iou": 0.5675,
+            "score": 0.8515625,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 766,
+            "y": 474,
+            "positive": true,
+            "iou": 0.5755,
+            "score": 0.71875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 495,
+            "y": 551,
+            "positive": true,
+            "iou": 0.7513,
+            "score": 0.8046875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 707,
+            "y": 325,
+            "positive": true,
+            "iou": 0.8804,
+            "score": 0.7734375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 711,
+            "y": 615,
+            "positive": false,
+            "iou": 0.9323,
+            "score": 0.7734375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 5,
+        "noc90": 6,
+        "finalIou": 0.9323
+      }
+    },
+    {
+      "id": "178a83688c532568-15ef0fb4",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 48,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "bull",
+        "imageId": "im_cdac3d40bff6896a1709087923ba6e0e",
+        "width": 1024,
+        "height": 682,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 480,
+            "y": 400,
+            "positive": true,
+            "iou": 0.9559,
+            "score": 0.9609375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9559
+      }
+    },
+    {
+      "id": "621d666570933209-fef9e442",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 72,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "pear",
+        "imageId": "im_edc7a2d306534e317dc3e0e64811e501",
+        "width": 1024,
+        "height": 845,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 405,
+            "y": 511,
+            "positive": true,
+            "iou": 0.9806,
+            "score": 0.9921875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9806
+      }
+    },
+    {
+      "id": "6810d6355c7fa115-5cedf6bd",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 60,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 58,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 47,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 61,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 48,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 55,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 63,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 53,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 63,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 50,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "tea",
+        "imageId": "im_bcb34e6979e028ef6d229818918582a4",
+        "width": 1024,
+        "height": 765,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 585,
+            "y": 251,
+            "positive": true,
+            "iou": 0.0349,
+            "score": 0.796875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 441,
+            "y": 240,
+            "positive": true,
+            "iou": 0.6978,
+            "score": 0.76171875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 563,
+            "y": 476,
+            "positive": false,
+            "iou": 0.8466,
+            "score": 0.74609375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 396,
+            "y": 391,
+            "positive": false,
+            "iou": 0.8624,
+            "score": 0.68359375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 339,
+            "y": 345,
+            "positive": false,
+            "iou": 0.8661,
+            "score": 0.71484375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 398,
+            "y": 387,
+            "positive": false,
+            "iou": 0.8667,
+            "score": 0.7734375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 330,
+            "y": 335,
+            "positive": false,
+            "iou": 0.8618,
+            "score": 0.7734375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 310,
+            "y": 306,
+            "positive": false,
+            "iou": 0.8557,
+            "score": 0.7578125,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 310,
+            "y": 306,
+            "positive": false,
+            "iou": 0.8511,
+            "score": 0.70703125,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 310,
+            "y": 306,
+            "positive": false,
+            "iou": 0.035,
+            "score": 0.65234375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 4,
+        "noc90": null,
+        "finalIou": 0.035
+      }
+    },
+    {
+      "id": "80d567eb8c139348-a579f4f1",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 65,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "duck",
+        "imageId": "im_76990d8d3d749d3920be8e88ada1abd1",
+        "width": 1024,
+        "height": 640,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 539,
+            "y": 310,
+            "positive": true,
+            "iou": 0.9345,
+            "score": 0.9140625,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9345
+      }
+    },
+    {
+      "id": "e10a4758270ac022-0105a2aa",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 56,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "vase",
+        "imageId": "im_9aed9f2eb555acf47214ae6d2a265824",
+        "width": 771,
+        "height": 1024,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 389,
+            "y": 559,
+            "positive": true,
+            "iou": 0.9734,
+            "score": 0.96484375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9734
+      }
+    },
+    {
+      "id": "c220369f4d5dcb95-70c51f49",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 73,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "cake",
+        "imageId": "im_9ccdf7142611f1a4dc10897dc586b15d",
+        "width": 1024,
+        "height": 643,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 549,
+            "y": 298,
+            "positive": true,
+            "iou": 0.9335,
+            "score": 0.90234375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9335
+      }
+    },
+    {
+      "id": "67034a68f606a071-1016a600",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 54,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "peach",
+        "imageId": "im_d019b29c9d10a552fc9b986a670a3d36",
+        "width": 1024,
+        "height": 768,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 634,
+            "y": 380,
+            "positive": true,
+            "iou": 0.9821,
+            "score": 0.9921875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9821
+      }
+    },
+    {
+      "id": "7a18cc3a0bb314fe-61a02f23",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 50,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "box",
+        "imageId": "im_dfb26b4262cb7ac16d2f296f15e01670",
+        "width": 938,
+        "height": 1024,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 184,
+            "y": 664,
+            "positive": true,
+            "iou": 0.9523,
+            "score": 0.98046875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9523
+      }
+    },
+    {
+      "id": "417c758c430d3b34-1955e6b1",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 51,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 47,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 50,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "flower",
+        "imageId": "im_a14d3537a9883158683f8bf4cde7140d",
+        "width": 1024,
+        "height": 576,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 505,
+            "y": 307,
+            "positive": true,
+            "iou": 0.1355,
+            "score": 0.82421875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 524,
+            "y": 219,
+            "positive": true,
+            "iou": 0.8762,
+            "score": 0.9609375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 634,
+            "y": 362,
+            "positive": true,
+            "iou": 0.9714,
+            "score": 0.96484375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 2,
+        "noc90": 3,
+        "finalIou": 0.9714
+      }
+    },
+    {
+      "id": "76048660604b83ac-bd96f2f5",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 47,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "dice",
+        "imageId": "im_f454b2bcd8f7ee49d22bfc725b6d0ab3",
+        "width": 1024,
+        "height": 481,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 183,
+            "y": 238,
+            "positive": true,
+            "iou": 0.9829,
+            "score": 0.98828125,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9829
+      }
+    },
+    {
+      "id": "78757abd46497e4e-9141e550",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 51,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "pig",
+        "imageId": "im_4daf430fa5371cd2fbf19056af542167",
+        "width": 1024,
+        "height": 683,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 769,
+            "y": 290,
+            "positive": true,
+            "iou": 0.9415,
+            "score": 0.9765625,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9415
+      }
+    },
+    {
+      "id": "66b260ca01f408be-e9677e0a",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 79,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "doughnut",
+        "imageId": "im_176fbd1db8461037e15815c8b7b84195",
+        "width": 768,
+        "height": 768,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 433,
+            "y": 431,
+            "positive": true,
+            "iou": 0.967,
+            "score": 0.98828125,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.967
+      }
+    },
+    {
+      "id": "bc956e541ad8b3b2-ca55786b",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 52,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "bird",
+        "imageId": "im_ba51c7de1a5594bb1a638352245605a4",
+        "width": 683,
+        "height": 1024,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 336,
+            "y": 494,
+            "positive": true,
+            "iou": 0.9365,
+            "score": 0.98828125,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9365
+      }
+    },
+    {
+      "id": "8f1b8dfe77ed4ffd-d50d5cf5",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 52,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "dog",
+        "imageId": "im_2ed65f72cce1b57e39e3f263f480a794",
+        "width": 1024,
+        "height": 683,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 403,
+            "y": 314,
+            "positive": true,
+            "iou": 0.9374,
+            "score": 0.96875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9374
+      }
+    },
+    {
+      "id": "7c455cd7bb04248b-eee4dc68",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 49,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "bowl",
+        "imageId": "im_9e4abd2fa01f2a1edc9ae8951e5c47fb",
+        "width": 1024,
+        "height": 768,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 410,
+            "y": 441,
+            "positive": true,
+            "iou": 0.9759,
+            "score": 0.9921875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9759
+      }
+    },
+    {
+      "id": "0f58ef7a6b7c2d90-5c39c8d1",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 82,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "fox",
+        "imageId": "im_dd1f53a4331bc7519270c4acb1682fab",
+        "width": 1024,
+        "height": 986,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 607,
+            "y": 701,
+            "positive": true,
+            "iou": 0.9608,
+            "score": 0.984375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9608
+      }
+    },
+    {
+      "id": "c2bf3f54279a6fa8-102e68cb",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.21,
+          "charged": 0.21,
+          "cache": "miss",
+          "queueMs": 0,
+          "processingMs": 176,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 48,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 58,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "cake",
+        "imageId": "im_7ccb0200b6ba68b44f800970ebe5cc6a",
+        "width": 1024,
+        "height": 680,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 523,
+            "y": 389,
+            "positive": true,
+            "iou": 0.1658,
+            "score": 0.52734375,
+            "cache": "miss",
+            "costCredits": 0.21,
+            "listCredits": 0.21
+          },
+          {
+            "x": 464,
+            "y": 534,
+            "positive": true,
+            "iou": 0.69,
+            "score": 0.87109375,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          },
+          {
+            "x": 645,
+            "y": 234,
+            "positive": true,
+            "iou": 0.96,
+            "score": 0.875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 3,
+        "noc90": 3,
+        "finalIou": 0.96
+      }
+    },
+    {
+      "id": "d228a83a40891815-569acbcd",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 71,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "tortoise",
+        "imageId": "im_5e4a35d6732bc775e25b9dc7e9f6647e",
+        "width": 683,
+        "height": 1024,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 370,
+            "y": 440,
+            "positive": true,
+            "iou": 0.9364,
+            "score": 0.875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9364
+      }
+    },
+    {
+      "id": "bc02b9aa8b803fcf-c54a6e52",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/refine",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0.01,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 55,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "label": "fish",
+        "imageId": "im_e6e9b254fecec1c898b2944acb9cd6a9",
+        "width": 1024,
+        "height": 768,
+        "maxClicks": 10,
+        "clicks": [
+          {
+            "x": 465,
+            "y": 404,
+            "positive": true,
+            "iou": 0.9331,
+            "score": 0.921875,
+            "cache": "hit",
+            "costCredits": 0.01,
+            "listCredits": 0.01
+          }
+        ],
+        "noc85": 1,
+        "noc90": 1,
+        "finalIou": 0.9331
+      }
+    }
+  ],
+  "ledger": {
+    "calls": 54,
+    "listTotal": 0.74,
+    "chargedTotal": 0.74
+  }
+}

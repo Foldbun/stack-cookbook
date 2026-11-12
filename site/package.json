@@ -1,0 +1,20 @@
+{
+  "name": "stack-cookbook-site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "node scripts/sync-usecases.mjs",
+    "dev": "node scripts/sync-usecases.mjs && astro dev",
+    "build": "node scripts/sync-usecases.mjs && astro build && node scripts/csp.mjs && node scripts/check-links.mjs dist",
+    "preview": "astro preview",
+    "test": "node --test scripts/"
+  },
+  "dependencies": {
+    "@astrojs/markdown-satteri": "0.4.8",
+    "@astrojs/starlight": "0.42.8",
+    "astro": "7.4.4",
+    "sharp": "0.35.5",
+    "smol-toml": "1.9.1"
+  }
+}

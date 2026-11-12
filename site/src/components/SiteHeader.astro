@@ -1,0 +1,58 @@
+---
+// Top bar of the Cookbook: the Foldbun Stack docs top bar (brand with a "Cookbook" tag, links, language switch,
+// theme menu, search slot). Same markup and classes as stack.foldbun.com; the language links carry data-set-lang,
+// which src/scripts/site.js turns into the foldbun_lang cookie.
+import Logo from './Logo.astro'
+import { BRAND } from '../lib/brand.ts'
+import { T } from '../i18n.ts'
+import { REPO, docsUrl, lpath, playgroundUrl, type Locale } from '../lib/site.ts'
+import { iconSvg } from '../icons/icon-svg.mjs'
+
+interface Props { locale: Locale; altHref: string }
+const { locale, altHref } = Astro.props
+const t = T[locale]
+const other: Locale = locale === 'en' ? 'zh' : 'en'
+const otherLang = other === 'zh' ? 'zh-CN' : 'en-US'
+const nav = [
+  { href: lpath(locale, '/'), label: t['nav.cookbook'], current: true },
+  { href: docsUrl(locale), label: t['nav.docs'] },
+  { href: playgroundUrl(), label: t['nav.playground'] },
+  { href: REPO, label: t['nav.github'] },
+]
+---
+
+<header class="site-top docs">
+  <div class="wrap bar">
+    <a class="brand" href={lpath(locale, '/')} aria-label={t['brand.home']}>
+      <Logo /><span class="bname">{BRAND.org} <span class="bsub">{BRAND.suffix}</span></span><span class="tag">{t['brand.tag']}</span>
+    </a>
+    <nav class="site-nav" aria-label={t['nav.main']}>
+      {nav.map((n) => <a href={n.href} aria-current={n.current ? 'page' : undefined}>{n.label}</a>)}
+    </nav>
+    <slot />
+    <span class="spacer"></span>
+    <div class="acts">
+      <a class="icon-btn opt lang-link" href={altHref} hreflang={otherLang} lang={otherLang} title={t['lang.title']} data-set-lang={other}>{t['lang.short']}</a>
+      <details class="menu opt js-theme-menu" hidden>
+        <summary class="icon-btn" title={t['theme.label']} aria-label={t['theme.label']}><Fragment set:html={iconSvg('theme-light', { cls: 'ic' })} /></summary>
+        <div class="menu-pop right" role="menu">
+          <button class="mi" type="button" role="menuitemradio" aria-checked="false" data-theme-set="system">{t['theme.system']}</button>
+          <button class="mi" type="button" role="menuitemradio" aria-checked="false" data-theme-set="light">{t['theme.light']}</button>
+          <button class="mi" type="button" role="menuitemradio" aria-checked="false" data-theme-set="dark">{t['theme.dark']}</button>
+        </div>
+      </details>
+      <details class="menu more">
+        <summary class="icon-btn" title={t['menu']} aria-label={t['menu']}><Fragment set:html={iconSvg('more', { cls: 'ic' })} /></summary>
+        <div class="menu-pop right">
+          {nav.map((n) => <a class="mi" href={n.href} aria-current={n.current ? 'page' : undefined}>{n.label}</a>)}
+          <hr />
+          <a class="mi" href={altHref} hreflang={otherLang} lang={otherLang} data-set-lang={other}>{t['lang.title']}</a>
+          <div class="mh">{t['theme.label']}</div>
+          <button class="mi" type="button" data-theme-set="system">{t['theme.system']}</button>
+          <button class="mi" type="button" data-theme-set="light">{t['theme.light']}</button>
+          <button class="mi" type="button" data-theme-set="dark">{t['theme.dark']}</button>
+        </div>
+      </details>
+    </div>
+  </div>
+</header>

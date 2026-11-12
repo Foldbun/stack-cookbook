@@ -1,0 +1,22 @@
+id = "00-quickstart"
+order = 0
+title = { en = "First call", zh = "第一次调用" }
+summary = { en = "Check the key, upload an image, read its text with ppocr-v6 and see what the call cost.", zh = "检查密钥、上传图片、用 ppocr-v6 读出文字，并查看这次调用的费用。" }
+models = ["ppocr-v6"]
+tier = "public"
+languages = ["curl", "python", "typescript", "go"]
+reference = "python"
+docs = ["/docs/quickstart/", "/docs/images/", "/docs/billing/"]
+playground = "/playground/?model=ppocr-v6&sample=settings"
+
+[sizes.smoke]
+manifest = "assets/smoke/manifest.json"
+budget_credits = 0.25
+
+[compare]
+"items[].output.image" = { exact = true }
+"items[].output.lines" = { len = true }
+"items[].output.lines[].text" = { exact = true }
+"items[].output.lines[].bbox" = { abs = 2 }
+"items[].output.lines[].confidence" = { abs = 0.02 }
+"ledger.calls" = { exact = true }

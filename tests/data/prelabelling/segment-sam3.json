@@ -1,0 +1,950 @@
+[
+ {
+  "endpoint": "/v1/segment",
+  "model": "sam3",
+  "image": "cc838047ede6449a0d3cea126b4749a0f66069f199f26b6bb45f5a4159a15f19",
+  "synthetic": "made by fixtures/synthesize.py, not by the model",
+  "timing": {
+   "queueMs": 9,
+   "processingMs": 612
+  },
+  "response": {
+   "instances": [
+    {
+     "prompt": 0,
+     "label": "dog",
+     "score": 0.94,
+     "bbox": [
+      446,
+      594,
+      601,
+      981
+     ],
+     "area": 47117,
+     "polygon": [
+      {
+       "outer": [
+        600,
+        787,
+        597,
+        837,
+        590,
+        884,
+        577,
+        923,
+        562,
+        954,
+        543,
+        973,
+        523,
+        980,
+        503,
+        973,
+        484,
+        954,
+        469,
+        923,
+        456,
+        884,
+        449,
+        837,
+        446,
+        787,
+        449,
+        737,
+        456,
+        690,
+        469,
+        651,
+        484,
+        620,
+        503,
+        601,
+        523,
+        594,
+        543,
+        601,
+        562,
+        620,
+        577,
+        651,
+        590,
+        690,
+        597,
+        737
+       ]
+      }
+     ],
+     "mask": {
+      "encoding": "coco",
+      "size": [
+       1024,
+       768
+      ],
+      "counts": "ngn=[1Un0P1UOf0\\Ob0@>B>C<D<E:G8G:G8H8H8I6I8I6J6J6J6J6K4K6K4K6K4L4L4L4L4L4L4L4L4M2M4L4M2M4M2M4M2N2N2M4M2N2N2N2N2N2N2N2O0O2N2N2O0O2N2O0O2O0O2O0O2O000O2O00000O2O00000000000000000001N1000001N10001N101N101N101N2N101N2N2N101N2N2N2N2N2N2N2N3L3N2N2N3L3N3L3N3L4L3N3L4L4L4L4L4L4L4L4L5J5L5J5L5J6J6J6J6J7H7J7H8H8H9F9H9F;D<D=B>B`0^Od0ZOk0PObXV5"
+     }
+    },
+    {
+     "prompt": 0,
+     "label": "dog",
+     "score": 0.52,
+     "bbox": [
+      487,
+      35,
+      554,
+      213
+     ],
+     "area": 9374,
+     "polygon": [
+      {
+       "outer": [
+        553,
+        124,
+        552,
+        146,
+        549,
+        168,
+        543,
+        186,
+        536,
+        200,
+        529,
+        209,
+        520,
+        212,
+        511,
+        209,
+        504,
+        200,
+        497,
+        186,
+        491,
+        168,
+        488,
+        146,
+        487,
+        124,
+        488,
+        101,
+        491,
+        79,
+        497,
+        61,
+        504,
+        47,
+        511,
+        38,
+        520,
+        35,
+        529,
+        38,
+        536,
+        47,
+        543,
+        61,
+        549,
+        79,
+        552,
+        101
+       ]
+      }
+     ],
+     "mask": {
+      "encoding": "coco",
+      "size": [
+       1024,
+       768
+      ],
+      "counts": "]SW?n0gn0f0]O`0B<E:G8H8I6J6J6J6K4L4L4L4L4L4M2M4M2N2N2N2N2N2O0O2N2O000O2O000000000001N10001N2N101N2N2N2N2N2N3L3N3L4L4L4L4L4L5J6J6J6J7H8H9F;D>@c0ZOnle6"
+     }
+    },
+    {
+     "prompt": 1,
+     "label": "cat",
+     "score": 0.33,
+     "bbox": [
+      452,
+      600,
+      598,
+      700
+     ],
+     "area": 11472,
+     "polygon": [
+      {
+       "outer": [
+        597,
+        650,
+        595,
+        662,
+        587,
+        674,
+        576,
+        685,
+        561,
+        692,
+        543,
+        697,
+        524,
+        699,
+        506,
+        697,
+        488,
+        692,
+        473,
+        685,
+        462,
+        674,
+        454,
+        662,
+        452,
+        650,
+        454,
+        637,
+        462,
+        625,
+        473,
+        614,
+        488,
+        607,
+        506,
+        602,
+        524,
+        600,
+        543,
+        602,
+        561,
+        607,
+        576,
+        614,
+        587,
+        625,
+        595,
+        637
+       ]
+      }
+     ],
+     "mask": {
+      "encoding": "coco",
+      "size": [
+       1024,
+       768
+      ],
+      "counts": "TdT><`o08I6K4L4L4L4M2N2M4M2N2N2N2N2N2N2O0O2N2N2O0O2N2O0O2N2O0O2O0O2O0O2O000O2O0O2O000O2O000O2O000O2O00000O2O0000000O2O0000000000000O2O00000000000000000000000000000000000001N100000000000001N100000001N1000001N10001N10001N10001N101N10001N101N101N101N2N101N2N101N2N2N101N2N2N2N2N2N2N3L3N2N3L4L4L4L5J7HP\\Y5"
+     }
+    }
+   ],
+   "dropStats": [
+    {
+     "prompt": 0,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    },
+    {
+     "prompt": 1,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    },
+    {
+     "prompt": 2,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    },
+    {
+     "prompt": 3,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    }
+   ]
+  }
+ },
+ {
+  "endpoint": "/v1/segment",
+  "model": "sam3",
+  "image": "9a79a459e68993d1814e8097a4fc073ea26dde49637aa6b6215d4dd0d26306a6",
+  "synthetic": "made by fixtures/synthesize.py, not by the model",
+  "timing": {
+   "queueMs": 9,
+   "processingMs": 574
+  },
+  "response": {
+   "instances": [
+    {
+     "prompt": 1,
+     "label": "cat",
+     "score": 0.91,
+     "bbox": [
+      410,
+      136,
+      740,
+      462
+     ],
+     "area": 84488,
+     "polygon": [
+      {
+       "outer": [
+        739,
+        298,
+        733,
+        341,
+        717,
+        380,
+        691,
+        413,
+        657,
+        439,
+        617,
+        455,
+        574,
+        461,
+        532,
+        455,
+        492,
+        439,
+        458,
+        413,
+        432,
+        380,
+        416,
+        341,
+        410,
+        298,
+        416,
+        256,
+        432,
+        217,
+        458,
+        184,
+        492,
+        158,
+        532,
+        142,
+        574,
+        136,
+        617,
+        142,
+        657,
+        158,
+        691,
+        184,
+        717,
+        217,
+        733,
+        256
+       ]
+      }
+     ],
+     "mask": {
+      "encoding": "coco",
+      "size": [
+       576,
+       1024
+      ],
+      "counts": "nlV7j0m`0b0A<E:F:G8I6I8I6J6K4K6K4K6K4L4L4L4L4L4L4M2M4L4M2M4L4M2M4M2N2M4M2N2M4M2N2N2M4M2N2N2N2N2N2N2N2N2N2N2N2N2N2N2N2N2N2N2O0O2N2N2N2N2O0O2N2O0O2N2N2O0O2N2O0O2N2O0O2O0O2N2O0O2O0O2O0O2O0O2O0O2O0O2O0O2O0O2O0O2O000O2O0O2O000O2O0O2O000O2O00000O2O000O2O000O2O00000O2O0000000O2O0000000O2O00000000000O2O000000000000000O2O00000000000000000000000000000000000000000000000001N10000000000000001N1000000000001N100000001N100000001N1000001N10001N10001N1000001N10001N101N10001N101N10001N101N101N101N101N101N101N101N101N101N2N101N101N2N101N2N101N2N2N101N2N101N2N2N2N2N101N2N2N2N2N2N2N2N2N2N2N2N2N2N2N2N2N2N2N3L3N2N2N3L3N2N3L3N2N3L3N3L4L3N3L4L3N3L4L4L4L4L4L4L5J5L5J5L5J6J7H7J7H9F:F;D?^O[_o4"
+     }
+    },
+    {
+     "prompt": 2,
+     "label": "bird",
+     "score": 0.62,
+     "bbox": [
+      600,
+      140,
+      730,
+      250
+     ],
+     "area": 11248,
+     "polygon": [
+      {
+       "outer": [
+        729,
+        194,
+        727,
+        209,
+        720,
+        222,
+        710,
+        233,
+        697,
+        242,
+        681,
+        247,
+        664,
+        249,
+        648,
+        247,
+        632,
+        242,
+        619,
+        233,
+        609,
+        222,
+        602,
+        209,
+        600,
+        194,
+        602,
+        180,
+        609,
+        167,
+        619,
+        156,
+        632,
+        147,
+        648,
+        142,
+        664,
+        140,
+        681,
+        142,
+        697,
+        147,
+        710,
+        156,
+        720,
+        167,
+        727,
+        180
+       ]
+      }
+     ],
+     "mask": {
+      "encoding": "coco",
+      "size": [
+       576,
+       1024
+      ],
+      "counts": "lea:>]a0:H6J6K4L4L4L4M2M4M2N2N2M4M2N2N2N2O0O2N2N2N2O0O2N2O0O2N2O0O2O0O2O0O2O000O2O0O2O000O2O00000O2O00000O2O000000000O2O0000000000000000000000000000000001N10000000001N1000001N1000001N10001N101N10001N101N101N101N2N101N2N101N2N2N2N101N2N2N2N3L3N2N2N3L3N3L4L4L4L5J6J8FYVU5"
+     }
+    },
+    {
+     "prompt": 0,
+     "label": "dog",
+     "score": 0.38,
+     "bbox": [
+      420,
+      150,
+      700,
+      450
+     ],
+     "area": 65988,
+     "polygon": [
+      {
+       "outer": [
+        699,
+        300,
+        694,
+        338,
+        680,
+        374,
+        658,
+        405,
+        629,
+        429,
+        596,
+        444,
+        560,
+        449,
+        523,
+        444,
+        490,
+        429,
+        461,
+        405,
+        439,
+        374,
+        425,
+        338,
+        420,
+        300,
+        425,
+        261,
+        439,
+        225,
+        461,
+        194,
+        490,
+        170,
+        523,
+        155,
+        560,
+        150,
+        596,
+        155,
+        629,
+        170,
+        658,
+        194,
+        680,
+        225,
+        694,
+        261
+       ]
+      }
+     ],
+     "mask": {
+      "encoding": "coco",
+      "size": [
+       576,
+       1024
+      ],
+      "counts": "o`\\7j0m`0b0A<E:F:G8I6J6J6J6J6J6K4L4L4K6K4L4L4M2M4L4L4M2M4M2M4M2M4M2N2M4M2N2M4M2N2N2N2N2M4M2N2N2N2N2N2N2N2O0O2N2N2N2N2N2O0O2N2N2O0O2N2N2O0O2N2O0O2N2O0O2O0O2N2O0O2O0O2O0O2O0O2O0O2O0O2O000O2O0O2O000O2O0O2O000O2O000O2O00000O2O00000O2O0000000O2O0000000O2O000000000000000O2O000000000000000000000000000000000000000001N10000000000000001N100000001N100000001N1000001N1000001N10001N10001N101N10001N101N10001N101N101N101N101N101N101N2N101N101N2N101N2N101N2N2N101N2N2N101N2N2N2N2N2N101N2N2N2N2N2N2N2N3L3N2N2N2N2N3L3N2N3L3N2N3L3N3L3N3L3N3L4L4L3N3L4L4L5J5L4L4L5J6J6J6J6J6J7H9F:F;D?^OZoe5"
+     }
+    }
+   ],
+   "dropStats": [
+    {
+     "prompt": 0,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    },
+    {
+     "prompt": 1,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    },
+    {
+     "prompt": 2,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    },
+    {
+     "prompt": 3,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    }
+   ]
+  }
+ },
+ {
+  "endpoint": "/v1/segment",
+  "model": "sam3",
+  "image": "456029fae38febb48426191e6683c8094f674949a8b182d4942a39e28a638a64",
+  "synthetic": "made by fixtures/synthesize.py, not by the model",
+  "timing": {
+   "queueMs": 9,
+   "processingMs": 655
+  },
+  "response": {
+   "instances": [
+    {
+     "prompt": 2,
+     "label": "bird",
+     "score": 0.57,
+     "bbox": [
+      190,
+      150,
+      880,
+      684
+     ],
+     "area": 289420,
+     "polygon": [
+      {
+       "outer": [
+        879,
+        416,
+        867,
+        485,
+        833,
+        550,
+        778,
+        605,
+        707,
+        647,
+        624,
+        674,
+        534,
+        683,
+        445,
+        674,
+        362,
+        647,
+        291,
+        605,
+        236,
+        550,
+        202,
+        485,
+        190,
+        417,
+        202,
+        348,
+        236,
+        283,
+        291,
+        228,
+        362,
+        186,
+        445,
+        159,
+        534,
+        150,
+        624,
+        159,
+        707,
+        186,
+        778,
+        228,
+        833,
+        283,
+        867,
+        348
+       ]
+      }
+     ],
+     "mask": {
+      "encoding": "coco",
+      "size": [
+       685,
+       1024
+      ],
+      "counts": "i_o3l0Vd0f0^O>C<E:G8G:H6I8I6J6J6J6J6J6K4K6K4L4L4K6K4L4L4L4L4L4M2M4L4L4M2M4L4M2M4L4M2M4M2M4M2N2M4M2M4M2N2M4M2N2N2M4M2N2N2N2M4M2N2N2N2N2N2N2M4M2N2N2N2N2N2N2N2N2N2N2N2N2O0O2N2N2N2N2N2N2N2N2O0O2N2N2N2N2O0O2N2N2N2O0O2N2N2O0O2N2N2O0O2N2N2O0O2N2O0O2N2O0O2N2O0O2N2O0O2N2O0O2N2O0O2O0O2N2O0O2O0O2O0O2N2O0O2O0O2O0O2O0O2N2O0O2O0O2O0O2O0O2O0O2O0O2O0O2O000O2O0O2O0O2O0O2O0O2O000O2O0O2O0O2O000O2O0O2O000O2O000O2O0O2O000O2O000O2O0O2O000O2O000O2O000O2O00000O2O000O2O000O2O00000O2O000O2O00000O2O00000O2O00000O2O00000O2O00000O2O0000000O2O0000000O2O0000000O2O0000000O2O000000000O2O00000000000O2O00000000000O2O000000000000000O2O00000000000000000O2O00000000000000000000000000000O2O0000000000000000000000000000000000000000000000000000000000000000000000000000000001N1000000000000000000000000000001N1000000000000000001N10000000000000001N1000000000001N1000000000001N10000000001N100000001N100000001N100000001N100000001N1000001N1000001N1000001N1000001N1000001N10001N1000001N10001N10001N1000001N10001N10001N10001N101N10001N10001N101N10001N10001N101N10001N101N101N10001N101N101N101N101N10001N101N101N101N101N101N101N101N2N101N101N101N101N2N101N101N101N2N101N101N2N101N2N101N2N101N2N101N2N101N2N101N2N2N101N2N2N101N2N2N101N2N2N2N101N2N2N2N2N101N2N2N2N2N2N2N2N2N101N2N2N2N2N2N2N2N2N2N2N2N2N3L3N2N2N2N2N2N2N3L3N2N2N2N3L3N2N2N3L3N2N3L3N3L3N2N3L3N3L3N3L4L3N3L4L3N3L4L4L3N3L4L4L4L4L4L5J5L4L4L5J5L5J6J6J6J6J6J7H7J8F9H9F;D=Bb0ZOXno2"
+     }
+    },
+    {
+     "prompt": 0,
+     "label": "dog",
+     "score": 0.36,
+     "bbox": [
+      200,
+      300,
+      500,
+      600
+     ],
+     "area": 70688,
+     "polygon": [
+      {
+       "outer": [
+        499,
+        450,
+        494,
+        488,
+        479,
+        524,
+        455,
+        555,
+        424,
+        579,
+        388,
+        594,
+        350,
+        599,
+        311,
+        594,
+        275,
+        579,
+        244,
+        555,
+        220,
+        524,
+        205,
+        488,
+        200,
+        450,
+        205,
+        411,
+        220,
+        375,
+        244,
+        344,
+        275,
+        320,
+        311,
+        305,
+        350,
+        300,
+        388,
+        305,
+        424,
+        320,
+        455,
+        344,
+        479,
+        375,
+        494,
+        411
+       ]
+      }
+     ],
+     "mask": {
+      "encoding": "coco",
+      "size": [
+       685,
+       1024
+      ],
+      "counts": "nVV4h0\\d0b0A<E:G8H8H8I6J6J6K4K6K4L4L4L4L4L4L4L4L4M2M4L4M2M4M2M4M2N2M4M2N2N2M4M2N2N2N2N2M4M2N2N2N2N2N2N2O0O2N2N2N2N2N2O0O2N2N2N2O0O2N2N2O0O2N2O0O2N2O0O2O0O2N2O0O2O0O2O0O2O0O2O0O2O0O2O0O2O0O2O0O2O000O2O0O2O000O2O000O2O000O2O00000O2O00000O2O00000O2O0000000O2O000000000O2O000000000000000O2O0000000000000000000000000000000000000000000001N10000000000000001N10000000001N100000001N1000001N1000001N1000001N10001N10001N10001N101N10001N101N101N101N101N101N101N101N101N101N2N101N101N2N101N2N101N2N2N101N2N2N2N101N2N2N2N2N2N101N2N2N2N2N2N2N3L3N2N2N2N2N3L3N2N2N3L3N2N3L3N3L3N3L4L3N3L4L4L4L4L4L4L4L4L5J5L5J6J6J7H8H8H9F;D?^O_Sn:"
+     }
+    }
+   ],
+   "dropStats": [
+    {
+     "prompt": 0,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    },
+    {
+     "prompt": 1,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    },
+    {
+     "prompt": 2,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    },
+    {
+     "prompt": 3,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    }
+   ]
+  }
+ },
+ {
+  "endpoint": "/v1/segment",
+  "model": "sam3",
+  "image": "dae10cb32570c56aa1043bab75a8077e8243e224da6dd64e8009e0426ba30309",
+  "synthetic": "made by fixtures/synthesize.py, not by the model",
+  "timing": {
+   "queueMs": 9,
+   "processingMs": 598
+  },
+  "response": {
+   "instances": [
+    {
+     "prompt": 3,
+     "label": "boat",
+     "score": 0.88,
+     "bbox": [
+      199,
+      140,
+      543,
+      616
+     ],
+     "area": 128620,
+     "polygon": [
+      {
+       "outer": [
+        542,
+        378,
+        536,
+        439,
+        519,
+        496,
+        492,
+        545,
+        456,
+        583,
+        415,
+        607,
+        370,
+        615,
+        326,
+        607,
+        285,
+        583,
+        249,
+        545,
+        222,
+        496,
+        205,
+        439,
+        199,
+        378,
+        205,
+        316,
+        222,
+        259,
+        249,
+        210,
+        285,
+        172,
+        326,
+        148,
+        370,
+        140,
+        415,
+        148,
+        456,
+        172,
+        492,
+        210,
+        519,
+        259,
+        536,
+        316
+       ]
+      }
+     ],
+     "mask": {
+      "encoding": "coco",
+      "size": [
+       768,
+       1024
+      ],
+      "counts": "Xce4T1_f0j0ZOb0_O`0B<D<E:F:G8H8H8H8I6J6I8I6J6J6K4K6J6K4K6K4L4K6K4L4L4L4L4L4L4L4L4L4L4M2M4L4M2M4L4M2M4M2M4M2M4M2N2M4M2M4M2N2N2M4M2N2N2N2M4M2N2N2N2N2N2N2N2N2N2N2N2N2N2N2N2N2N2O0O2N2N2N2N2O0O2N2N2O0O2N2O0O2N2N2O0O2O0O2N2O0O2O0O2N2O0O2O0O2O0O2O0O2O0O2O0O2O0O2O000O2O0O2O000O2O000O2O000O2O00000O2O00000O2O00000O2O000000000O2O0000000000000O2O000000000000000000000000000000000000000001N100000000000001N10000000001N1000001N1000001N1000001N10001N10001N10001N101N10001N101N101N101N101N101N101N101N2N101N101N2N101N101N2N2N101N2N101N2N2N101N2N2N2N2N101N2N2N2N2N2N2N2N2N2N2N2N2N2N2N2N2N2N3L3N2N2N2N3L3N2N2N3L3N3L3N2N3L3N3L3N3L3N3L4L3N3L4L3N3L4L4L4L4L4L4L4L4L4L4L5J5L4L5J5L5J6J5L5J6J6J7H7J6J7H8H8H8H9F:F;D<D>@a0^Of0VOU]X;"
+     }
+    },
+    {
+     "prompt": 3,
+     "label": "boat",
+     "score": 0.45,
+     "bbox": [
+      320,
+      480,
+      530,
+      618
+     ],
+     "area": 22772,
+     "polygon": [
+      {
+       "outer": [
+        529,
+        548,
+        525,
+        566,
+        515,
+        583,
+        498,
+        597,
+        477,
+        608,
+        452,
+        615,
+        424,
+        617,
+        397,
+        615,
+        372,
+        608,
+        351,
+        597,
+        334,
+        583,
+        324,
+        566,
+        320,
+        548,
+        324,
+        531,
+        334,
+        514,
+        351,
+        500,
+        372,
+        489,
+        397,
+        482,
+        424,
+        480,
+        452,
+        482,
+        477,
+        489,
+        498,
+        500,
+        515,
+        514,
+        525,
+        531
+       ]
+      }
+     ],
+     "mask": {
+      "encoding": "coco",
+      "size": [
+       768,
+       1024
+      ],
+      "counts": "n``7>]g0:H6J6K4L4L4L4M2M4M2N2M4M2N2N2N2N2N2N2N2N2N2N2O0O2N2N2O0O2N2O0O2N2O0O2O0O2O0O2O0O2O0O2O0O2O0O2O0O2O000O2O000O2O0O2O00000O2O000O2O00000O2O00000O2O0000000O2O000000000O2O000000000000000O2O00000000000000000000000000000000000000000000000001N10000000000000001N10000000001N100000001N1000001N1000001N10001N1000001N101N10001N10001N101N101N101N101N101N101N101N101N2N101N2N101N2N2N101N2N2N2N2N2N2N2N2N2N2N3L3N2N3L3N3L4L4L4L5J6J8FWoa;"
+     }
+    }
+   ],
+   "dropStats": [
+    {
+     "prompt": 0,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    },
+    {
+     "prompt": 1,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    },
+    {
+     "prompt": 2,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    },
+    {
+     "prompt": 3,
+     "lowScore": 0,
+     "tooSmall": 0,
+     "tooSmallArea": 0,
+     "overlap": 0,
+     "limit": 0,
+     "budget": 0
+    }
+   ]
+  }
+ }
+]

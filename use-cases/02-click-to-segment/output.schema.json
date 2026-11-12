@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "02-click-to-segment: items[].output",
+  "description": "One object segmented by harness/clickbot.py through a backend (contract/02-backend.yaml).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["label", "imageId", "width", "height", "maxClicks", "clicks", "noc85", "noc90", "finalIou"],
+  "properties": {
+    "label": { "type": "string" },
+    "imageId": { "type": "string", "pattern": "^im_[0-9a-f]{32}$" },
+    "width": { "type": "integer", "minimum": 1 },
+    "height": { "type": "integer", "minimum": 1 },
+    "maxClicks": { "type": "integer", "minimum": 1, "maximum": 20 },
+    "clicks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["x", "y", "positive", "iou", "score", "cache", "costCredits", "listCredits"],
+        "properties": {
+          "x": { "type": "integer", "minimum": 0 },
+          "y": { "type": "integer", "minimum": 0 },
+          "positive": { "type": "boolean" },
+          "iou": { "type": "number", "minimum": 0, "maximum": 1, "description": "IoU of the returned polygon with the ground-truth mask after this click." },
+          "score": { "type": "number" },
+          "cache": { "enum": ["hit", "miss"] },
+          "costCredits": { "type": "number", "minimum": 0 },
+          "listCredits": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+    "noc85": { "type": ["integer", "null"], "description": "Clicks until IoU >= 0.85; null when not reached within maxClicks." },
+    "noc90": { "type": ["integer", "null"], "description": "Clicks until IoU >= 0.90; null when not reached within maxClicks." },
+    "finalIou": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}

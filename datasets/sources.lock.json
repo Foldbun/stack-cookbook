@@ -1,0 +1,3074 @@
+{
+ "https://huggingface.co/datasets/naver-clova-ix/cord-v2/resolve/7f0115a4b758a71d6473b8d085751692da2fef98/data/validation-00000-of-00001-cc3c5779fe22e8ca.parquet": {
+  "sha256": "0d0f6dac11fdcc549de2746aa9f53136a3bc22a2a1aff2b0b847f7622ad60c15",
+  "bytes": 242080800
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0001eeaf4aed83f9.jpg": {
+  "sha256": "9e3a52e16ef4fc1379ecdacbad6dbfd7741062ce7f2ddbb7f1dd5f68aa9ec102",
+  "bytes": 290621
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/00358e88c4d3c953.jpg": {
+  "sha256": "5b72d2f61ba26d34bfe37c875980e967f64ad7d9783297ed49ad5e1d62e08ec7",
+  "bytes": 799322
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/00455ae2731e1046.jpg": {
+  "sha256": "d25c28467d24fa554f778c91b12a258d791f130da2b0f2436d0f708aba85c409",
+  "bytes": 101344
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/00876549dfcbcbad.jpg": {
+  "sha256": "e1336e90de01d4bac80e72ceeab1ed7d429b5fcd81c31ae74ee30a0bb49ee578",
+  "bytes": 187586
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/00bdb008eb688497.jpg": {
+  "sha256": "ab92d7f05b62b6467ce7000b28ed72698c582108f8a3a763d6f52b5aa3cfb1ee",
+  "bytes": 212295
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0128080be1b488d7.jpg": {
+  "sha256": "0b82ec34e67b8e3aaf72c020e87d4eb37c63f9673360102acf86550814052af6",
+  "bytes": 39032
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/01439d37d272cf17.jpg": {
+  "sha256": "6b086067d9f2e7d8a159be5ef47172e4181bdc06ee4af285f555eb003e084d30",
+  "bytes": 428315
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0303ef7b037b5ecb.jpg": {
+  "sha256": "52e08ea3724d5a92253582e8c5ef5510b251e0b8338fea5c319c52ddfc0b5c88",
+  "bytes": 268048
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/03635820cf3951f8.jpg": {
+  "sha256": "f066207814329b0dfc72e6f11c0af51e85cfec8b6ec0168399af98217c993310",
+  "bytes": 466253
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/044cec6ad7ed0752.jpg": {
+  "sha256": "9ae696aa009c9a8813df4a6816798ebe9321248519aac8576f071c4758e8e287",
+  "bytes": 183018
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/04f12bbcec6bb9e1.jpg": {
+  "sha256": "b27ef503fbac95b557c17d22713d61053f3f9a78b273a935f7b59da2388b67b8",
+  "bytes": 320696
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/05638e7a217750c5.jpg": {
+  "sha256": "d92e846d27dc48fbdd397ef2ca9f618051b03b9ccbe937ac90b537f1d629d9a4",
+  "bytes": 253576
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/05d58d655a672dbe.jpg": {
+  "sha256": "ac5555ae2cf13ac45809aac4178386e04b93bb97ce911a32ba514132355c1f1f",
+  "bytes": 113494
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/05eeba1be80d74fc.jpg": {
+  "sha256": "5ba1f4420921b6b81478a963f4d8d3edb5898c1abf67a207357523541454fe75",
+  "bytes": 477336
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/05efa5912c4b0d53.jpg": {
+  "sha256": "434979b31edcf1595cc57deb951f976cd28520e6a4309c9a9069fa97b58c86d9",
+  "bytes": 97123
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/06fa10cbc74024e6.jpg": {
+  "sha256": "d031f6bf35cfd4eeb1711cad47535f98a57fe2f5962718a559ab25bb6fef7b3a",
+  "bytes": 364808
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/06ff15d322879e9f.jpg": {
+  "sha256": "0a82bc70ef06d710f93ff65260f5ce41bec3ac5dc16862adf59a42954e22d48f",
+  "bytes": 93814
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/08214dada4f6b592.jpg": {
+  "sha256": "c22e0190aec602a3ca24bc0cd3fe1b2c900a7ab050cfae31becb4c7598a4cc55",
+  "bytes": 154428
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/085ba7d24472ff35.jpg": {
+  "sha256": "8bd1bab956c4813c126e7567a7517c2a33330014f895a2422f4941646918ff48",
+  "bytes": 286151
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/085ecac3d6652350.jpg": {
+  "sha256": "1cf3d9567cd832008248bca4bb45bb0759082e74a05c095f5e1eb92fcc354fbf",
+  "bytes": 644090
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0867ed7b739f753a.jpg": {
+  "sha256": "709c2002b98e3a3656dd960712ec80dddf21dae4a7c67d15b300571d6d9f5d46",
+  "bytes": 166292
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0969a95b841b224a.jpg": {
+  "sha256": "3e91f119ff5ad64147271306ac36f051590b60ff184ee203df3497990ca407ed",
+  "bytes": 300520
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/09b616a35758e42c.jpg": {
+  "sha256": "ebc47d58ae3aaf0464c99b030940d32f14dc68e6a44c10fd2e5097c5c058b977",
+  "bytes": 72573
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/09f8e760f60df0da.jpg": {
+  "sha256": "bcdbb7a0a17365a5f20930f718508184b376061ab419aae9bec0e8e7d5706072",
+  "bytes": 112556
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0a1f4761dc7fe1eb.jpg": {
+  "sha256": "eaaa527f2765913cee0456ea7dc45eb7b4ab5e99f3a920d155e1f52a2ec224ce",
+  "bytes": 82906
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0ab050b51e78acdb.jpg": {
+  "sha256": "f24576b5c015cf47910cfdcb4bbbb428760e9d04f3053e30fd55269011b8dd71",
+  "bytes": 157941
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0ac8510707245b9f.jpg": {
+  "sha256": "6ed57ea2f0b74d5fb831e67187eac9a5e33bc3a1b993db107d873e50f0c58958",
+  "bytes": 192186
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0b5d64088922d6c9.jpg": {
+  "sha256": "ca3d47c37294d6b78166537a6b673a363ad35f059cec4dfc8aad1489b7d2e331",
+  "bytes": 1006978
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0bef511619cf3bb4.jpg": {
+  "sha256": "f1620ad055c1f4d7d1acf2cd15d933fb7d20705a25dd64682e69e5b4bb933175",
+  "bytes": 287468
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0bf3c8728eca257f.jpg": {
+  "sha256": "35c040cd2f3ab17ea0667f1995b9fcc342e90ecc90204beba9101f6d2923cf08",
+  "bytes": 78494
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0c46f797871ae5b8.jpg": {
+  "sha256": "8c050891b54f2cf957e658a8947d1ccf516a34966df9aa2e0fdca4a863fc03a5",
+  "bytes": 387177
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0c7570aabf601816.jpg": {
+  "sha256": "29ddf6dd67c211bf681b436dddded25a90628d391d4290ebd3b57e6d934ee035",
+  "bytes": 31569
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0cb893ba49064b5b.jpg": {
+  "sha256": "b53c7cd9fb51b438e1e2a1d99e30961221bfc80a7aef83cd418744516425a371",
+  "bytes": 548984
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0d01030120cb441b.jpg": {
+  "sha256": "fc37645c89f763e8a5f634cc8952f4cd8748c088bbd37dee9b765c7f1c0c682b",
+  "bytes": 170009
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0d6e80678b23b16b.jpg": {
+  "sha256": "a765044fc94d2a9dfa2841a15ed072c2715d658414f4af306949449e875318e9",
+  "bytes": 267210
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0deb1303b2c1b311.jpg": {
+  "sha256": "3df6d632ddf646bed94ab02f4e49be55aa67dcb3dcdd484eddaea002ab4c224d",
+  "bytes": 401856
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0f1dfcdc9899d3a8.jpg": {
+  "sha256": "88c875033b947f0265c989478037613fdb50d8b227729aff658770b71f5e8d75",
+  "bytes": 444369
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0f58ef7a6b7c2d90.jpg": {
+  "sha256": "4f262d336e4bbfad28c4476863e5eded2ea159963e4dcaa1f639e7a845cd6fe7",
+  "bytes": 276034
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0f630da273fe8c15.jpg": {
+  "sha256": "1c641e7d333664a59963dfab9954a72d3cbdc87ffe1bfe6f9b6b04d6f997f404",
+  "bytes": 464692
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/0fba8a6fd9e7118d.jpg": {
+  "sha256": "8f490509f7caaf5177b8a0304541a011dc12c0390aecaeeb96221a373b232d22",
+  "bytes": 230766
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/100ed3fd403f28c4.jpg": {
+  "sha256": "c65f98eea315e740c22bfeeb11a47de9c91accad66fb4948163e89c421d69089",
+  "bytes": 328951
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/106ec497581aa54c.jpg": {
+  "sha256": "0641421d15c830197d7cb80dabf612ae5d698d5b04bd54903ecf3ce81d88ab8c",
+  "bytes": 744516
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/109a54696d338b59.jpg": {
+  "sha256": "d6d7fc6ec9078b83480f864df9d49f35ac28e77568fc6b01dc089bb46d84f3e6",
+  "bytes": 1148298
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/10fc4c099076b4c2.jpg": {
+  "sha256": "48ebd37c7a422b528d13334f2bcd6e703728d7bc57cd565a6333df9476b1ae41",
+  "bytes": 284010
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/112a8fc3f02f4eb0.jpg": {
+  "sha256": "5dccda0521cc3b2845fd6cbf3952a6b9111eea387c7e6f49513abce9339f899d",
+  "bytes": 813714
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/11eceffae6588520.jpg": {
+  "sha256": "db5668d2de556f62d4cb9d7b9cd6d12b2b9883061b925e9199bc1723e13316e7",
+  "bytes": 338345
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1326b7f63f97c3a4.jpg": {
+  "sha256": "e00a19d83ae22369c05a485644ca07d9a8319343684770e6c37d21e01de110ff",
+  "bytes": 288011
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1338d30e64d36b63.jpg": {
+  "sha256": "3b6fd261aef7d0ab0b39fe6e22e1c8c9e637a5a3c454fbc587b33867b22a9a3e",
+  "bytes": 296622
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1367cfeb696cbdce.jpg": {
+  "sha256": "bcbbe88f6614ee5a8c32542c268da3ed45acce44f318e8072e1b7814fa27664d",
+  "bytes": 324180
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/140e21d0e24647c1.jpg": {
+  "sha256": "52ff693665fdd0caf7c2ddf7d5e46595e138ac2b287163b11c86382c3cc8b54c",
+  "bytes": 155812
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/14d95f7117636614.jpg": {
+  "sha256": "37dab2f213f718de87e5b7af26fe3c63c2c3267a1c0b74e86b55b46526ac0ace",
+  "bytes": 543008
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/14e47962c09f20ef.jpg": {
+  "sha256": "300d59a34963b22f2cb2a7e4fbc00d0cb031844247b50a677c8ea6d1fa94aa06",
+  "bytes": 234661
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/14e4a032f49301f5.jpg": {
+  "sha256": "3420e56219272fd5a39b2481ce1918658b46b9830e88311d53c3a5a2aad0eb03",
+  "bytes": 387989
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/15123a4d4998787f.jpg": {
+  "sha256": "7d700d7f47abd3da5868850286dd9276629ebea0826eafa195cffc2925eca6e1",
+  "bytes": 597696
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/15536fe6fb0a5a4a.jpg": {
+  "sha256": "77df3543fc196e09c3c4820a6f710cc55472b483d3924564addc4ad31aa18104",
+  "bytes": 61689
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/15e61b7a27198190.jpg": {
+  "sha256": "62e30252056c732b5f8b3b1d87dd21bfc657a768cff0eb870b999ed8aa77fc6f",
+  "bytes": 303787
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/162645ef9fcd7d29.jpg": {
+  "sha256": "b64f500184b06697882e23c93ce3b591012d8643b4a381277e240fe2f7d57ef8",
+  "bytes": 372258
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/163d826dbf6d1de5.jpg": {
+  "sha256": "2c4992ec80feceb50884a3504d7a531bc3222bcdbd4d471ff8d686a7a0ff760f",
+  "bytes": 232966
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/16774edaeacc5aed.jpg": {
+  "sha256": "9bf700b15b8078bef68c3e718abd787f8e433f22ffc6ba0379e10d06159afb42",
+  "bytes": 516541
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/16f54f71896a232c.jpg": {
+  "sha256": "c3639c53b4ae9dd71131fcd8dcf14200e1f90c1c658180861609ca97e3a17f59",
+  "bytes": 934517
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1702b674ac4ef3d3.jpg": {
+  "sha256": "8a84f9bee13d75e77ce7381a55158ab4c3e2b3da2a0af2572ba1e94510929e5b",
+  "bytes": 373499
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/178a83688c532568.jpg": {
+  "sha256": "4e668c2c45e2c6c83c93ce58ed33b3833d2892535f6b8f82498e5fcad4b594a1",
+  "bytes": 451199
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/179d4e466a69e6bb.jpg": {
+  "sha256": "23591fc17a958f8863e089911bf7ca2969412c6cbb425fe58da7cd0f91952cfb",
+  "bytes": 790827
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/182462213ff6fccf.jpg": {
+  "sha256": "c34037bef56bad08e8886536d0fdd17eff3220d4eb560cd7453031fccba86f53",
+  "bytes": 129379
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/18e4dd6ee19eb947.jpg": {
+  "sha256": "19d42759213342a277326e7d8871e3c56ba5fb60395e56cbfe539f62e35c1d88",
+  "bytes": 136263
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/19d768a4a42efd60.jpg": {
+  "sha256": "dd7b778fb7fd65d914e1b1ec6ba9cb6e9236afcbc33d847152bf3b4fed2c5e16",
+  "bytes": 294014
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1a4ce99db1425ee1.jpg": {
+  "sha256": "af5f10251d73ecbb6ec3ebe7a360026321cf66156cf7aba995b34f8434dd3de1",
+  "bytes": 216714
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1a517af38a1d854d.jpg": {
+  "sha256": "b1eb7c6450e8dadc7ebd1a057fc1c79da5a837d6def8fac35a248eaa9f4ab3b7",
+  "bytes": 190010
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1b411a7a22fc4e92.jpg": {
+  "sha256": "8157ce4a023af4bbc3ce109ea054fefcaa4022fe756f26b8abfd4b9d64ec2b4e",
+  "bytes": 766452
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1c0beaabcc05fb1a.jpg": {
+  "sha256": "31ce8af4ee667cda934eb77e492e4ee12c51ddc200f4a199a1226a6ba8513a27",
+  "bytes": 102663
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1c2db283bf38a5b2.jpg": {
+  "sha256": "896c65b4ce69fd58818743fb83372427c7f69b1dd775456814f8c92de72eadc3",
+  "bytes": 57251
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1c63f023a27a8a05.jpg": {
+  "sha256": "a388fe0acfcfc297b68393cc54e9047c5c65cc4b3a3811680d73e03d26854bda",
+  "bytes": 199287
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1c6debbfd4482013.jpg": {
+  "sha256": "c3181c57de4ad6f69c856da96e4332303f97a441cf36f20d877cd204eb56b1ba",
+  "bytes": 130131
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1c6ec8ca9032f300.jpg": {
+  "sha256": "03984f06ea5f9c941fe2907510423f382af391c9491a82abab732459270a8973",
+  "bytes": 511792
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1cc968372ac03d88.jpg": {
+  "sha256": "0a9e8e0607cbda02aa9db022884afba8f455a181e2e156364bdde2f73e8aefc3",
+  "bytes": 418914
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1cfe1682da80fc45.jpg": {
+  "sha256": "e19be3536325543a87a613be7cbb0bc0bf106fa8768d60938c1e512e1e55c7cd",
+  "bytes": 272025
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1d3e06284a67a61a.jpg": {
+  "sha256": "315c15e79f1e2ae97db29620d69d7cdbf710ad91f9f5f7226880936395a9ed6d",
+  "bytes": 98450
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1dd49a602ada623e.jpg": {
+  "sha256": "dad7f52d209b6cc128300c69b1981c96af611c8b857ace9594aee7efd26897e2",
+  "bytes": 135053
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1e8a39add490c98c.jpg": {
+  "sha256": "72e220d37ae0a97882041064cae173c76649e4a60ab6fabae387355fd76b4068",
+  "bytes": 1072154
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1eeb826707fd7b85.jpg": {
+  "sha256": "97f7d26e919eb0cc57752fd8ce24bc4bd333e7380ac96f7fda1c8fd0744f9db6",
+  "bytes": 116811
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1f3c7384a5c10632.jpg": {
+  "sha256": "7ecb65c61f314f50ab83f39e93ab90763eaa9dd76d71b8d077acdd6c381a4c37",
+  "bytes": 324901
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/1fc6ebbb1327e5bb.jpg": {
+  "sha256": "202c0a4a463d46acb399040c2c50c9a204a3fc587cd21142beeb502350c254b7",
+  "bytes": 232940
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2077c0619979f100.jpg": {
+  "sha256": "fce7bd280002eb20c8b5f00f6c7f835b631cb662699dd9d0722e0b1927e1ac61",
+  "bytes": 269771
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/20a29ae8928bee78.jpg": {
+  "sha256": "a28a96648991a638234429de8ca82ce35ed419b671f278fb644ed086a789ff66",
+  "bytes": 328174
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/20aac6b9708efb3f.jpg": {
+  "sha256": "dfb70de226fc4272ff4592b2ee154495f5bd4a0955e500563a71cf2af3d9124d",
+  "bytes": 750097
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/21ed709cb17ad45e.jpg": {
+  "sha256": "a851bf5a3955ac6d111d8e07528eadd4c9ba0775a3393802300b9501bc896cb7",
+  "bytes": 223958
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/231bd84a457e50f2.jpg": {
+  "sha256": "a5dd96be2d41e8dba4acb8baf6ebcc5cbae795925469c44e36643662dade07a5",
+  "bytes": 263516
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/232ee775feee3b55.jpg": {
+  "sha256": "ec824de11efee5797131a8695796286cae4c6a0b9b70d9534592118c1edd0a71",
+  "bytes": 608022
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/23afc2c3c7d25d56.jpg": {
+  "sha256": "6be4e599d8219413207359f61d4bacf1fd1efb532fa49ff3d76594e04318edc1",
+  "bytes": 324232
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/24bf55cd274c2247.jpg": {
+  "sha256": "1660c8a9eece1f98b8ac3ed0bc3d9d8d4aaf62d533473d4968254d89185b3ce8",
+  "bytes": 235689
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2593eb791702e743.jpg": {
+  "sha256": "6354e8d8ffe9fec218c2c2f4acaac01e43072efc85c4c2458a8c7bdb7a8e7643",
+  "bytes": 450535
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/26a73dea7c04cad2.jpg": {
+  "sha256": "ec43cfdee93cad1f367913729f1decaaf0e4e1b972bb74d3df114bad72251ee8",
+  "bytes": 256569
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/26e81fbb45a04121.jpg": {
+  "sha256": "7cf677569482d516c3d482fb5c43c518b016b7facab5828fb7881041ac228147",
+  "bytes": 225825
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2756fb2c2948134a.jpg": {
+  "sha256": "97345c18d6a28571c8c7a160f9b5c875325b67f9d6435d52c1f8c15ed531c16d",
+  "bytes": 478390
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/278c9ac3eb837976.jpg": {
+  "sha256": "ee4eb50e73aecfdd56b76dcf9624a445174373b39f073960b01d65251cbc97ca",
+  "bytes": 106010
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/27ca5e5ef1f98e7c.jpg": {
+  "sha256": "d414bd63742d7f406881696ad4c10423006ac8043b438a8c90753cfcb5b8dc33",
+  "bytes": 239551
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/27dcd544fbd8fbc2.jpg": {
+  "sha256": "c3fefbe9b181b91643b9fdfd1c13ce69d424c7a51a4c59dc1234191bf6bfa039",
+  "bytes": 58239
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/28938de0e5fc2051.jpg": {
+  "sha256": "7a93ee3d5d0d23ecf7a88b6dfeb7ca592920beb961b621a5191176c0e1a5b100",
+  "bytes": 122902
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/28c6046282542825.jpg": {
+  "sha256": "4982dc925f43e560811f5593af085ff2d53b78c15cccd23b8df26d3252e32a9e",
+  "bytes": 82746
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/28de1a2e62f14a5c.jpg": {
+  "sha256": "207d75dfe8f17a1692aa844f5f02cf6c1628f973e80bba57959b10c0df41bef4",
+  "bytes": 207172
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2a72eb666da926a2.jpg": {
+  "sha256": "c7e91a7533e77e7491fd7b8eba32bef33ef6a0af91099b7d54ac867be75a3eaa",
+  "bytes": 100746
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2a73a40f748cda51.jpg": {
+  "sha256": "1cadbafd421ab594a8b5d23e5440ead05ac804dfc0a6407ed925c6ea8bf20b47",
+  "bytes": 144587
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2a8b321ec6b68648.jpg": {
+  "sha256": "ee4d2380f2a66d9e78d3d8abcac5d317aa187ca9a7ba72d4882bacdb1780b153",
+  "bytes": 232196
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2b39c4047620c3bb.jpg": {
+  "sha256": "a578bcf2d6c0ef469cb733b046b9cf48f749306eee1c71d0865f3a0c49e48b8c",
+  "bytes": 406988
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2b58194547e4d35f.jpg": {
+  "sha256": "3224090bc0abb86c5774d87eb5eca9cbc82e7ba8ea524dd688cd938a2610f3b9",
+  "bytes": 246846
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2b6031956f8aa9e6.jpg": {
+  "sha256": "0fa58eaf400478afbe641950f4f60414a11b489dd8ef9b1497b0bc92ab98fd4a",
+  "bytes": 159812
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2b8769092e642cdc.jpg": {
+  "sha256": "7337050ff471c762d534eef1c317dcbbfd5e10e8dddc8a0a38f0ed496a0e1de0",
+  "bytes": 131985
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2b8f4f9aa64e8962.jpg": {
+  "sha256": "f61c0f8d1ac7abfd7c157e8f6a48a9168ab43565588e55012d07f44f1f1e9ac2",
+  "bytes": 930650
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2c8da238a541ab6f.jpg": {
+  "sha256": "293fe4e881832729d118abf395b331598f8c060134497b71e4c0c3525a1770cf",
+  "bytes": 363270
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2ccda0175d74e6ca.jpg": {
+  "sha256": "0522171935018a2727573e6b9b7faead7824e3f8566fe4494aa10849a1e356ba",
+  "bytes": 191051
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2d727b55568926f3.jpg": {
+  "sha256": "a2beb9091ea9f3e47e2e1726de0341ac4205af2e8662f871befd0376e5ddda57",
+  "bytes": 476988
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2d8b2c6f856ab88a.jpg": {
+  "sha256": "aca76a994e0142ee229cddc2c39383de68fe46375813ff750c8fc02f8c6cb897",
+  "bytes": 464381
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2da7d83a6b68debc.jpg": {
+  "sha256": "c1c75ef1a6eb3f3a31a52f6302155421e2bc7da65a73ca41e8a290f4c5731d5d",
+  "bytes": 705316
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2e16ca7927b06bd4.jpg": {
+  "sha256": "6eed972d1b7cb634c06b3f859a4bef2757c464c3fe917a3eeed39be042daab95",
+  "bytes": 273873
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2e2af311168f3bf9.jpg": {
+  "sha256": "2cf9e78dd1471e741ad329a673bbf8b2c237c82b1a811bf417fe1a7d05a82859",
+  "bytes": 692506
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2fae4b1e4f656a72.jpg": {
+  "sha256": "17bcd33aa2fc718fd7668ddfa0aac17001d602b632188368a0be0c46e81ca60f",
+  "bytes": 108846
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2fc204f1f507a19b.jpg": {
+  "sha256": "ca944a3027add7b573a4408c8a384e32f603296d51800e854cf104a6e312af7f",
+  "bytes": 145665
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2ff9775bde195441.jpg": {
+  "sha256": "3c02c5c8cf47486c530fcf4253e4ee14f62f2c89682d2396e10bd5b8eab12dbc",
+  "bytes": 364832
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/2ff9ab798a5583c8.jpg": {
+  "sha256": "8c90e32e5343595907ee36b84432511ae5e2be5c8eca01685b3ba71f2d0cff50",
+  "bytes": 229399
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/30874714080e6e34.jpg": {
+  "sha256": "472a8830a5f2e7c8e163327d1bc2e7b87460b295233b5d2382b6d1d273aa1feb",
+  "bytes": 760386
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/31113c417de95b38.jpg": {
+  "sha256": "e84a39e61afbaa4dc1b81d8cff1175673a4c5be5ca3f8702757cb93bdd6eab53",
+  "bytes": 658397
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3120e24a87acd782.jpg": {
+  "sha256": "c0061bba33bd785c2fd707185d7409e49e31aa55573818f7b7c4d44b1ec67d3d",
+  "bytes": 111345
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/31458a2764cf9dd7.jpg": {
+  "sha256": "b7dc074e995d5f00e4a0ac990e0dc99f57267c9a21073f537763c046f93eb36e",
+  "bytes": 174305
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/316efa4bfa0c81c5.jpg": {
+  "sha256": "084f9ac116283f5e4d54b0511d529a378042235eb21e55ab6e368de9c5bab6a9",
+  "bytes": 114300
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3252382bba61a4a2.jpg": {
+  "sha256": "928fae72964a2a89c613726d93c6f275407683f2c4eb6c16de70e07b5cc009e7",
+  "bytes": 255150
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/32bd80d38fc5b085.jpg": {
+  "sha256": "48fb7981be67bbc4c5a0b97eedf5f27471ec9be799961719b0105ea994405afb",
+  "bytes": 209883
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3333210d97865136.jpg": {
+  "sha256": "8db6424d16983a8de534b049d38db5042446b0f04d53493e10496755b27f1514",
+  "bytes": 476612
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/33ae590a0d97b084.jpg": {
+  "sha256": "851a1ebf29bece6065015406737bbe9e602595c33307c2c25c7f9508556816a3",
+  "bytes": 439354
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/348bec4124e71157.jpg": {
+  "sha256": "f1213677da2df909ceecd53ef39929b34f0a44e7609599048cda3b391fe341fa",
+  "bytes": 225454
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3607e61f2ab9f053.jpg": {
+  "sha256": "fbc5d00286e7441cfcf1171c6e842257818eaa49d82aa38c3487563378ceddf6",
+  "bytes": 506782
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/376c88a2570886f3.jpg": {
+  "sha256": "f1bb3c2bc55224be54cd9ce110c5597be73acff875e0200d516372c9f57ac7f3",
+  "bytes": 578346
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/37e9724c54e603f6.jpg": {
+  "sha256": "33d0ab91ceac16566971820c49da9094d2cf5f8436167e5775665d54a527b4c1",
+  "bytes": 325199
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/37f79a9339b0e460.jpg": {
+  "sha256": "5f74315a5e0b021651bf87bde2b64dd4398b6a7405ebac83b4153b6665c873e8",
+  "bytes": 257046
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/393656cddf8e828c.jpg": {
+  "sha256": "3511704477a20e63a941d1180ca497ea0acb3a9cfec04816db25b86b92ff6b07",
+  "bytes": 180913
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/39def766e2e281e8.jpg": {
+  "sha256": "a7c5488afb2988725a03745a5d2922a669aa10c8753816b296bd4adff7b0b672",
+  "bytes": 517664
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3afc07c5faf44cea.jpg": {
+  "sha256": "db5016d7b1f780a8cb6d46c74518eb7c923f861c9af0f2170cbba3e989416bd8",
+  "bytes": 320815
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3aff4b30230d6c81.jpg": {
+  "sha256": "9fd2dddcb23e819d37cd85cf24287a318dbfc1c9b4c2dae0c54197c02cde441a",
+  "bytes": 158071
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3bcc6c1f70986de8.jpg": {
+  "sha256": "3f0a64c3de752201f886d2ddf51b3e0bb18d8454211e486271373ab4fc88b1b4",
+  "bytes": 272094
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3bdda721361090ca.jpg": {
+  "sha256": "07c58a29e7470199c62bb35f8756506ebebf3183bdbe447fc5dac723bae68bdd",
+  "bytes": 255329
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3bf4a5b63fc451a9.jpg": {
+  "sha256": "3a739bd61504c52fa05dd8c3bfb20b9c025dd872b06160359e63d3132c9e93c8",
+  "bytes": 166866
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3c9c2fa9dcb03246.jpg": {
+  "sha256": "5c5f622e24279739943ed30202a5ab4666ffc22884ce5f3d2f223ad5ba9ec05c",
+  "bytes": 158814
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3ca2e517fb3fe473.jpg": {
+  "sha256": "af999553e27a4e7073951400fc658aed24dc00c6192e133cffec476ff46b039a",
+  "bytes": 122411
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3ca595fea1126305.jpg": {
+  "sha256": "0cefca481f719c7500b96a286c7a0f0f2ab48718e7450a6fc4f13e5e63f965bb",
+  "bytes": 38734
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3d558c98a1291fe4.jpg": {
+  "sha256": "9c40101a226cee51b3f899acfa2ebe2e9ad187702f5f73e7c490e573413e0587",
+  "bytes": 104866
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3d67b7c7f6a0ca2a.jpg": {
+  "sha256": "77d9a282d1c8b520b3fea0d1b77f0b4665db12993b88aca5eb41bfcf59afeb46",
+  "bytes": 133451
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3dff873403b83fa8.jpg": {
+  "sha256": "c54dd15308eda49e6183539c1f8f41493429fe85fc0624a0985523bdaf80b07c",
+  "bytes": 944420
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3e2b05cbaed570e4.jpg": {
+  "sha256": "5e27810a5ec56f823c2e42f13a8e8641ff97d0df14bcb1c6ddae6071a97b76b0",
+  "bytes": 171840
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3e58c2b69948fa71.jpg": {
+  "sha256": "c1b48bb744b585546a859e8dd2fb3312c6d94377ec9c1e36918b14ff342ec23d",
+  "bytes": 281886
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3f244d0cd047e3b7.jpg": {
+  "sha256": "688ea8d21deb03471ad54724482db9e95bbac0048b3b4e1c24e693c2a7d20e8a",
+  "bytes": 196275
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3f6d6db9d19b98da.jpg": {
+  "sha256": "bb994bff00633c0426750be06f7bd8c194470e404612eacd19748d11be234644",
+  "bytes": 914041
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3f96e1cc52016c4e.jpg": {
+  "sha256": "1dc988790a7dd7ebcc6a0c380c3ebb4006a7f814dbd326cc9ac16cf29fc35343",
+  "bytes": 111476
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/3fc6e6f4e89ccaa2.jpg": {
+  "sha256": "33e626f4b9f6cc872a134ed7541a428dd01f2bb688f88c8d619ec0090ae6a105",
+  "bytes": 338559
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/407455f5760f897b.jpg": {
+  "sha256": "510d053c7a63e4dba4cc9b8d9c0703f6a31a153a462783be866515cec8f00b6a",
+  "bytes": 31280
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/40fdb252fc53cfa4.jpg": {
+  "sha256": "1406af17e64ad72734a6908df5c6d7f932cf13cd2d3d7e2b833dbb4aa8bfeeb6",
+  "bytes": 129382
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/417c758c430d3b34.jpg": {
+  "sha256": "e4d26c956eead7d55863714f0968c263bc29a52de732151299c97f51b7e6bb95",
+  "bytes": 664928
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/424fa792da98deb9.jpg": {
+  "sha256": "af339b20b6974c9767860b1cad55e47d012cc90f9f828e5795e8c4d5733c5a39",
+  "bytes": 557553
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/42d0df278df339cb.jpg": {
+  "sha256": "8a67326949252b54bef63083cff072fbbbcfac73d353f25d2f0b0cc3250a5683",
+  "bytes": 113767
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/43af5611777d4f1c.jpg": {
+  "sha256": "c0eabd8708d4c737749aa978665e52f0c3787c4b58350d6db6001b815720fd8d",
+  "bytes": 398296
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/43f40fc7e859d209.jpg": {
+  "sha256": "ef2f819b1e779d013c6098c804d58842550f5c8d9017c10d5576b77ea8412b14",
+  "bytes": 158954
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/446aba9308df7c3c.jpg": {
+  "sha256": "c14e0a39f0a34f1e69d326bc158dbf2a8dbeed26db03f8267c973a87ba387ba3",
+  "bytes": 135650
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/44718b76bdbce255.jpg": {
+  "sha256": "c1820e1b825cc9489a07be6cb3203b448d88af8c9ab5bee4eb4955cf0ab2c5ae",
+  "bytes": 121842
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/448cf85afc26060e.jpg": {
+  "sha256": "9ac8cb4f50601d1f6c7fc30c1c6f25f4aec1cebe6dbe597cc7089738351db28d",
+  "bytes": 83442
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/44b2830387bfa1c0.jpg": {
+  "sha256": "c6e9bb928b868294b28c0f866f8a353446694c157735fa8bb51876d0b6d2388b",
+  "bytes": 471371
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/44be860d4b71e13c.jpg": {
+  "sha256": "08338ee3675af808cb5a832bb65473f9cf358e35b8390fcda4db27b236b71777",
+  "bytes": 124229
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/44d7f6e58f18f75d.jpg": {
+  "sha256": "4ab93eac8c8be675d9ec57cfa33895ff36a11f57a3ecf414f596fce8e94f6972",
+  "bytes": 215982
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/44fa1cdb98c05e3e.jpg": {
+  "sha256": "80ebc953141b03360b46464683bcff5463fe37e18b2d12e968b2fb6df66626b6",
+  "bytes": 131468
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4500f6af95ebe199.jpg": {
+  "sha256": "0c0cc71661e7535b1e90d423866028108b2732529f62227df18739c331916d1e",
+  "bytes": 745443
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/45196f882bcba075.jpg": {
+  "sha256": "89e7a3b7665e82fc985ef75d765a32f421bbf1ed798ebeeb7f065c2949565622",
+  "bytes": 228746
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/460a23ce94b724f0.jpg": {
+  "sha256": "c5fdf93fbf34dd1d99cdab599ff56e05fe1acdafd939e63cda6b4c16dc29edc7",
+  "bytes": 304247
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4634962c3db4e309.jpg": {
+  "sha256": "6c4fd5f4250ed448786e480d513ec18075c3a2a450e3da9a6904aa7592db64de",
+  "bytes": 413600
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4637f28e0e623a0a.jpg": {
+  "sha256": "8aa01feddf9086e7ba678122d5e657d4fcda33d95a5ba0a55f39857c6627e11f",
+  "bytes": 101471
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/467e31017684d6f2.jpg": {
+  "sha256": "cd1dacac5ddef4b39bb16156dd57736543e7d7f10cc37ed7ea89dab07ae1d027",
+  "bytes": 409307
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/46977403aba9c410.jpg": {
+  "sha256": "b363c95b794c487fba20fe346d7edce1c6b3d89db6712d5e54db1f672d56b631",
+  "bytes": 214228
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/475bcefdf8237d1c.jpg": {
+  "sha256": "5cafaaa503cdbd8ed93b5a9fd346f6a6798e3eddd613abffde84e5507344cf72",
+  "bytes": 554137
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/47986358243d1ef5.jpg": {
+  "sha256": "9e8e5f656c3687a90b2c58d7dadbc6adce51edb956e8ed1126c2d67d2de6ef69",
+  "bytes": 60416
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/48199db1882a4d48.jpg": {
+  "sha256": "3536b1dcf136fcff15a19a76ce23f66a465d4b545c8b7784e29dd1f8000a7137",
+  "bytes": 360188
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/486d21c5a6df0224.jpg": {
+  "sha256": "8ba1b298f13c9f2e7f88246929c8a13815bbd4a203ab4f31c64f241968e13f76",
+  "bytes": 206329
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/48d0dafaef2d98d7.jpg": {
+  "sha256": "473fe0dc25925b35238790b99a9085d66e4157456318c647cb25fc03789abf51",
+  "bytes": 506646
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4917c7c9d682d4dc.jpg": {
+  "sha256": "831af47ae2ac6e0fdc2db26aa87524b7a549f7f99d87b056d852d61ca89e2f1b",
+  "bytes": 31203
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/494273e0745ae61b.jpg": {
+  "sha256": "ef5487220b70a671521a7d54be836e68498db998bc5c5232933c185745b1fc45",
+  "bytes": 193818
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4a1d4b3eecbce073.jpg": {
+  "sha256": "0cdbfab62cd22368b5db224d875674279e4750958ac6df52ebf7d019abe78517",
+  "bytes": 298523
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4aebcf328fb58c35.jpg": {
+  "sha256": "ffd38dc5e3716ba2588f48be929bf695194e5d1655080c250ca3c9e644b43d7c",
+  "bytes": 352372
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4b299ceff45590d0.jpg": {
+  "sha256": "a95e67e2863c42b7235624a751092efb14e0caaa2d11231de46b5c2d5a355529",
+  "bytes": 306837
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4c24b6dbd820e52b.jpg": {
+  "sha256": "4f4f3c60958bea3f77fc714915f899f2b04203e3d9912591769e7c7c6a086797",
+  "bytes": 296523
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4c35a054de2172af.jpg": {
+  "sha256": "9a6c1014e3837b85a41477ae129291ce1a27b0f8de7a86f77a5ad7af8ca80e2c",
+  "bytes": 149122
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4cc68acdd17395e2.jpg": {
+  "sha256": "657f6fd0c0cb37584756fe1b9589e3a63891a76dcceea69ee24e219931e91f03",
+  "bytes": 446779
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4d57648cbc715f17.jpg": {
+  "sha256": "c39047e634aab1cd00231bfee6ce79d590d6391ed42d77510d97509de64d2a0f",
+  "bytes": 298648
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4d6744437527afa6.jpg": {
+  "sha256": "57e256128c5405ab76fbf6cf9439b523d4b28d53e4ac91e646afc41bc66a1241",
+  "bytes": 127948
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4dabb4cca34a2862.jpg": {
+  "sha256": "509c929023612f6a589a2116e26601fc5da7945a564953bd1fb1be4975949939",
+  "bytes": 100497
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4dbcb861be92912c.jpg": {
+  "sha256": "5d0076fd2117b61e04749a354838118b157cb4ff252ab318c9e1e599dfabbe2a",
+  "bytes": 126443
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4dc47305bcdfabad.jpg": {
+  "sha256": "4fc744c393216f93b073ac3683827419900884dc38e296623d8ab58c5b3d857a",
+  "bytes": 274782
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4e8d9a2c383dcea8.jpg": {
+  "sha256": "57d899402f3b7303ece91bb3e60f5e29cbe6ff75a824e92474c1341e88d0e72e",
+  "bytes": 512557
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4f9602b9c4af0af3.jpg": {
+  "sha256": "6636317804ae859055186d62bc231031ffbaeda711761fc65a90d6fa95666ce9",
+  "bytes": 398487
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/4fbfda372bc472d7.jpg": {
+  "sha256": "6287f4607177801d58d0cfe5c86ee3abf401dd4b91e811a6e836f4e725d2d1a4",
+  "bytes": 271881
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/500ef7bbed25b42d.jpg": {
+  "sha256": "5eba020984315c9994d2d33168f463576d8a81d8741159aec321a77b682f2572",
+  "bytes": 187193
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5013a8a33f521259.jpg": {
+  "sha256": "65243d3063e7c9c646965e3e01432f32cfef81a423cb8227a2b9da1e3b24b895",
+  "bytes": 196330
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/504e1d44bea16870.jpg": {
+  "sha256": "579223ce75d388f1f51cb3c301777f4ce385bf69ff7174603f076484a0361f7d",
+  "bytes": 800011
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/50cae92f70c64ddb.jpg": {
+  "sha256": "8bc7af4fe3722878c1e55332d4e74e477652bc264d9b9adb83e48df22708f667",
+  "bytes": 63513
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5166f2d6edd3d5e8.jpg": {
+  "sha256": "6389258ef12413b356fbe3b4c339d18d71481308f50da443dd1703d606e07c87",
+  "bytes": 469477
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5177b735e298df6c.jpg": {
+  "sha256": "5e887df51dfd0c42ebe50892e8413a57134b9c8c876dea440b267d6729973897",
+  "bytes": 910751
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/519e45e7cfe475b4.jpg": {
+  "sha256": "c4e430de09eadb8f28165eadd32efc973f3862d1a0582c31abe6972ce48c96ea",
+  "bytes": 862245
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/51ec63da89941630.jpg": {
+  "sha256": "ebf2bc12a7b374227d3963f50bacced5664e4edbd15a335c0cf7adaad8d2f66c",
+  "bytes": 704296
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5208364d33599ff7.jpg": {
+  "sha256": "1777c3578522d9fb10d80fce0fc0b3edad3bec225f030ac6fad1b425e8209108",
+  "bytes": 243597
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/536d4d20aa48fb9b.jpg": {
+  "sha256": "4a41f3568c91c34e847342f93f8a167be47bc8e2c39eacedf29bd051da8cdc89",
+  "bytes": 122031
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5387aa0e2ce4b45f.jpg": {
+  "sha256": "dc92032c32db82388498761a2a1e85d45be4333bc4b6b476c3c2a27f18317fd8",
+  "bytes": 215413
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/546afa6a8541874c.jpg": {
+  "sha256": "03c51d6f9c5b85e8521aa83017235bcf65b3e089546d6079e4fd00c9f0a714e9",
+  "bytes": 371561
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/54b7a3efb5281091.jpg": {
+  "sha256": "a04b4e192dba76486540f69fe672b3c504ea11358e0795de34cfb1e5e46b3704",
+  "bytes": 171669
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/54dfb850f08c9d25.jpg": {
+  "sha256": "458591c1c65864c72b5a670e02e8f3f2f889e01a439e04d56f6550f0a9944e00",
+  "bytes": 623442
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/553fbcc7b1975b6c.jpg": {
+  "sha256": "4cb725b64c8e33f4115c845f2d31ba12db8698e8821d15de2c40018376a3bb73",
+  "bytes": 316618
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/55bb08642e9072b1.jpg": {
+  "sha256": "c5db937ba312d720c62c4b514ad38fd6d43040c51fc7efd4adef22e11c6a507f",
+  "bytes": 1167738
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/55d5356a542a841d.jpg": {
+  "sha256": "3fae47fb4631aff36a9fccf047596ef58708b48e5f6aac81d62a525f64e2cd0b",
+  "bytes": 79082
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/55fc45fc60419cde.jpg": {
+  "sha256": "92c5b74b8fbf4e094edf29f44ae70e1bcea910dfb29b5655933b740967a4bd95",
+  "bytes": 589838
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/560d6a16554f6a06.jpg": {
+  "sha256": "7355a346678155aa8096769d52559f807eb8217d01ee9bf8c486d7700d0ae889",
+  "bytes": 278418
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5646251663cef733.jpg": {
+  "sha256": "479670ebba13ca5c28945d53b5023f782c797d0d1670a682220e9ca3fa863734",
+  "bytes": 370485
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/567dc6c2e17ef50f.jpg": {
+  "sha256": "32371a8b48d9291c42885af133c730f698e4b876e9d951336a3476627880fcab",
+  "bytes": 37080
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/56a1e9f45b126934.jpg": {
+  "sha256": "38a0e0f89be553bf5a1c6d86d7ef9e1a42a96c11614bc48c3125048924802e04",
+  "bytes": 443315
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/56ec26cdac862252.jpg": {
+  "sha256": "eec5345260e9b8e4e8098112e96e1029d9d334582f2a758ecfb7505f6fb5ebd3",
+  "bytes": 254162
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/57bf97db55140413.jpg": {
+  "sha256": "bc6de918b69b962655d030927baee233aed638507ca19e4cd29dba9eff8375dc",
+  "bytes": 111048
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/57c6dbadc2b1fbf5.jpg": {
+  "sha256": "9f986567dbf4a146027a3f3b59c40ba7f3bd07fe510863c59cb52c5e6e13f209",
+  "bytes": 329433
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5801c0e3dee57076.jpg": {
+  "sha256": "23335c5e923a43b151ab172e9ef68190c4d7afd0219202c3a36d3bf7c815af66",
+  "bytes": 52091
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5803ac5d20687383.jpg": {
+  "sha256": "19576ee849c2fe6d01552e17d071a35568fbb0f65fbb4e80aed3804e255bb520",
+  "bytes": 121628
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5813f8516e674419.jpg": {
+  "sha256": "b35add45d8462aade1205c5755dfd2f2a8957ac9a2416dad3699760daecffa33",
+  "bytes": 196011
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/582e1384a0f40173.jpg": {
+  "sha256": "a2c4a0c330e6ce1306599d9581c24693cd54964720ea9ac12744d5a88661a738",
+  "bytes": 154494
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/593e9832700a3b1d.jpg": {
+  "sha256": "ea1f483cb790cd8443f774d0500f707ab9d998df67453cbebe04a9dcf0ad8c29",
+  "bytes": 246274
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/599bec9b304e68f9.jpg": {
+  "sha256": "6638df3d2211f1bef7dea5329286dd341e0bc2b491fd2ec7a276917d8d91a77c",
+  "bytes": 382127
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5a7790ecd6daf1f5.jpg": {
+  "sha256": "53891372105ba4f8f1ce0aabda1d5261833bb1d425ff708fde177e3a1268e093",
+  "bytes": 277432
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5ac9b27526051fb0.jpg": {
+  "sha256": "cb756e8fbcda87e270cc8c8cf0bfe328c2b7c479ffe9bd904c985c595e0eb168",
+  "bytes": 274460
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5aced50a2c10b20f.jpg": {
+  "sha256": "43b523fab6dbbb4863dc1d23f99779318726039a3686836011d4d608ade73207",
+  "bytes": 103647
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5b0f0ee1e275b5a8.jpg": {
+  "sha256": "897d4da87dd653314b81f2e7485b3bcbc58c19460d11868df0b069c7ad8143a2",
+  "bytes": 544913
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5b1d138d06e98ea8.jpg": {
+  "sha256": "4b91d0902d882209c0d4d0b78f0337555d4b5426af0e4d5c4e4dc349748243ed",
+  "bytes": 318691
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5c33f87aa8823aea.jpg": {
+  "sha256": "b00a29d69fd851da88eda3fe6108962ac0127cebe2b3b9a7a6abdab89279844b",
+  "bytes": 265343
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5c656908b60b7ab8.jpg": {
+  "sha256": "71765ae658d3b580b14fe6e24653a2c5c30c12e7a70e16fecb1ca67015d5c3d6",
+  "bytes": 346901
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5c8d2a7a21b54efb.jpg": {
+  "sha256": "9466acbd0362b124aefefdc484097cd2b59effe68b5d5d07efe534f55d7fa358",
+  "bytes": 1017961
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5cc862ab11565d11.jpg": {
+  "sha256": "53df7e79804d9ee0503094d6081d34e30d307da19e636a845223db3256547e96",
+  "bytes": 413880
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5d0595903ab095e4.jpg": {
+  "sha256": "253c717b27aea8017617d20c1cd1d3ed492442af92846ba1793713e16690f553",
+  "bytes": 365906
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5d827ffd2c956a34.jpg": {
+  "sha256": "c7078c8554acece8459b89765205cf86b3473a0c49b6ce904bd2f937956de3dd",
+  "bytes": 232469
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5da2941bab9c2f4a.jpg": {
+  "sha256": "ada72edd5ff2f316c696b29bb6308896bcd25fbaa06bcb2be5cc9639515d74f0",
+  "bytes": 129722
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5dfd2428cc22422a.jpg": {
+  "sha256": "df51e6b90f0eab2bf640b52ce64200627bd54507bf634520d1a5ba325f6a5902",
+  "bytes": 361968
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5e872a4a350301f5.jpg": {
+  "sha256": "530fd1f26b1d5a341d53af8561b91e91707053f6d6f998e94efcaa098bc9b8f7",
+  "bytes": 490359
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5e9c429afce8a619.jpg": {
+  "sha256": "5b09e28476b793238b210cd4068ab506aabf6fe40a3f87af0484e6dc3100e818",
+  "bytes": 176142
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5f164fc62d1ebc94.jpg": {
+  "sha256": "5f4defe4f45d31dbd742e4408058cecdc67a480aec30536a5ab51dacf0c2fe9d",
+  "bytes": 109833
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5f805386c523fa54.jpg": {
+  "sha256": "7decd806f0e5a319f6928b42655fb2d94b816e9e391d180d1ae3fdaf3910e18d",
+  "bytes": 111643
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/5f89cefbe863f6e5.jpg": {
+  "sha256": "46ad30207da661e0412ef48a3771d1379590be213fef3a339ebf9483761a8679",
+  "bytes": 311134
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6087af01b65c06a6.jpg": {
+  "sha256": "14735989b336102ad447e1491bdcee850d4d43ddb94f736ffc6ba2bb1d5235bc",
+  "bytes": 50750
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/60a457b539bc8bc2.jpg": {
+  "sha256": "2f22ba715c5867dcb5ce15a74e60287c066c0d35f0eae90aa36c421b7f354bfa",
+  "bytes": 204234
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/60d599492b497d66.jpg": {
+  "sha256": "458822f4e1bfcee1217310086aeede8b611049cbcc74237b7cc3846f1ac37d2c",
+  "bytes": 217437
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/60e7d12013b6041d.jpg": {
+  "sha256": "024a39a719d8bd1f8b3912f55fc4e7577760dfa3377f115c140453127294970f",
+  "bytes": 384689
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/61b0d3b5611efb84.jpg": {
+  "sha256": "915a4701baf3e11dfb8146a651b4e47f50dc4acd15fda5363eda155f4c59ca33",
+  "bytes": 559395
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/61eafb63b683a478.jpg": {
+  "sha256": "8ea603e063396785bdc1cc601cfa69e5b1b58380407793657147e7e4e519c336",
+  "bytes": 837749
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/62130c3241ab786e.jpg": {
+  "sha256": "86c5df64bfadfe51f23afd7bd0cf8a7f4efbad86b0fbad2ba8d84d7d4d927531",
+  "bytes": 872536
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/621d666570933209.jpg": {
+  "sha256": "ea21ebadccadf72b51bae1296b5c5bf0851dc6f4889546b4470fa799d57395c8",
+  "bytes": 82083
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/628a3a2cc1dfad2a.jpg": {
+  "sha256": "7ce169959d06f35a83901da0d373b8a9dcf7a1a92710714bfa458c160fdbdfd3",
+  "bytes": 107529
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/628fe287f198afe9.jpg": {
+  "sha256": "3fc65f88ef85a4298440c5521c1ad7dac591564bd85f97c78748a7ffcffe75de",
+  "bytes": 413181
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/63f711e54951ac89.jpg": {
+  "sha256": "133b2363f74ae057968f1710659e8aa6a22cf55968d2cda123fe18f796c3fd53",
+  "bytes": 762606
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6457afd6f3730403.jpg": {
+  "sha256": "7a84fd2b288d718448700535b4fa7955ba9c391cc65c5aa5c585b4fd68874f6c",
+  "bytes": 645132
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6458fabd90e53e15.jpg": {
+  "sha256": "6e99758e26aae37dfcfaaeb48c8961a00769509bc05f99e50e1ab91e2ce4643b",
+  "bytes": 297281
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/64a0dcdba3bbc194.jpg": {
+  "sha256": "5b37eb8a21f63b71c73dc526c756959010c39873c07f9849daef06ea6c1b52cc",
+  "bytes": 181221
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6509b2cbbc64c7b0.jpg": {
+  "sha256": "4ee59d54a6784d214bc5c7ea5e49d01cdd1464d367445baba986e41973e69e92",
+  "bytes": 160291
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6521a19adf7c0a59.jpg": {
+  "sha256": "cc3738b2891ce638dfbb71fe1b0e373d91fa414b13dd948968355b41f5c59b51",
+  "bytes": 336578
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/65327bb1898a17d6.jpg": {
+  "sha256": "014ab6b797b7aa0d07201d1f14f48b33d47f451293adcb2bfcffe0e524b1eed9",
+  "bytes": 196744
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/65b6a463b30260da.jpg": {
+  "sha256": "d5ae91276f1fdbd4f446fcdf6d90e8ef7f46d06d68c3fef6c0fbbd0be9e1efed",
+  "bytes": 457486
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/65e2a1fdacf3ecfd.jpg": {
+  "sha256": "7d3bc77bd84f13dffea1e9bae87fdc4c2348fceeb24b7db0b30a7449f56e56a1",
+  "bytes": 343993
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/66160590aa38ef00.jpg": {
+  "sha256": "97c9557df60f824324a85e4c565a4709bd1afa4d7ad6e5f3425d9cc288bfa2d2",
+  "bytes": 143786
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6669e4ca34ee277d.jpg": {
+  "sha256": "8e94f1a676a66b5bd9b4756e1d3514a232d1130cc05fd527905d41186458322b",
+  "bytes": 235767
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/66b260ca01f408be.jpg": {
+  "sha256": "225d3980c06118f97e9cbe484af6c29db4635f5d3e8d6c586cf4fc70b748ea92",
+  "bytes": 61853
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/66c23cb3a1a469f8.jpg": {
+  "sha256": "554143ba710f000a73e2dbfa3600ff2ed7a2240290c730e0821d1cae059ce340",
+  "bytes": 407348
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/67034a68f606a071.jpg": {
+  "sha256": "b38afbdc7f25308a0cb03f8500124e6ade3405652020e57573e7eb88309e3634",
+  "bytes": 128241
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/67781fe35f0a1c53.jpg": {
+  "sha256": "086227306d9a64c9bd51c00a7b535062536ed051218eaa0c59bb8e636c304973",
+  "bytes": 445620
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/67d2ab35698d4ced.jpg": {
+  "sha256": "ca79d70b4221a54ccf0bf8c1c16b8c6fa6293b4c6899d981a3bb046dd7e23094",
+  "bytes": 138784
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6810d6355c7fa115.jpg": {
+  "sha256": "33c0cd724f4226dbb9cf1454f6bc8a8d2b0ea0f1f64d0a48cf69764f2c3ad94c",
+  "bytes": 600158
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6838ba38c1c82e90.jpg": {
+  "sha256": "a593583c46662a15f1529152e3e12b06e6e404e31186b63d69160786d822ff60",
+  "bytes": 674141
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6839539ea664561e.jpg": {
+  "sha256": "78364a2778bd2c45a6e0af0041d2077937e8ddd76565cc2368df53b2625108ea",
+  "bytes": 384915
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6928e7494201ddf0.jpg": {
+  "sha256": "87d20c14df45c4b113896a43be8e9f2377f4007d61a00b61d52a1998ac23a55d",
+  "bytes": 413875
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/69a31de5e742f2d2.jpg": {
+  "sha256": "5911ce492559dff6a20d155dda2bc267f3f3809a7c8e3b589964bde76dfd4e81",
+  "bytes": 472450
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/69bb8328d799441f.jpg": {
+  "sha256": "72f5578fc90326822cb5fcf2fd28da4594ef3fbd1353219a650b6d3f5a6ded36",
+  "bytes": 50189
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/69f3f3889793e68e.jpg": {
+  "sha256": "e4a6e616bce47f942abf25d1aeec5e89eb5b581f1cc11bf6259cb953ca5850c5",
+  "bytes": 38104
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6a252eea451c587a.jpg": {
+  "sha256": "57573ffb5358414babc6aeb50dd931d768213d980eb2c6b05bca0d9b86d9b38c",
+  "bytes": 184654
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6ab332cb6fcefc92.jpg": {
+  "sha256": "4a6bacfd496a7cdb489f71ef42d759f11c7464c6fcd89fd7d6769abe7c424cb9",
+  "bytes": 224779
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6ad82fddc082fa97.jpg": {
+  "sha256": "c62e65cb81c48aa2046e8ae43a492c8aa7f973072506dced77d2e2c290c11794",
+  "bytes": 364304
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6aec07f88e2d3b6d.jpg": {
+  "sha256": "98f0ea3c6360bc4ffb1e4bf873d6b34e4c8b4bd4e52258be6b555fab936416a0",
+  "bytes": 76619
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6b93600bf7b77a49.jpg": {
+  "sha256": "7dbd61461639442f791d9acb969be2970a3de24bd6103278590ff3191ad805f5",
+  "bytes": 258313
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6c70831f3dc450f6.jpg": {
+  "sha256": "ca4e5c55f6f3de7430fcea674c4f3f88c8b00d07ac27e54583ef07ea8923edf8",
+  "bytes": 69039
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6ce7d80ee7e1b38e.jpg": {
+  "sha256": "4e308dbb7c96288bdc39c26b04d306812a09486ef13cd9d18be68fe62f7aedbb",
+  "bytes": 344791
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6d4d45279a04c850.jpg": {
+  "sha256": "228fbcc8ac7fecf50aa095c322b537f1f1a6f26e5666ce1186bbe63b44107695",
+  "bytes": 496230
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6d4e234692694cd4.jpg": {
+  "sha256": "1e43dd1aef54a655d8c9c8d10c4aacf120eb738c6b8f02f625f3d17bf1a22332",
+  "bytes": 159381
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6da26aa676e64f03.jpg": {
+  "sha256": "31f01ab20c2d982b92d6c75e5d6c7f2ba702bd058b898abd3148849c68552221",
+  "bytes": 314878
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6dc4e49e5c86bdc1.jpg": {
+  "sha256": "870ad3dcb9a65b07fbf7a34193f8462f1d1c131a17c4307095dbdef5460561af",
+  "bytes": 298110
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6dc4ffdc568cabf7.jpg": {
+  "sha256": "20bb9cb5a3df4c04fc5b1016b133407326a41e86e44a82cb9c6c2582ade73276",
+  "bytes": 202483
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6df570ac37ed9d80.jpg": {
+  "sha256": "3d65d3c419ba81c179f8efec4e51c4793878444bfcb268180fa459e0610a5fed",
+  "bytes": 999665
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6e58d8b2c269091b.jpg": {
+  "sha256": "a5962af13b2f860ad545d31b1f79eb5e411d2d971cbcdc462f2d8e2541655906",
+  "bytes": 169886
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6e8138f7e9ced8a7.jpg": {
+  "sha256": "035eea6bd6168ff75ee2109c8d1ea5b88ea24e767e0357fb86f27473be429651",
+  "bytes": 235708
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/6f3cf53ed1cf0b8c.jpg": {
+  "sha256": "c20e885328864a949c33fab3b7f8435f7d48826e5cefe02e0518f764e4433002",
+  "bytes": 190419
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/71230607e20bd970.jpg": {
+  "sha256": "ffd948390af50bf7eb1a22954eb76e1cc7a52474d9ae43562eed0d48cf241b28",
+  "bytes": 271646
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/714c75d57baedbd8.jpg": {
+  "sha256": "da07d0dd4bb16d00489af55ef01990393eece6f21f2ab9e57a6b30add205ba43",
+  "bytes": 61134
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/715c45790f79b5f8.jpg": {
+  "sha256": "46db29b14c152d1c7cbf1eadc98d385ef59605c2bd8d7a674a2a9267f91a1e32",
+  "bytes": 200127
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7165a3fc38272a39.jpg": {
+  "sha256": "9672899d5a6889dfa2440e385731c812589deaeb71ace5596364965662a77049",
+  "bytes": 243814
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/71a9fd73ccdc9d69.jpg": {
+  "sha256": "928ba5f8cda6b4c67a6255385d16ebcc8891e5e720a51478d3e25415cd72e20f",
+  "bytes": 915479
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/72927a1f1f5c0fea.jpg": {
+  "sha256": "3de10dfc0a9eb9567cb755c238462b92ec856f5946aef7c1554c37f6b2047894",
+  "bytes": 66870
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/729487df41a6fdca.jpg": {
+  "sha256": "eacaa9fc832a88129efe0b6bebb33ddbc21e83698d663c539870828429061159",
+  "bytes": 225503
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/72956050be6f7754.jpg": {
+  "sha256": "a942738d993d549cb1a7446500e96ecb5202a3dd7f58fcc3ba8ce8e3c059bf9a",
+  "bytes": 136698
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/72b4922f06eee871.jpg": {
+  "sha256": "aa44e00b91ef758e67cb344e4061edca0695c7acb2ebcf1a76a4faf350e22a8a",
+  "bytes": 626269
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/72bf14fe07c416a6.jpg": {
+  "sha256": "d04796d6c21ab82ae672d038a225b70afbce3831657e985a8f8b625061aafcec",
+  "bytes": 175279
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7312b03987f01b91.jpg": {
+  "sha256": "8f57d81726083e41c9305726287c9485817ddc4717bf3e9db51f81dbe75183d1",
+  "bytes": 65734
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/73c4177f9fa2af3c.jpg": {
+  "sha256": "3f0335cb5c3ac5ffd114d97ba877e3f9ba90e97cdcb13f43b707b1b583c073f4",
+  "bytes": 202388
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/74175c1c0e210a11.jpg": {
+  "sha256": "cb3d004e7924d71082982aa2776220d0d580cd6db6617fec6f993b5a52f49095",
+  "bytes": 429215
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/742c7a16f9b954e7.jpg": {
+  "sha256": "ee8e7580156e40c3543e01830bdb6b3367b045723f42ffade64285ac12b0798b",
+  "bytes": 203556
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/746b596e2148b044.jpg": {
+  "sha256": "04f1a21486a06b82c9b5cf0a620ecee0592878f778aaf3355e2f16f979253157",
+  "bytes": 433459
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7499c964889f60ad.jpg": {
+  "sha256": "75fc601ccc8bd3c260bdf6bc0420f701a5b66c8f47361462e649e6122c85509f",
+  "bytes": 274187
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/74be52165542d4ea.jpg": {
+  "sha256": "e23b93919fe5e3543827bf1839598d632800e520c8895b67ab30d77a745f8a4c",
+  "bytes": 113938
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/74c7fd404f49c94c.jpg": {
+  "sha256": "66e3263f3dee96a556b6e249e04e1f56124ff3575301028e8a67c837978cdeb5",
+  "bytes": 147321
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/753775903ce24ebe.jpg": {
+  "sha256": "4d40981c184bd9c7c7e857ed22639c8d93dbdda7db41729c3bde19116674c445",
+  "bytes": 390843
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/75471aba1c388b42.jpg": {
+  "sha256": "1607e2753f6c714bc76767f909cbb5e4afdf26b444d70a88fde01ba734838e99",
+  "bytes": 137704
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/758d529a0b5f5f38.jpg": {
+  "sha256": "90ffcbbaef69ba7c6b37995831daf7911690a6647d6d1f3bb8e9c1bfea493305",
+  "bytes": 480890
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/75fd0814b0d48e90.jpg": {
+  "sha256": "aaf3cb4ba093af4bcb99179dbd573c7c39f88a372944542088129977804418d9",
+  "bytes": 180617
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/76048660604b83ac.jpg": {
+  "sha256": "305f0ffe9ceaa25d15089e37ffbf5411c7266dfabb63d3ba32778b77f5448416",
+  "bytes": 84657
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/76274b9b97391709.jpg": {
+  "sha256": "0ec0d691f0f4c7d4a289c219927bbb61305e47d4aff3e8edf3b033ab14617d4e",
+  "bytes": 558572
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/76f84150a0ffb6f1.jpg": {
+  "sha256": "09768a6b65563a55437b26b653b8b69a9a68fcbe9c6cada230731a8479aa99f9",
+  "bytes": 176263
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/77417de4dd2f42b0.jpg": {
+  "sha256": "cd693e94bda1ee4b1a39ba81d2feeb4bd34248c0b99f5bcd7bc2d7a80c1dbd8a",
+  "bytes": 208337
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/77bfbbef28ac344c.jpg": {
+  "sha256": "eff7859a40bb115ebfd316eafd98f5fbd778677fe0f328ebc03ac661869c9c35",
+  "bytes": 137752
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/78009ddd7e091570.jpg": {
+  "sha256": "1edf23cb56756543ee1e819358280c09bfff01f60ba241863d27ad643f8b6e47",
+  "bytes": 279034
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7803588ebab09921.jpg": {
+  "sha256": "151079bfe3b2508fc442b057622ea3bda6a2035e1075c3a0c24f709d6ab2dcd6",
+  "bytes": 79418
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/78757abd46497e4e.jpg": {
+  "sha256": "573628512d3177624c390e005d52333a822dac24def89907babfb1bf5aa26287",
+  "bytes": 4399028
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7886d906aee383ed.jpg": {
+  "sha256": "0c881b8c6f21c1502bb698480ae699ecea9ce01272ca02a6d1a4679a4978e93f",
+  "bytes": 47403
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/791d14fc54af3cc3.jpg": {
+  "sha256": "ca1050ce009c2c85df0763e89f95037828ecb0865e4acbb5058f612bf50b18a0",
+  "bytes": 106268
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/79b1b74a5a8fdc56.jpg": {
+  "sha256": "e4dd7e71b54cf87aef438caa2330a650986b012828bf1f6e13e212bec984a9d4",
+  "bytes": 204645
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/79e1b7232483bcab.jpg": {
+  "sha256": "80a8b7ebb1029d8ef078986172469194296afa989c8551e668fdf017e63ddbcf",
+  "bytes": 234177
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7a18cc3a0bb314fe.jpg": {
+  "sha256": "eb0fa3867ebaf1c34e86cc5ad271a1f0ef34dc4679ea25784f31cf3ee358450d",
+  "bytes": 95843
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7a94abd30995ee4c.jpg": {
+  "sha256": "b34840c5829aa888faa32438237250d7ac31850d4178f98b2bfcf832f0105d78",
+  "bytes": 207992
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7ac886c7dd88d46d.jpg": {
+  "sha256": "d5b9e4a1fcaf869393c2f3de00b868e5ca7d9d6e37a3c9fe583bbc122187653d",
+  "bytes": 335983
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7b9cecd0c81737d0.jpg": {
+  "sha256": "db92b78b8d6233cca56ebec2f8199682230b9ef0dd1fd4fb1751ac6836df1c54",
+  "bytes": 427360
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7bafdfcd27b197bf.jpg": {
+  "sha256": "ab44b264a9a470d7b6590b22fe584267d9877e60ca76f08d68337a0717dba8a1",
+  "bytes": 364806
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7bb2ced75a4c57e9.jpg": {
+  "sha256": "9fb7660378f60661ac85bc13b54d9892ab3b0e02840a860571d666e736d3b558",
+  "bytes": 272147
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7bdc7fce4390319d.jpg": {
+  "sha256": "fed4dcf400ad33c2043e8e052948bbf32c21bcef06f5f2949a67cdb6dc2452b9",
+  "bytes": 150481
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7bee5757d71ab859.jpg": {
+  "sha256": "db3d2a63bc7f1c03c193afe5465e3c359008e144c2e2acbf1dc0d20bb82454f9",
+  "bytes": 241835
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7c2dc836b0f48eb4.jpg": {
+  "sha256": "ef842cd03cbfd73f44b3c50a53f6e1ac701699c50886cb7addc585a71cc6889c",
+  "bytes": 155805
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7c455cd7bb04248b.jpg": {
+  "sha256": "d07488b07b68678c02879d74636cd35526d4b2e4fcbd74dd84709eed83693188",
+  "bytes": 208126
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7cd3726cefd5dcc3.jpg": {
+  "sha256": "5e8f76e3bf4f57de632734c69bd9011918b5f43162390e3e56c4590c8aa5c407",
+  "bytes": 146518
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7cfc356a98715bae.jpg": {
+  "sha256": "449cfeac490e1b3d67215e8107d7fbe2087d04f8b4948296fa8db410e58b0735",
+  "bytes": 59042
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7d5346c0e380dbad.jpg": {
+  "sha256": "08f3d8e45a3b813ecb631f21762ee8c652decc8032af7f5bbc6cf688d2f8a082",
+  "bytes": 82682
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7d8bf3ff2ae7948e.jpg": {
+  "sha256": "28f80b394fa06abf95bd8a4d7929a58986379701ff740e42d81a225d28e7b041",
+  "bytes": 73865
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7edf91a48c4c1117.jpg": {
+  "sha256": "75d157c529e02ba1f0f1e22bdd2f56cf585a8f1b4f183d5f55adc5fa7491a291",
+  "bytes": 1018952
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/7fe867a31a06fc73.jpg": {
+  "sha256": "8d6e37d11b855da48d03d3ba1b0a4db8a6eb26c7f1f61a2c20b3ed40c721ebd2",
+  "bytes": 52751
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/80729ff4443dde3a.jpg": {
+  "sha256": "3f661d646ac1a8d6a48d1c0f32097fbec5e1af55d5f2824a2070e254d113863e",
+  "bytes": 268455
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8087e2ef3f19aaf6.jpg": {
+  "sha256": "a7d010bfa0545619778492e656298db38df73c72903914cfa9136e8a85888d8c",
+  "bytes": 51101
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/808bf68b81c1b6ba.jpg": {
+  "sha256": "f997ff6a32aa2b588d0941391ae25feae11569e5909bec8b3283f0c4f34dc061",
+  "bytes": 234966
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/80a715df812817a8.jpg": {
+  "sha256": "b3424a8c29e58c5c4c9f53d59f194f565b96d3b91cf8d975f221e84e129911f1",
+  "bytes": 181428
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/80b804cfc097437c.jpg": {
+  "sha256": "bfc3f62653584eeab6872b436b7cdb46fb901fef8531ac6d993fa0471c4451a6",
+  "bytes": 107735
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/80d567eb8c139348.jpg": {
+  "sha256": "162b9d51feca02bf41a9ea19a3757f3d13a27b649859b3550f2a9ba124d2cb0e",
+  "bytes": 227603
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/80d7af8fe6ccde1c.jpg": {
+  "sha256": "a962a55e399de0be0c0acd9e0e97ba34f8e49a2eb552dd0ec80a4d8ddf960bec",
+  "bytes": 355396
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/814d7c00652e7cec.jpg": {
+  "sha256": "9c25d9b7c84b0f79e63418b7a88030b2afaf6e4f9f8cf6678cfead49cb678759",
+  "bytes": 107193
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8289e44957b30080.jpg": {
+  "sha256": "ab901a7c382b0c126d8e0488cd1c591dd5a86b646cc908269a4000f1a7276ac0",
+  "bytes": 19347
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/832dfca068646e7d.jpg": {
+  "sha256": "f268f5aaa5cf16889e2d9d3a779581fcdd69f91b796069c24b66835592ee54a1",
+  "bytes": 635959
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/83e27a547db64cdb.jpg": {
+  "sha256": "376b37aff6f5c713323b5b0fd177a6aa5df82e298f9e20688b6782375cb919dc",
+  "bytes": 305124
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/841625bf625c8286.jpg": {
+  "sha256": "f5a5259607581683bc0e78eac0b60c344537bd675aa6727989d33ff1975d32c4",
+  "bytes": 168480
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/844c2a049c15f9af.jpg": {
+  "sha256": "da15fc2dd60eaecbd9a6a9a123a0f4cb2583ea704dad1b1d617c7fdbf3464bc4",
+  "bytes": 535907
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/844f6f37f208f932.jpg": {
+  "sha256": "70367aead8a3c0cb28530e4bc898f24ea18d2335245a3a34dfe216cd5dffa47b",
+  "bytes": 690067
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8457b25e4b6c5dd9.jpg": {
+  "sha256": "1837ff9bc08ff9e9a648d6733cf30597c91932531459d7e7219dd8ead1b3d31c",
+  "bytes": 120208
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/84859eef82c630ac.jpg": {
+  "sha256": "54995560df729805f30a515a9661a889a0fbe584e50131e4283614293b233eb1",
+  "bytes": 341095
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/84fbcc1b71a580d5.jpg": {
+  "sha256": "b4aa21df3026a3fca154f06b6e8921b65aa9fb0d07bd305499969281ce72fb30",
+  "bytes": 144606
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8535beba7fa530b1.jpg": {
+  "sha256": "e7f4afbb8b24b70917045400c4bae4a3b014b57a52005fea96dbfa19c204e4ec",
+  "bytes": 490742
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/85ae8fc20584cf14.jpg": {
+  "sha256": "c9972150a91766b5d1bb20350d4a97d1476a122c4938146a7d1d08e721092708",
+  "bytes": 488432
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8621f31b14304859.jpg": {
+  "sha256": "e3a77c4ffa39508f7e2b3ccc14f7b7f243e83a39f52c81182a05a9771781f8a8",
+  "bytes": 76284
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/864c89394ddef8a1.jpg": {
+  "sha256": "e325b62a00686af1e428d8f7f471f30b0e3d562176b773c8b6ba94785d4371e4",
+  "bytes": 654881
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/864fddb487280815.jpg": {
+  "sha256": "dd86c1894a890481a45a13970475f07593eb7b77fda3519824b2489a48f4771d",
+  "bytes": 167286
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/86ec4044b42cd72f.jpg": {
+  "sha256": "d5803e303229c95139e7ed45e829d484712d12af49045541e336cdfe1e737b3f",
+  "bytes": 467863
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8712edbd172d1976.jpg": {
+  "sha256": "b8039286b0d4e3fc09a556b86658b33e9aa00a8d7c1fd4ded048d0c5e64242c7",
+  "bytes": 316999
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/871b22db411ccf29.jpg": {
+  "sha256": "34833e960289a9f2d336efcc71b71c3408d250d674a63202376279f948d40e29",
+  "bytes": 248318
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/87318c6f92667332.jpg": {
+  "sha256": "ec0ea23dfae48be912bfcb1fee535661260685f6c5f3b0a9d783c4869b2d950f",
+  "bytes": 567657
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/874ec92905ddd69d.jpg": {
+  "sha256": "05f2d350618649b5968ce6b8d6ea5114811466b9163ea1eb9ca598ce805fd4fc",
+  "bytes": 99302
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/877d27e7b4e269f0.jpg": {
+  "sha256": "fca76b3745096424505fb67fbda6a81d629b84a781ee7d02c6aedc182c749d31",
+  "bytes": 243801
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/87f74eb3590027f7.jpg": {
+  "sha256": "6434d29aa68a6933bdc36c9f5ce40cdaaa94b3fd79d741c1826debaba0020a4d",
+  "bytes": 245030
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/88695fb2beaac8d7.jpg": {
+  "sha256": "0af4ab197394a3513e42344ead87f8e7b195042c67d5e7e9fc64b0cda11ad889",
+  "bytes": 164573
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8896ddcf16af0911.jpg": {
+  "sha256": "fdd16bcd57cd875f3586ec214542e97f06b473a083321d94964d04bf7f74ba9d",
+  "bytes": 386621
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/88a797429b8936a0.jpg": {
+  "sha256": "baa4cbfa260674e1fa99758ac9493ea6ecd5f5a2145d5c52e7c3626ec872ac3f",
+  "bytes": 991900
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/88ca1e8fe3473bf7.jpg": {
+  "sha256": "d3a2907cbfd89037a925c7700300d78eced13a6ddc1177c9927ca01966ae0e0e",
+  "bytes": 127093
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/89e22e2641323a71.jpg": {
+  "sha256": "66455684a1589ce05d761a171e6338ad8732c26f91e641fdaded5d9cab9ef3b3",
+  "bytes": 375556
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/89f1e9f32a1b428d.jpg": {
+  "sha256": "3a5ca7d28b4a126389ec1fa0c0b7883c8ad6b5d2e2a1f43bec4d1689a965ecee",
+  "bytes": 195761
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8a0037aff21a48a7.jpg": {
+  "sha256": "2c94400979318600f3c352bbc7e8da06b6ef7b64d558089c0036b8f18aceac6d",
+  "bytes": 154230
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8a850a6b6bafc4de.jpg": {
+  "sha256": "3e26f03c4609c31c0a50eccc819eb7116fee3a09d00b8affaaab94c4c4469118",
+  "bytes": 218957
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8acc09d72f9d4b7a.jpg": {
+  "sha256": "e1ae7cdccf47fad6681915cc553cfd5709b1143ed8ef37b5ca3c306235d8544a",
+  "bytes": 213520
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8ad441bdf8795cf7.jpg": {
+  "sha256": "438d7ab877955e0c316d2ab592ee15b1f71bae05056bf4c3356c683af5b35eba",
+  "bytes": 155035
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8ae1ace92ba01a52.jpg": {
+  "sha256": "b22265e252867484e89965266b46f007803f511d6cbaf1a313fb538ba1f7e2c1",
+  "bytes": 784546
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8b17a8c79a847ff2.jpg": {
+  "sha256": "a068c21449930b006ef0f89104c7c527d2e2719da453fe51da2013a0da0215e3",
+  "bytes": 81122
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8b2f7b06abe2b517.jpg": {
+  "sha256": "8b52c2c01425930cc0b14e914cdffcfc147bdbbe46caf585c2ad3ffb7ec948de",
+  "bytes": 413430
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8b371a9b53c88297.jpg": {
+  "sha256": "45f2657d3ce9056db65e2e57a39df63b65cc3ef29552aef14cb3d997020368ce",
+  "bytes": 469695
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8be3b0acd981d10f.jpg": {
+  "sha256": "5a3f5f96f051fcf77776f1a46eb3048b51cec1c5d9c553fc2b68451f85f9094e",
+  "bytes": 313892
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8bedc4058c88e405.jpg": {
+  "sha256": "6d6c812146caf48ffea4baf038ba6400b9bf6ca6125bcfcbefe796fb7bea24c1",
+  "bytes": 368662
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8cdcc9d8c1e43fce.jpg": {
+  "sha256": "2d6627590340c658d041079066f5883de4f9ddeeee728738e4ecdef602868182",
+  "bytes": 99440
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8d279daa12ffc691.jpg": {
+  "sha256": "104703adf3885f8638cdc9a1fd1053af5050b93f45a224fb2fd14e548d0aca0e",
+  "bytes": 371526
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8d410f163435580c.jpg": {
+  "sha256": "184014795dab45f2eb8577c3aab21b186f0c6c4ef3727feaeea01f4e5d65d4e7",
+  "bytes": 122490
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8d8b3404db99c145.jpg": {
+  "sha256": "33ac25662aebed0a8ca5a7805d5826ec4b1cbce47c87f3559177f80ced5351e9",
+  "bytes": 260149
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8da2bce7dda64c71.jpg": {
+  "sha256": "a591a3f03ed16fa1e1075a31e8381c9f2cba47b5b705e4ddf8263b54ce82957d",
+  "bytes": 152446
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8dde4e9d7005e9b8.jpg": {
+  "sha256": "16f819f055f02a57a9d4834d57d6f3692b78cf27278c96c69c53646a2570cd00",
+  "bytes": 339633
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8f1b8dfe77ed4ffd.jpg": {
+  "sha256": "99e559ce26bab29d05148bde86c16d63b8dc4e7c0a760c79c7f2901b870ce429",
+  "bytes": 61096
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/8fc05ddaac1c9423.jpg": {
+  "sha256": "84242cd14166e671c79a8ae2550422fd8821254340af78619abf31a33014418a",
+  "bytes": 418688
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/902a6d659b1874f0.jpg": {
+  "sha256": "362c77e54d2f549a2c5354585e4f5097b595d7913a167474d56e304e97bf54cb",
+  "bytes": 65779
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/905081afdc6f0682.jpg": {
+  "sha256": "4d268e52630e2878ffaa32dccb62e44b21975c824e7444d60ae47d8779262511",
+  "bytes": 589575
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/90c6b43b4c9e972f.jpg": {
+  "sha256": "1062b405b1096c67ec4732092af1e4e18dc95f8fca76fe2603ad215823c12a4c",
+  "bytes": 88756
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/90f57dad1ca73137.jpg": {
+  "sha256": "208cb28b0d4a040952595a811553aa13ee39eace2dee5a41a39fbbfd4a662b44",
+  "bytes": 115991
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/911fcb522307d737.jpg": {
+  "sha256": "2c4fedf23a820a3cef8a330894ac6fa02076a980fee3bedf5c8a7cda8d605d7a",
+  "bytes": 160599
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/915ac36ff8e610e6.jpg": {
+  "sha256": "8988e948c983df8cf9090fcb5412519135be0590daec24d420626c3b6ad32117",
+  "bytes": 283944
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/920ada1023b790ba.jpg": {
+  "sha256": "bdadf2b4de4c5ce1cc8e888c340ea7d4a9196f99e6653daf6d5f7ed9435225b6",
+  "bytes": 106675
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/925760f86eca551a.jpg": {
+  "sha256": "ed0938d62f8523460fc9f6427ac808f39934043fc4dda33fc09ef1a5c6cc3815",
+  "bytes": 85318
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/92f33bd51bce5f76.jpg": {
+  "sha256": "7ae806c072ba2d6b58885cc865a179c64e0f4896d8e0a8f8e023687d98eead35",
+  "bytes": 170966
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9314c56f8f11e177.jpg": {
+  "sha256": "37fd6afdf9ac91d7afa64993ca92e2f474e874d85613afe4e5c0d2bee50066a4",
+  "bytes": 209649
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/93a6a543f4708b9e.jpg": {
+  "sha256": "b3d0295bce953308b4399434d674d8870f8cc2a3c706a47ed66b592587e2aa75",
+  "bytes": 85778
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/93b9a35889c80f81.jpg": {
+  "sha256": "809e049f69bf8d36622780e0df9c6b0d97645b4ac384fb94be97d2d75187d2cb",
+  "bytes": 198451
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/93ee3893745df977.jpg": {
+  "sha256": "2c339eadff2fa4fa285cd1e2f699b37b7418a403d4a320b37fb6bcd2c8d6f4c6",
+  "bytes": 228669
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/944775983939bda3.jpg": {
+  "sha256": "93942d9d63e7cdf504a8a56e1a605df003cef7a25285d5107be95e96c3cf9f4a",
+  "bytes": 86492
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/946e667760c0be6d.jpg": {
+  "sha256": "69f30e2854e51d0b12bbebab0f6547cbfa31e0cc1a814a666eeffd2e45800666",
+  "bytes": 327128
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/94772488fea3a78d.jpg": {
+  "sha256": "a35009c02e9c7d841acbc2c788b93d3b513d7fc32f71070851ac0e2caa7fb8d7",
+  "bytes": 47311
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/949307588286fe03.jpg": {
+  "sha256": "27e2d087cd081ccd5761cc5935d8de5ed5fee006c452354a29a94018ccd82677",
+  "bytes": 1187704
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/94fb95f907bebe65.jpg": {
+  "sha256": "cda118d8112f0e71fc80c694bae178aa0c0949041715341ad8e27b8a4f86df6a",
+  "bytes": 130067
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/96453b78d8e335f6.jpg": {
+  "sha256": "1b0c637e178d04eb8bd8408d36e0e51627431a6ad2102e62228e0250e4b0f971",
+  "bytes": 1051512
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9648046889feb963.jpg": {
+  "sha256": "de9f9f2729f79869b869b3ba43206e4e9db7903771b84d4e01ae57199ca93c6c",
+  "bytes": 239299
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/965f055f8257049c.jpg": {
+  "sha256": "d0eea3ac1bf171db8a399154b361ad1ad0ce031077b58776c6cb7f4b56f7601b",
+  "bytes": 311798
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/968fd2dd0da5c23d.jpg": {
+  "sha256": "04002c0d602d1c3e5fc2f43985f4879a609544a07899f65374058c0079b88931",
+  "bytes": 191665
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/971f24fe03662841.jpg": {
+  "sha256": "08df54cca78d9da1986c7d22c8077768a372b79e0a171f73b413d37423a66184",
+  "bytes": 770385
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9750e3e8236e289d.jpg": {
+  "sha256": "96e4585388f96ff9c1d114d961e15eb6f2ae3984bb840a97841b921a2d95af58",
+  "bytes": 760996
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9774234db2a196cc.jpg": {
+  "sha256": "7c6df3d86761adc8dedfd1e59b43cfbd7bdee4801b51e5b688317ee5f3331801",
+  "bytes": 71804
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/97748d972b1785fe.jpg": {
+  "sha256": "c8fc3dc382643ba03985f96a3f2d49968039de39ec1b55a9ca9a11627c135e73",
+  "bytes": 846273
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/97a3ed5545a63255.jpg": {
+  "sha256": "df2b3cb2011bc37187e8d7790e37e34e60e1c96f1dbddbe995deec6a740d8cd8",
+  "bytes": 303814
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/985c35c33118a3c4.jpg": {
+  "sha256": "c85aff965fa52bffae89a7e1e2ad9e466bcd04004a7819a9c98e62f039dafbc6",
+  "bytes": 395298
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/988fa1afc19b4610.jpg": {
+  "sha256": "a5f819e3b3658306500dc581ee122ff6e9ad670cf88d6dcfa2d05d52c8b05a41",
+  "bytes": 260926
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/98cb9bdc21f705bd.jpg": {
+  "sha256": "40d0bee85864f1cf872c38ac4a7bd28e1135b7f20ebcee214f492c1619afb1a9",
+  "bytes": 359825
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/98e4096de5b99622.jpg": {
+  "sha256": "9a2c5e5dad551bb6e9916d100cc86fa33e71fd4681e58304192e252398d7fd10",
+  "bytes": 338813
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9923ad197c945018.jpg": {
+  "sha256": "48881947519878b92944ddcdfd23d13a3c37a59742e32e5f53af62ec0ffad052",
+  "bytes": 89508
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/999131438180b7cc.jpg": {
+  "sha256": "42dab17eaac2e3f1f3ac10be3c184818f48063c555cd3f3ea358a033a094aee7",
+  "bytes": 398274
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9a4bbb932fc743c0.jpg": {
+  "sha256": "6870f38d5fe9449a1f62cd77bb9641bba161ea25b26d9a6fa6149b4238857733",
+  "bytes": 152534
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9acc0b5fe015c6db.jpg": {
+  "sha256": "fc9738b3d5dd6763c28862b0e3f034e4c0a9014ab4747da1b6026b3353795d0d",
+  "bytes": 101898
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9b1aff529b1bc5e1.jpg": {
+  "sha256": "1596cc1a444dc3dda8381fb47984cb80ee49868538a98e7fe1bdb68ef44cd144",
+  "bytes": 302306
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9b3058396ec0bd41.jpg": {
+  "sha256": "a1f50c1dc7abd08e7fed4a3f945c13aa78751d60d56df5b022fa25f7046714c6",
+  "bytes": 151081
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9b3d3d363157723c.jpg": {
+  "sha256": "8d4a747b1f2e4fb799b9d5e3e0b3083b98a3a28f9095a5a1cb927a1b700ad3b5",
+  "bytes": 111267
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9b6e00510d946d0a.jpg": {
+  "sha256": "777e2fce3774122ef748d1998d43ab9c18eb53c6e88ac0f897177aed7ef26e9b",
+  "bytes": 72237
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9c9550d7a0ad5295.jpg": {
+  "sha256": "2bb4ae7eaba9a442df493e54650276c414033ae36a6a6480715d93182c43bcdd",
+  "bytes": 353630
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9d5a759bad6fb3e1.jpg": {
+  "sha256": "793f8e13ba49fb75f892203a735eec6559bb8e7ad5ed258f9d374c37e0f72302",
+  "bytes": 272585
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9d6a3bcc634fb5a7.jpg": {
+  "sha256": "fcaa952abe035ab577294d0b345e9d5cdc56855e2cde005242d7a615d39fcf0a",
+  "bytes": 272380
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9da594ff30fa254d.jpg": {
+  "sha256": "eaabd6ae17c28519a5299aa4843bb396d6f73220102517949f5b25855c14192f",
+  "bytes": 249479
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9e5b6b697c59184f.jpg": {
+  "sha256": "d583ebf32267b9e6c728c0f2280e6ddb67deddec96423182ed9c4f1fdbccab4b",
+  "bytes": 276064
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9e5d39d341d52bbf.jpg": {
+  "sha256": "548950ef156c4c508c9f116a9c56df4f736e39dae8e9f3b10ebafe91143ba51d",
+  "bytes": 162798
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9e990b1d5b809e80.jpg": {
+  "sha256": "59941daa5477e9a6f5c13ec78e8f857af2e41e9092ccd6f0e23d5e13f8e8f080",
+  "bytes": 464971
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9f20972e0bd6050b.jpg": {
+  "sha256": "b1ac990cad382763b38a225937222b3bf227025ca7b0ca977bf18cd7993bbf69",
+  "bytes": 478544
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9f5120f3993bba7a.jpg": {
+  "sha256": "0d05910a3cd5a4c799257fe6e497eea083ca99e49a4630a14859a808960d4a7a",
+  "bytes": 93632
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/9fed7e5d6d9a3e3b.jpg": {
+  "sha256": "0ed92cf53a28e132aacd9970b2cc4889228e46faebe0af879d14d20cb7e741e2",
+  "bytes": 567057
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a016847872cbd635.jpg": {
+  "sha256": "26da49e83f49ebc2510c3db6a5a3f37f5e8e2a8e0e9ec08fcb5c147656a6be58",
+  "bytes": 474494
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a0c7bb3a01ecc4b9.jpg": {
+  "sha256": "516fe9b80902576935b2566d3d0b2e41a70be4a49075a7a5b15891f1484f31aa",
+  "bytes": 121453
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a1149d6680d0c9b8.jpg": {
+  "sha256": "c527cdf817a03a5687ca2fea6233bae0e98f7bf6c04a45f086aeb7fcf37b96e2",
+  "bytes": 215292
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a29e776816254a56.jpg": {
+  "sha256": "13bb9e0112a4340a59828b81e2dab0a1f70ced965edc7ca750ddd9a4b8ca2484",
+  "bytes": 124077
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a2e19beea151cc26.jpg": {
+  "sha256": "27f46386f5ce03245d79bf1dd9bea484a6fd1d94a6f68856f7573e589ef86eee",
+  "bytes": 84817
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a2ff5038999ad4a2.jpg": {
+  "sha256": "8162c7116b49f5aadc9974fd8ecabf06c907d46fe74eb5c7d63b72db764bba3d",
+  "bytes": 442412
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a31d468da57ce82e.jpg": {
+  "sha256": "d207650ecf1f6ae544862130e75aeb651d89f73ccb9e4ff7290c863141f65734",
+  "bytes": 187073
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a32e40419f46b569.jpg": {
+  "sha256": "f3eedcb0d371c6f7ae58fa3684bec3e7ba7a50bf5df82aa369b26b5847c153f8",
+  "bytes": 245127
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a3e5708b3b7794c1.jpg": {
+  "sha256": "72e8463a334fb488d31457ee08055471fd8b555ce3a2eeef0753411792eef842",
+  "bytes": 352881
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a44d39f878b61aa9.jpg": {
+  "sha256": "4bb3ec744becec59337c02de8fbd8f3c73fc42c956621c2a28e7ffca228db28e",
+  "bytes": 225866
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a49fa34a20c6ea6c.jpg": {
+  "sha256": "11ea3918d516ac3577d28dbb208d28d9c7c7bae470358fab71b268914f173b8e",
+  "bytes": 691677
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a4ab2fc0d4d7fb69.jpg": {
+  "sha256": "9313a1bc0349d4a2d2353b161f9f9a32ba765c79607b14dff06e3c0ac46145c2",
+  "bytes": 946717
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a528f28082a02a21.jpg": {
+  "sha256": "e441273b87bc0c5d1ddd03e7ae98b5314d827175104f3a0e8cf069f7a01a76fc",
+  "bytes": 65113
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a56e733dd5f149e3.jpg": {
+  "sha256": "29f3f33b15bc407bb267633f2c6db5256bb5c4b793881554726d3fac730dfe87",
+  "bytes": 256304
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a5ce2ce1496aed96.jpg": {
+  "sha256": "0f0e8ef61d38ca7657bc1e39e5ec6f9ea1cd19dc809906b0e4d0a2934a09fb17",
+  "bytes": 670191
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a60adec7b6f984e2.jpg": {
+  "sha256": "6bf949cbfde3811d25e3fb518ea48d51729c971c63871a8a3c4314ca088eabc5",
+  "bytes": 57617
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a6c34c3add62f6ee.jpg": {
+  "sha256": "59ecf1a892317010fd0ed435aec60437661050304492f96d72303d117305a389",
+  "bytes": 737729
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a712d8758e612b30.jpg": {
+  "sha256": "41fd926488ecc31eff21bb4327b7293e7c2d045fdcafbe0f33ff6ba31d96471e",
+  "bytes": 126984
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a755888c48f89675.jpg": {
+  "sha256": "feb98f960ce92108b21adbb9f34957f2471e656f9a6dac6a5536fda0208c3edb",
+  "bytes": 113715
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a7c5f2521ef929bf.jpg": {
+  "sha256": "a58a4ed901e3214a89600a544350089503dded26e72003ba810e89fa00d4f6a2",
+  "bytes": 138372
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a7d7426c47a5472c.jpg": {
+  "sha256": "8badd1fa42a38a965aeb7e259b3a7dc2a168b6ce35753b9163e6682b4d03e447",
+  "bytes": 90298
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a805ea9c566f3909.jpg": {
+  "sha256": "77d3ad6c6dcaba50162d10cdedb3ce3b68286645f9445b18e5a26f04693301f0",
+  "bytes": 93341
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a8841dbb755cd7d5.jpg": {
+  "sha256": "e43364e21eb32bc7cf237eaf8036a148866be56af7d43b96278c63cedfe2dd8e",
+  "bytes": 254327
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a88cf9722f76deeb.jpg": {
+  "sha256": "69382e98adede0039792e9c9cf153183c1c14056f7993d50567b600e33240ea0",
+  "bytes": 142294
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a8a5d338f9415b86.jpg": {
+  "sha256": "ef625cbc5dbf4d9c18b3b88d7c764e6bb005df1b8ccfa2d9c02a7381fb6de64a",
+  "bytes": 287095
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a8d5753dfeeabb1a.jpg": {
+  "sha256": "586cfae62919f9072996c947dcdbcf999ebac080cf1ac72298add3107fc094d0",
+  "bytes": 154045
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/a95a0ee95f54f833.jpg": {
+  "sha256": "4bc3af457dc3b72e67578e9872488b85150be968a6260a1fb88ad4ce31c9e137",
+  "bytes": 216523
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/aa5c2d153b3e9773.jpg": {
+  "sha256": "eec38a78269238dd1ce91e7c3309506b0abded7105bd0809a45a7b18a56103a4",
+  "bytes": 176784
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/aaaf093e2c2a45f1.jpg": {
+  "sha256": "80b0ceed5ff8c6a5a4353c4b22c013ae36f8c1e22fd7c622823e6aa4302666d2",
+  "bytes": 365626
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ab18a667c516a115.jpg": {
+  "sha256": "84a42c4afb9168b87a7197ffc3412e4e59779c7c6e91d539a77f9e3198d2a445",
+  "bytes": 201432
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ab59703165cd4e16.jpg": {
+  "sha256": "979b7ab048006b8e1c1275d7fc317d2ad2b9caf23520f69f397d71e4edca4db8",
+  "bytes": 278594
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/abacfbedd7b6f500.jpg": {
+  "sha256": "c7163a7db8620ad48b1263e3c1fb9f7b01db33bd68e7455015f23d03c1521f9a",
+  "bytes": 108644
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ac07b7679aa8ce8a.jpg": {
+  "sha256": "697ff3771aea09c465e9704f07e5d8b59a7652d7251fe2d06c0aefdac0f0ff66",
+  "bytes": 83383
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ac5786e1a589f072.jpg": {
+  "sha256": "ca8ea45611cb713df3359b148d094c9d756c3425879ea463eddec97eef8dc83f",
+  "bytes": 91062
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ac8d7fc1f41223f9.jpg": {
+  "sha256": "e60ce7397597ebfa519105c5421746058076ef6b8af3629291d99818818e8617",
+  "bytes": 504251
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/aca989ef63fc3df9.jpg": {
+  "sha256": "a178a20e108a4331497b6ba019657da4d20b2128ec4e874028b270e4f7678122",
+  "bytes": 585816
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ad217923d50b2ed3.jpg": {
+  "sha256": "5baced287cde8ed5e88203c3c8e65cd4244dc3bd06a12419e77a921f3ae597e8",
+  "bytes": 206313
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ad6a4b8bfef7ceac.jpg": {
+  "sha256": "e89f0b6661554afc92e10e44e452107162a8026867fd6f2d6ec1c9b35e853b39",
+  "bytes": 90125
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ad9059a0b496feeb.jpg": {
+  "sha256": "c4746f46bb0d4bc76fa043b9e0e425c40f5ff4013ad90b242adefe0d943248f7",
+  "bytes": 647746
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ada7b16600804c28.jpg": {
+  "sha256": "75f44491a23a46cda1e6358b5fb3ccc15ada7013daf4b99136ae96743f27b4f4",
+  "bytes": 401026
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/add857353bc6d9d9.jpg": {
+  "sha256": "45cb1f86f18aaf539dc129280ca0dbcae815cdc49225de8492e6d7c2e493ff31",
+  "bytes": 418807
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/adf9a2c313b2e6a7.jpg": {
+  "sha256": "036129a1dedc0483ff5d6b133d0b4cdc70269331fab8b2f43554187e41758e80",
+  "bytes": 214999
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ae14a4a95fb9f7c2.jpg": {
+  "sha256": "1d251609040bb0c2749c3b90feb28db156388b7c032e9e2ab466c6cab6e0a770",
+  "bytes": 302530
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/aef1488bedfc51c4.jpg": {
+  "sha256": "45939fba1bcad166f62ef06079897640764c68fa81736156f7557bea418ca684",
+  "bytes": 767951
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/afb42c881f22ac93.jpg": {
+  "sha256": "91019b5732bf003fe4fa4dbf33e9b74ab6f2ae8c94e284c246751d084557a681",
+  "bytes": 597007
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/afea620099754710.jpg": {
+  "sha256": "b06a76e0cf88c370d356505441f626484b189d348d4da204338f3e436051b88b",
+  "bytes": 483642
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b02168c1931d5ad8.jpg": {
+  "sha256": "6a99b1316e3f6154b29e3ff1fc73a586dc8aa64dc5843bb540becfeda30c0752",
+  "bytes": 449080
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b066b8d2df3508ca.jpg": {
+  "sha256": "734eae3e338ef18d08596b39c975d4df9d291f91e26431e6b696a81da6a4a038",
+  "bytes": 377691
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b1a30c5d499d3030.jpg": {
+  "sha256": "3c5cc1660d13654f599db78104ce75336579b88f3c5e1df099eb2168dac01d48",
+  "bytes": 367485
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b1c300ae9f37a903.jpg": {
+  "sha256": "ed6a904231589e4ae60b133ccb1e99f45c5f2d9c87311d3ad2c00a28e80d304c",
+  "bytes": 837834
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b218ecd1774c96b1.jpg": {
+  "sha256": "37e7b42efad4559d560577d1436f1517384180411069c4d9de6715d6a64b7f1d",
+  "bytes": 98073
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b265a209e6f3ec41.jpg": {
+  "sha256": "f25750aa7641f6e96be9f9f49cbe1bd85824329882b7557bfcd8c5213488dede",
+  "bytes": 171078
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b2a35835456b8f52.jpg": {
+  "sha256": "0f94e1bdcafcae94a7a07c5eb874db35396bad67a2c3ef4a321f7ecf30f0dab9",
+  "bytes": 339290
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b32a25e7f0a97071.jpg": {
+  "sha256": "f245fb95fdda84a261e8f657e75fa39d774884c025ae15dc0d60e20001839f2e",
+  "bytes": 218677
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b3f1eb7131a36b2c.jpg": {
+  "sha256": "435c38c515a4ad156726e619df26ee9eb018df94fc02065a0d2bf2c0622e274d",
+  "bytes": 654310
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b40493583dd11d95.jpg": {
+  "sha256": "e16a8b96a63094d62a644eb0db69c38d139d87cfe36cf885cc6490230d9b3fe4",
+  "bytes": 582828
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b44438f638c80b08.jpg": {
+  "sha256": "0deef5eed046eb36e4083ec0ad00c5be3c735921d40ec6efadd01552c6acec57",
+  "bytes": 379662
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b456613209d1d2f8.jpg": {
+  "sha256": "73b710b170ddd62e5a56edd15167572e101b4cc6092251dc7028d2cd62e36522",
+  "bytes": 336313
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b474642af4ea13e4.jpg": {
+  "sha256": "a2199c1c3cabadf6e191525840d92dbc4318254eac0214fb2e4d9420ecc526e7",
+  "bytes": 221336
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b501fc0c83d74cba.jpg": {
+  "sha256": "add66bca5c49a0b0f036e5925cef6cd8dec5b6ad1135afb25f4e110dd438caa7",
+  "bytes": 594584
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b5bfc85ebf0c0da5.jpg": {
+  "sha256": "97f0af303225bdcb1c567ed3f3542e4dd37ab651a6f12bdccf672c664c924ac3",
+  "bytes": 227568
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b67626d1eb7b3808.jpg": {
+  "sha256": "13473738e6b185f8b39a046fe65bc073006310874505231f0a02a29fca1f38bd",
+  "bytes": 249884
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b67dc2f4e8c4c98f.jpg": {
+  "sha256": "6e9fefb6585258403d3d3a99b151615b2480e42b4032ac08bbbee124f459e31d",
+  "bytes": 348257
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b734a82369c26ef1.jpg": {
+  "sha256": "53f6d98e63c4f3a1314c648c65268e7ec48e1a321bf5069ab4acf00b2a401c7b",
+  "bytes": 201365
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b7356252b59f0200.jpg": {
+  "sha256": "d83a9e3f834182f7f3681f00f23071861e88dcc2e6a06d475e0323a21c032c8f",
+  "bytes": 529176
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b75a518631fb7b58.jpg": {
+  "sha256": "b28905b806c00a8924188d0f334c3791faa59e53ae5bf05bf8ea24e0caf75168",
+  "bytes": 419900
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b819103d6933da36.jpg": {
+  "sha256": "6a733f866fde42717e3ef35350c2d4bc81736e0aaf037176cf70c91b0dc78b3f",
+  "bytes": 151258
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b92976fb6393a65b.jpg": {
+  "sha256": "97e45676fdd7bbc4fb217996cad798dbcfae6975f25a94a5aa2ad604da4f9a71",
+  "bytes": 174374
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b935fe35edcb2361.jpg": {
+  "sha256": "f7ddd527ae328e429b2d4decdc210c09439815172728b64f13b620dbc8e87b57",
+  "bytes": 127462
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b942b1a474d03292.jpg": {
+  "sha256": "e67932cec9e26f8395863bbe8bfe4017bf7caaf42b2cc8cd712cbe1ea3273707",
+  "bytes": 300995
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b9850603522c0cf7.jpg": {
+  "sha256": "fb2280207b77ea77cdabe29d5d4a0136df1d64eb61b247e3660c57d92b01050f",
+  "bytes": 272298
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b9984ba1b42427c4.jpg": {
+  "sha256": "f1eede9fcac522db513b9a939e3cc1ec4780b62f233c01ba19d9c540c43a6de0",
+  "bytes": 281933
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/b9e059c17983fc1e.jpg": {
+  "sha256": "a80547054863f3b66290875b8f849e4a8e2cb39a228f53cd6a264ec1188a051c",
+  "bytes": 49832
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ba203a90803733a4.jpg": {
+  "sha256": "5fb76ec0d0d61d5cf05dd7427381533b20191943b680948a9960c40aca67d0fe",
+  "bytes": 126860
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ba67e1b5e995397d.jpg": {
+  "sha256": "b49731b6f97d563e53a23717021bf944ad278ff4b251290a4aa6e0f8404a07a9",
+  "bytes": 81335
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/bab517e510b0ba53.jpg": {
+  "sha256": "e3f567f93bbf6b0bfc94b2997a9024e399a06e535aab909c75e960e463281392",
+  "bytes": 91057
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/bba4af5cefd9cfc4.jpg": {
+  "sha256": "9bdc3791d18d1f098466141973a0bf779dd40cbf4e0f34d13265977ddf1b1be7",
+  "bytes": 148454
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/bbce5486f1720328.jpg": {
+  "sha256": "d60760e16a7a89f32bd05be3c04e5803bb682161893990aa00d0707f2701b13f",
+  "bytes": 224325
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/bc02b9aa8b803fcf.jpg": {
+  "sha256": "602aff1149c8e200db6d3bb8d58b6da21eeb51760f95cd9bcb9dda1c65116bcd",
+  "bytes": 102413
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/bc956e541ad8b3b2.jpg": {
+  "sha256": "154c2fa9aeaba52ed8a86814457c037be124dbf5933d786d2050c9d4946a1016",
+  "bytes": 521974
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/bc98cf15585b0fb1.jpg": {
+  "sha256": "058f5c35c4b8e2a67c1b06d5dd997a1c7e9a56c63ed6314800d54deb7e287cee",
+  "bytes": 116368
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/bdeb171d607fd9b8.jpg": {
+  "sha256": "f6c2b76a55d677fba4d204fe6d38ca1ce2d8645552ca8ae3cd7aa10c8d63aaf6",
+  "bytes": 181568
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/bdfce55df065846f.jpg": {
+  "sha256": "eedb85355851df10fa5efde93236e4c0ac36cdf1691ea43d21a20e5335ab8250",
+  "bytes": 89156
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/be047e4bd1872d7c.jpg": {
+  "sha256": "61d34e2e6a4e480b6f56987e45273821e23c29f48c8dd8e4c213ca407d9f0327",
+  "bytes": 110576
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/be2f530f8265c4b7.jpg": {
+  "sha256": "212f115ea97b0c4ccf1873392b0d737cf2e4b0ae001a11c4065b59977b12737a",
+  "bytes": 433443
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/be5c80422fde28e6.jpg": {
+  "sha256": "2ca0ef05370e6ef7f1c3352bba297ac81d9e49d543c6d5dd1fce2322d0c2d1da",
+  "bytes": 659160
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/be8436ede22096bb.jpg": {
+  "sha256": "22fca3ed3bf28eac689197758eab732da26f0809165a111847b7966462ac8f35",
+  "bytes": 142309
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/bf0b670c4c11b151.jpg": {
+  "sha256": "1a367c637bf9ba2df8b7fb4e44250675839dc337a2e45f97b0a6e0d4eed194f4",
+  "bytes": 164524
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/bf5b6272db64619d.jpg": {
+  "sha256": "058e1e7090438d6ee36e553781a148f2558df27b119bdac20e96f55a34e85a48",
+  "bytes": 250984
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c04beae6efd770bc.jpg": {
+  "sha256": "95df35914bbc420b5d9ba91b0e865a002fa540e9ec72fbbbaaf3676e077f14ff",
+  "bytes": 168958
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c091628df1091bc9.jpg": {
+  "sha256": "6dea6be31f78f3fc3af732b8c5a9807447fc1ca58a8452033bb63393c54f05ff",
+  "bytes": 546194
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c0a078b6d3a32790.jpg": {
+  "sha256": "06f04c619633bb4037422158400f8893f30f4dcbe0af3b3becc93e276afc5712",
+  "bytes": 106478
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c0b1346b17b6cbfb.jpg": {
+  "sha256": "7ada9157bc9a8df0e11216e2cb398797cb160a22b2585faccb9787026977f9ab",
+  "bytes": 198887
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c0e14b46b507d273.jpg": {
+  "sha256": "3438eb43ded1ae9bc86638ed2af0adc2e30edcf9c3afbeb285418f6603fc1e76",
+  "bytes": 218611
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c147e46af934cdd0.jpg": {
+  "sha256": "8949e987320ac4e43f28b8d5c575f817ec2cd6ee51b414289bdb491be6cfcf51",
+  "bytes": 302984
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c1e61b37a07c748f.jpg": {
+  "sha256": "433a60d230b21ab9217b1de859bc3ebcb9d6dbcba877dc403b59939caf08d7f3",
+  "bytes": 248092
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c220369f4d5dcb95.jpg": {
+  "sha256": "ed3997c47f5644e5cc7bfc32f7a18414991dd7ecb31af0bd2e3981d047dfac25",
+  "bytes": 177549
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c24228ed75a1704e.jpg": {
+  "sha256": "c655eaef35b8886217093f2095b508f6413dd9f4f31f7459ec5882db5efd2483",
+  "bytes": 86951
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c27703455e2c13b1.jpg": {
+  "sha256": "013eb1135eb69074b09f3303d074aa0bcd2aa222df620c195d45377e002b0df5",
+  "bytes": 188256
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c2888bdb4749757e.jpg": {
+  "sha256": "1509bff494f83f10b70bfee1e30214bb45f318d599dcb65261ff6859e4a0094c",
+  "bytes": 346438
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c2bf3f54279a6fa8.jpg": {
+  "sha256": "d208af5083520777f2e69aa182cc4ca250183cafe7a0e4f27f7177da270030a9",
+  "bytes": 226262
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c34657360bcb70fc.jpg": {
+  "sha256": "9f8ba968f7385dcad400229b09ff804d9d24158f7fda2c7521e9ae45f6864b57",
+  "bytes": 238745
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c3516f9019c14498.jpg": {
+  "sha256": "6925a47f390ea42698168f07fd91d9be668fce4854bdb47e03c185f664177a8c",
+  "bytes": 95568
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c3585e1a4d0da81b.jpg": {
+  "sha256": "eacffbfd0a87099105491e929b78f136e4633871bd48eac0a4c5043663651f77",
+  "bytes": 453732
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c3f3c0a74d6838f7.jpg": {
+  "sha256": "d5cc37f47c1be6dbcf69f67e237d83e352ecaa54301acb4439cfa910d6eadc3b",
+  "bytes": 573968
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c4c07dc66c889244.jpg": {
+  "sha256": "0084728ed7a892757af61e7730a5fde7e30d36c937c9272328f6b0b9f7bc91e2",
+  "bytes": 604692
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c542d605c0024365.jpg": {
+  "sha256": "f9a2602fa1d42d77689248ac2c093ff709adcf40639b0331ca1d557a56b50702",
+  "bytes": 141112
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c553bddabcc088b3.jpg": {
+  "sha256": "c776ef3e12e409dbdb1c8b6b4d9c2700b7b46cb77ad86f9b08952d3b2764b29b",
+  "bytes": 703132
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c58aaa956ef9bbfa.jpg": {
+  "sha256": "9922ef7f18b93d4865243e8ea277a222eb87360f96e6795b9df60448432aa3f1",
+  "bytes": 493187
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c5a9e60ed9f0e612.jpg": {
+  "sha256": "5994c56a1a92c9deb539d1da686027bb28ba1846487c40054d8c29d05bd7e916",
+  "bytes": 266318
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c5da3bcf435f6cfd.jpg": {
+  "sha256": "93d200cf645d2ded435053011c75fa81ac889e5b5c8fd75ef73229f1a3cb5c0d",
+  "bytes": 215111
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c5fe8028acd2125b.jpg": {
+  "sha256": "ec60307411fc9e37534a460db9311b444b7d166819e063d57af6ee508952dc13",
+  "bytes": 141235
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c62711b2e9c8e009.jpg": {
+  "sha256": "a422594b0d904f370d9323bd138c1eb0332034ec2ffa58a212a3d3c8cba3064f",
+  "bytes": 206331
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c63e3f6b39056c18.jpg": {
+  "sha256": "7748e3f9085b691d654ed2cafb3c3eab1bb98e8ab3021fe6b15c18a0e1e0348b",
+  "bytes": 704651
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c6fb3e5bbd8b9427.jpg": {
+  "sha256": "83c076c93e71d0ed0ee6d1d66c17ddd0d1c0d2d560c587f8c894ed21283ae92b",
+  "bytes": 246886
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c76ced67b5d0cd0b.jpg": {
+  "sha256": "63da9f11e173766d37be3e510100c9ad367cc99aea59652a9cae5ddee26e328c",
+  "bytes": 74328
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c770bae3baf11c07.jpg": {
+  "sha256": "2241470ba0983adadf700af7826eac622153af5a2b20d8c1ef134bad0de81a93",
+  "bytes": 615190
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c770cd197fee25db.jpg": {
+  "sha256": "c4f972963735ef068f21a0546effd8b57ada1409d180d0a5e83327450b91a444",
+  "bytes": 107583
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c79a13e045d4e361.jpg": {
+  "sha256": "1b1a9a3b0a3c76a105a279334998bc0a324e5bf5d9ec1e66c9cab637c9fd9a3a",
+  "bytes": 217189
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c7de090c83411fd2.jpg": {
+  "sha256": "12b032ae8cc455cc7b126d1bfcbd297ffc2dbfa8f7f51b1e75056b27a8391af3",
+  "bytes": 175968
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c7e73523a8c9c0d3.jpg": {
+  "sha256": "b534037fa4cec413adf8b7dd0eed081fb60ee8034575e28eece952ed3151cdc5",
+  "bytes": 67295
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c83b64e7b89e1311.jpg": {
+  "sha256": "b7d2438cd2b658ddedc9363037de137e4928f1e5dc34d461b814e68989c36de7",
+  "bytes": 1402231
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c89306f949b45c7a.jpg": {
+  "sha256": "0373d3b5d5c5e954443888a519f456bf3beebff11b6172dfbc5605474bea438f",
+  "bytes": 313147
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c9459208ae6ed435.jpg": {
+  "sha256": "d5dc9a8e6f009b719d1a75923d385b935a89dae0a3ef4ab1ce4898998fff774e",
+  "bytes": 792583
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c9706bcb486110b1.jpg": {
+  "sha256": "6bc8f4d173dfee2b3bdca13de6017835c1f886cf3543dde9cdf7f78d47e727d4",
+  "bytes": 153006
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c974c426ec32ad2c.jpg": {
+  "sha256": "fb489da5d1181cc7ca505a05ff6b3f6aae50b85580bc90e62cafda1e68cbb47c",
+  "bytes": 80685
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c999aae8ce84cbf1.jpg": {
+  "sha256": "f1739ea3ee9faf2c718cbc372751d2fe52052be57121dcda2fb6cffc208157b2",
+  "bytes": 189528
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c9e4987877b7b804.jpg": {
+  "sha256": "8caeaff50f2e892de2624e2c2667ae45ea998b6884528e6c152d71b757d58788",
+  "bytes": 435813
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/c9f26dc139e3aa6b.jpg": {
+  "sha256": "765a59e4f6b7e3c6423691d05432ec064d53da0740cd619628d3cae357755763",
+  "bytes": 325956
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ca2b82745b17650e.jpg": {
+  "sha256": "8a92c3c333df81505794446c7eca6fab77557e9c98bc44e9ff5239a2cdd395d2",
+  "bytes": 833086
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ca5e25f648f55068.jpg": {
+  "sha256": "2ac4f527293825991c368656a7e9d793289d15561278d9af06f785d6fea51970",
+  "bytes": 141580
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ca7a6afb3ab1c97d.jpg": {
+  "sha256": "3712ba9367c3b16758eb8bd57cfecf3eaa99432a6a2343ebf93cd833a06a2cf7",
+  "bytes": 32817
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ca7c11a1c685a1ba.jpg": {
+  "sha256": "ac494832234ab84bb8d71fa0594cf3e1f1adc4ad133a47f8ebd30fcd62138230",
+  "bytes": 342994
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/caed246d530a175e.jpg": {
+  "sha256": "87727e396721d54690116ac0fc5b0ac74ad952dcca1531914273a6b12ab42101",
+  "bytes": 255509
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/caefe2a6ea3b5e97.jpg": {
+  "sha256": "0fac8ed6c13668d8d01ebc318f693c8261134c8a763e31fd6549e27b679b7e9e",
+  "bytes": 488489
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cbcecbea5f91b0f0.jpg": {
+  "sha256": "034cd82dadd5a8ea2f022440f90d187a4210d87c9149e4520131da703e46c57b",
+  "bytes": 430637
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cbd718027ebb4f52.jpg": {
+  "sha256": "bcf3479ccad35dc96ed7b377cbd4b10d9342686297b61a8af102c86192014999",
+  "bytes": 423389
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cc0a0e1ea3007abd.jpg": {
+  "sha256": "fa052f2420b51f61ec6b3285b997a46678b8a711058092a12cc016e5e4240893",
+  "bytes": 209465
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cc301573d94ec0da.jpg": {
+  "sha256": "64b1c5f649ca640c8ed317a526210b628c880dfa68a76c41a115d01e9e559b8f",
+  "bytes": 205537
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cc32d04829f7e344.jpg": {
+  "sha256": "c8f56f5d841e4bfccd3e490be86207807f6f23d3b8f093060a70da867b43e9e7",
+  "bytes": 172176
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cc48b0317ccde1c4.jpg": {
+  "sha256": "70e5809a31d4304be8de9b8406cde4abc897cc45a3672f10fcff9115aab99339",
+  "bytes": 152274
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cc48fa7eef83fd10.jpg": {
+  "sha256": "d34d03cb8bd3a5a1fc53bde21166fd5a0eba46d4c2bdc49f45e2b79e8c457da9",
+  "bytes": 473837
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cc80958ea71d6c83.jpg": {
+  "sha256": "f6b8f65afeb7678584c68c42eb1220870dbd25fce0c99476e680a758bf9a7c00",
+  "bytes": 209020
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cd17357fb8953737.jpg": {
+  "sha256": "c72df8d9c0334338695361ac5fb9ae3b742a9fa151ae5ca6807d2c2690504d65",
+  "bytes": 513212
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cd30a641a91bcfea.jpg": {
+  "sha256": "b09b2c213fa4d06e6ecb54bd8c0743ffce43e52e6fb2c9aa1e02d5988ff6e984",
+  "bytes": 161093
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cd53e29aefb0e638.jpg": {
+  "sha256": "213c8bf06194d389b62c517e0b40143b322e1af1e6118acdd38b26273408fb9c",
+  "bytes": 153928
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cd89e777ee492d4f.jpg": {
+  "sha256": "e69a9a4aeb568ecddc6fef0220246f1e7fc3c528d9f3b6e450d20af5cb2e9dcb",
+  "bytes": 627260
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cda86ab0b6a6b053.jpg": {
+  "sha256": "e5cbb96aa95e7b69766f9e3b7bd64d9904799709cc390bac3263762f93d6eb15",
+  "bytes": 196277
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ce0da9a64f189407.jpg": {
+  "sha256": "1bfb80d292b2d9f2ad42733f685960c9021407ddf0d5e59b8c93d796dfcc13eb",
+  "bytes": 126398
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ce4ce5cab81c0672.jpg": {
+  "sha256": "bce23ccda2320cbac1085f360df7856ef786bb63e3bf3a8dded04bd8907f8e28",
+  "bytes": 646033
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cef6ac19715d028b.jpg": {
+  "sha256": "1133a556a64ebe76bcd5c77484ead4c48dbe4a9bc49785d6e8d75a5ee327dd27",
+  "bytes": 110550
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cf0818cf815c3c55.jpg": {
+  "sha256": "2d824b1b9a83461c32fc22cd18a77c1cd125cebc8f501470985b95da501bb2f7",
+  "bytes": 47551
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cf35d728dd901f36.jpg": {
+  "sha256": "8037393d8987954f7b0716a393d97394ede2bf102c197f4be482d95413c00d45",
+  "bytes": 408742
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cf5aac4cb462746c.jpg": {
+  "sha256": "950add462067429fbf2b29489a274045107b47de49d395d58616419576856f18",
+  "bytes": 909255
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/cfaa790b3956073b.jpg": {
+  "sha256": "3b72eb74733fc21218cb971331481fb8f2ce966bbc593b6c30f827d813e46107",
+  "bytes": 112386
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d04fde8cf39b8818.jpg": {
+  "sha256": "81ab02ac4b6cf6473b5dccf0f32acd4a5b53f010ec9cee80711fa1d907e0f2b0",
+  "bytes": 235110
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d0ec38e1a53b9c17.jpg": {
+  "sha256": "853ec85af8de3ee0465e21da5ee9b4c2621db6879372683ccbe1a0227f2b642a",
+  "bytes": 966637
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d1fd3e3f620c0af5.jpg": {
+  "sha256": "4e2cef121947cd6b27a249316255c7ef712a80e8ee033cc497569d50c84f0777",
+  "bytes": 95747
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d1fee3ba52151180.jpg": {
+  "sha256": "a05119d1b7c56f639b531664f8237989be59f61f4db78793f32f786092be6fa9",
+  "bytes": 336199
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d228a83a40891815.jpg": {
+  "sha256": "b3264c49ce2f570add0c8a172a6e39e8c76f17f1bd47e2c73f34171a6b6213df",
+  "bytes": 865082
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d2e1784fe84f7ea8.jpg": {
+  "sha256": "8c5832e1c98c7d528b9ae7581c24d92be1c32523d3aba9e851a9637854f848aa",
+  "bytes": 903213
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d35a8dd2dd1392f8.jpg": {
+  "sha256": "a1c41f738c71e53ac36f470de71cb77ed04eafa3c15caaf3dc9fa68fc98108a3",
+  "bytes": 137876
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d363afffa955a56b.jpg": {
+  "sha256": "9da34273edc5496463da47c25a1360563e8197ec85905d9a3137fe5139b415a5",
+  "bytes": 399822
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d39506a3fa0a13d8.jpg": {
+  "sha256": "e921d65cc7fd70fffb919b44b806fb137a7bd11cfc4715ea101002eea39057bc",
+  "bytes": 203520
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d3a4de03ab904fc3.jpg": {
+  "sha256": "30810a3bdcc3dce55d5746053342bb95a8fef03877c77fd691058a3600178e76",
+  "bytes": 292617
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d3c47da83afb39a6.jpg": {
+  "sha256": "ce6ab861057a412faf07a14f1d1ab855a3dab4cd4b8f866fd4e77b6e574d2a20",
+  "bytes": 372303
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d3d55ad9cb8721f4.jpg": {
+  "sha256": "4108113e12f81908948e8e1f9c3a5787abcbadbf80b1b5f97798aef6dc8b8b75",
+  "bytes": 56327
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d4fcbd7f7980de25.jpg": {
+  "sha256": "d965db1c3e5e9b576c7c208d9ffe70a5a9c250352e607a98ac23e223bf97ab60",
+  "bytes": 494389
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d54bfe9e87b9b4b5.jpg": {
+  "sha256": "201838eee5f335cdf15e7db8feb4e8066a54cfbfe0fe5e2d4883b22fd424fa76",
+  "bytes": 276519
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d590148c47d27cda.jpg": {
+  "sha256": "6559f8132daaf0c4df1d094b75787d14a72dd185aad716b6c64fff4d0be224b3",
+  "bytes": 133279
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d5aa758dbd2f25b1.jpg": {
+  "sha256": "530429bb1f12c003b9c41a503809d53a1547916960dfdec0e3f548c2516ad43b",
+  "bytes": 580564
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d5e4527d2d8c7919.jpg": {
+  "sha256": "844890c1b2f4e9adfd965f9c9168bf7d69309156d14b70fa095ead75e726ab85",
+  "bytes": 339785
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d60d9a1aaf9e1988.jpg": {
+  "sha256": "9cd29d1f86065c23489aeea7eb64db6717c638e2221a70d19b50b98053ab5a01",
+  "bytes": 69844
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d6a8b2ecd2ed8ddd.jpg": {
+  "sha256": "382324cf8c25936039856f09052abba1cdd84fa19216bb67fcf1b8dbd090de01",
+  "bytes": 324767
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d7448f9c7a7907eb.jpg": {
+  "sha256": "91afec29672e089efc0095bf0b33fc6282506f0d6c71bc449ae63237694fce4b",
+  "bytes": 410484
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d750ed238e3a82f8.jpg": {
+  "sha256": "ece93eabdeb1841ca2d747710867dcc0e83419f0e1fded4bb3e207563c41cf7c",
+  "bytes": 97427
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d78327b60af44835.jpg": {
+  "sha256": "17b06887b11f66ae4ab431f2e829b77823e8c3dce5a2166f8cfc9b683b508f8f",
+  "bytes": 437718
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d7da5f50c3e9d0f7.jpg": {
+  "sha256": "2a7e8c35cf7d24f50fd4974a6e1bcfc2d7d5c4482b5b981b46090c1fe296a4d3",
+  "bytes": 217487
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d7e3f98586089909.jpg": {
+  "sha256": "ea2bf3579903e53395e4f6a2ba01a9242a0a1a78f1c3178b5953cb93ba297474",
+  "bytes": 122840
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d7f8808f2cec6344.jpg": {
+  "sha256": "615aad2908194e6229fed073a29322f4cc3f88fd08b55b5a5c2f95dff47d2542",
+  "bytes": 403718
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d80b1de25bf176d4.jpg": {
+  "sha256": "0b968205ad6b569aaa385f0b996b8fa48b878f074e595d95b81bbcdbfe356b5b",
+  "bytes": 250633
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d837a68c34761665.jpg": {
+  "sha256": "af361c26987ad8a02a92422635ff14c5c995e41277c5bb176da92bfc299017bc",
+  "bytes": 610722
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d83825201cd7b69c.jpg": {
+  "sha256": "1cb3a9e23903410d0071af26004bdd7e063156c52ae80b8a5e1269008db6db00",
+  "bytes": 336710
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d8841f29ef97ae28.jpg": {
+  "sha256": "a43fc386dc6f03ebd5b5a0475a8e92cb7da86d6a7c55568ade954353ad9bdfe4",
+  "bytes": 259251
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d91197c5645e2d73.jpg": {
+  "sha256": "25a3727579be00f589aa050905bd1e16a9495b792bb728620f6e913e10fde146",
+  "bytes": 191809
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/d958cd14efd906ab.jpg": {
+  "sha256": "f60a56b07a40236cb0c6a239f026c8deaa81bd46291321946c64f4b0f50ff21e",
+  "bytes": 129819
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/da0a440f3af25837.jpg": {
+  "sha256": "bab352d563ee702a4a12f52e97db6c09e25b22a9aab85a504f98f1380d0a5cd5",
+  "bytes": 140556
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/da5091f614da264f.jpg": {
+  "sha256": "7e9f40c3c1162d768b4e7de0e628a39684709ac491366e9068499efe7817d58d",
+  "bytes": 114730
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/da9cd4487ef468f3.jpg": {
+  "sha256": "713d518b7e2dfffd3a61ade080fc532125b3717e1ba9e886b34ef484c1b1df2d",
+  "bytes": 358012
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/dac49de1718a2622.jpg": {
+  "sha256": "0f9ee865c7062479280cfee8cfc9a2ff9030c3dc99d1d3f7800019ca1bb7a4c7",
+  "bytes": 97754
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/daefb1511511f2a3.jpg": {
+  "sha256": "909d789616c495b2722292e9a90a82546d8fa09a1e3ab2350e065da38a11cb64",
+  "bytes": 668445
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/db124705be68a4a7.jpg": {
+  "sha256": "ffccf9fadf533fd40260751c5c3120562c8ae1b1b55dd80418af3b202d37fae7",
+  "bytes": 598980
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/dba5674cc7f6e9a3.jpg": {
+  "sha256": "47d0156e90d2e420f7a48855a911473800eccb3878a9f5256df02fc323b0d4b5",
+  "bytes": 550291
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/dbbb6bf66be0d2a7.jpg": {
+  "sha256": "2ef3f0f8ad731019f3b9251e3a0299c4172c3b305b55691458f1d565ceb45000",
+  "bytes": 231829
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/dcbe3ff8862b0016.jpg": {
+  "sha256": "214cb3db995f7e1d4a924ddbf62c430b92bf678749eaa602f12c30c297303efd",
+  "bytes": 94038
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/dd0c7c5dbf2b84e2.jpg": {
+  "sha256": "0553fae167663b3feab8b08e4687c342c33ee528cc1e649eb928b8f9b6661f4b",
+  "bytes": 279552
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/dd46bd12d6ed83c9.jpg": {
+  "sha256": "1f21349f02353fb502247b8d71596c0772742108f6fc805f29515adfa6b5d2ad",
+  "bytes": 571760
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/dd60923d7fb1fe04.jpg": {
+  "sha256": "ddaf16dd4b160935c94925b30ff092373243815af562beae592f8a0d2fdfcb18",
+  "bytes": 1027075
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/de28cb110df155fc.jpg": {
+  "sha256": "0160a99e7b003243d89dda496d6f3b4ba950954e9d450e28110ea95c98b43c90",
+  "bytes": 473090
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/df695e30e2c92514.jpg": {
+  "sha256": "9cab35b8e7fb184f71ee2d22b88952e749080347db3d9a49954687ed23c6d6e1",
+  "bytes": 365995
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/df931f11cb16a44d.jpg": {
+  "sha256": "35ff41a81e9deadffe33be1885f8c643b10336271fe05ff0a25d301eac61975e",
+  "bytes": 306986
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/dfa9a5fb018378ab.jpg": {
+  "sha256": "9ec537edd1220df22e217d7ef9f314f910216398c3407af16eb07eedb6bdd5cc",
+  "bytes": 465751
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e00a4c661e47760c.jpg": {
+  "sha256": "4760982adaa2d16a6c36f041e337f75181c294cc30aa315a0951bdd7f971444c",
+  "bytes": 600479
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e039a6b738ffea33.jpg": {
+  "sha256": "ac57e4a3d701faa688dfc6bf7c3113e7dbd8bc013f90d3d524e94d00e2178946",
+  "bytes": 405352
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e0498ee4541e2f3c.jpg": {
+  "sha256": "5b96fb4cbbff6756980904c8b8f058dfb5880f92ad14817ddfc297701ce9d1b7",
+  "bytes": 302066
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e098cf5abf8f1703.jpg": {
+  "sha256": "18778f99148f2666bf4e00c1dfcd5f754ce93e24abc35e97f76c8bf25f4fe121",
+  "bytes": 292104
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e0abb2f40723b9d6.jpg": {
+  "sha256": "1f0200f27d317ff8fbb16ede7e01f0588c1f7405a4c8d9beaebe6b1c2c367989",
+  "bytes": 59135
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e0be14f0681f4b39.jpg": {
+  "sha256": "0f9d5d277dab7a3c060f37dcbb1fd96085ce7778bf51394c5ba6254d039416ed",
+  "bytes": 386328
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e10a4758270ac022.jpg": {
+  "sha256": "3e271b1613d8f06b950ded2e4ab5e676e20bc80dd303d43c7fc9c23480d03953",
+  "bytes": 232881
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e14f6c04d32962e4.jpg": {
+  "sha256": "56810cb731fd15407537d8001287ae3d12b2f4d6b61862ab3802357eaf37fb21",
+  "bytes": 61010
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e2903d7029b5067d.jpg": {
+  "sha256": "7f75811e8fc469ebca3fcf5298ab061f8ff717f69872561bbe6981a7312378f1",
+  "bytes": 245388
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e2bdba0ba0ba2128.jpg": {
+  "sha256": "37586fcab29eb5443f4024e8abfdfc082d76352acc5c8470fdc52144826acb5d",
+  "bytes": 96362
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e2e7cae075ad9aa2.jpg": {
+  "sha256": "f9535768034918d74f8cb676d09ecede4b1cfaaf598ab1e3be6b0fb590544e00",
+  "bytes": 91431
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e35af811e2e1ce6a.jpg": {
+  "sha256": "0c21f56af3dde078e71610f15629acd4d7ced5c0942019d9ba49530d6cd496d6",
+  "bytes": 339019
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e379829c5533421b.jpg": {
+  "sha256": "f3a05161ea18a87754e28de57ed77e855ad3abbba386a1fffd767d6a571b4c03",
+  "bytes": 61743
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e39c037ac21de153.jpg": {
+  "sha256": "df9ffaf7ebff254faddcdd1cca05b92b741ad96a36726c956af4920edf9769ea",
+  "bytes": 295386
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e3faf5be46933298.jpg": {
+  "sha256": "5587c0c77ed352cf0976f2d261ef1403541be65696ac443f28648a172a8092c4",
+  "bytes": 725111
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e4462a3e109c077b.jpg": {
+  "sha256": "1264dd3e54370829407136f8c131d65f007b0e754cec31a08adbe93be5383313",
+  "bytes": 333933
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e49438e73a254abc.jpg": {
+  "sha256": "738fe579323f5ce0de1d17f03ad84a497f43c7ea0420eee7649f394769101551",
+  "bytes": 285938
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e556871f924123e1.jpg": {
+  "sha256": "8e175a19a104813414eff3350e8c3ee41339c481fcce0036973f72689426b568",
+  "bytes": 152892
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e557145e4c0ab2d0.jpg": {
+  "sha256": "4da0d9df273a031a55104811df93eff426f6ae9baab542f7fc4cf4c2a0a0ff0c",
+  "bytes": 148321
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e5c55b4889c5c2df.jpg": {
+  "sha256": "d0a446e12c270685ea36f50789dd61cf01c2c904305daeae888c2ef28302bbb6",
+  "bytes": 158270
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e61375bfad18321f.jpg": {
+  "sha256": "6efae37ba231c2f728a02cdd7c0246bfb599a1854aeb85d5d1270355273047a9",
+  "bytes": 134942
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e64e492bec7500bb.jpg": {
+  "sha256": "0351485e6183f008743ae82a30e4df1a38ef0d763db827359662eeac0b3978b3",
+  "bytes": 453179
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e6bc20d0f64744b5.jpg": {
+  "sha256": "0acb7e7aecc94bbb0ca1961c7634f6af29dc9a369e570e4e7bace0f7bcd52c38",
+  "bytes": 126210
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e6d8b92936331004.jpg": {
+  "sha256": "891e7c8be770107eb809044b15ad7e763f911dae3cba0fb47f4f3b51221fbfd2",
+  "bytes": 114528
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e74e1d8a0cc2b851.jpg": {
+  "sha256": "71453b932ab35ff6775b6144dd148d53e62958fd0a145339a639fc9d80268f15",
+  "bytes": 177948
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e7874ab7459137a3.jpg": {
+  "sha256": "b397c8a11bafcf883a734708561d927222ed96d3fb2ca7dc557c796d1ffa464e",
+  "bytes": 609967
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e85921b9a045271e.jpg": {
+  "sha256": "36c06c8aa5e193c8f03d3ea1205aaf96cfd8c9870da6d818bbd9bcd8ead638f8",
+  "bytes": 307737
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/e9e05989620d30b4.jpg": {
+  "sha256": "d4e393e896614f40b5ea8ee04da1a31a6055f88d2185d6dde6cd6bf078e04dff",
+  "bytes": 283392
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ea4c16d7742b041c.jpg": {
+  "sha256": "b059299d54dc22617c4f853a805a5231af20edabaadb92f6e93bdcc9803ae269",
+  "bytes": 145378
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ea8dcc98240e46ed.jpg": {
+  "sha256": "a2075629e93522000c22eab3d1d7a574ce0bac65c951e8c51c7dbab87b73d96b",
+  "bytes": 307228
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/eb020d85c6ebe04e.jpg": {
+  "sha256": "d8f3329352cbf67baf7130f23eb28efeff93541344a1892fce15636497d0a216",
+  "bytes": 115099
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/eb13c121a0995f2a.jpg": {
+  "sha256": "0141967709eab67a513af62141c1e04c558bc5cb9711c158f9b7a54a7f9edf1e",
+  "bytes": 253619
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/eb55e93566caac65.jpg": {
+  "sha256": "b3da4daac059ae7dca06770bc153a09addc3d1877a1aa90680d2925c3a141e34",
+  "bytes": 237444
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ec7ceedf36031593.jpg": {
+  "sha256": "a9cdf805687fcba70258dd5c0f5f7b2d6586f644fb1a4577619af29aa28f65e8",
+  "bytes": 84691
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ece01b78dea29b87.jpg": {
+  "sha256": "168853a6e1b7b6b5a530af7ad5fb79a208c1873935e3a43b1e82f746bbaaefab",
+  "bytes": 107136
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ecef5e811a62e966.jpg": {
+  "sha256": "11d2562efcb582d33b232ba6de04b9c2a8f25ea0f1c580e126704eb3e6a8d827",
+  "bytes": 179285
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ed01f3ea4d96b94e.jpg": {
+  "sha256": "00a5313fa939b960dbbf7ba1f1b83b6797843bee1616c73d8338654003213347",
+  "bytes": 546988
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/eda94717d0b24882.jpg": {
+  "sha256": "3948ebd1f45e47ffe2af3cf2e45b8cb5cfe8a722f4d975c892b67a725448f272",
+  "bytes": 607800
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/edb77f8197358448.jpg": {
+  "sha256": "dc91e23c0c4e47fac74f807d5be6fad057cb53f09adcd59b74fe4ee9c5313038",
+  "bytes": 221137
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/edd60032b85960e8.jpg": {
+  "sha256": "33d53b85b20ad5d1b3454b268486c356b85b181b4dbe58a15908a9e50e1af48e",
+  "bytes": 194959
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ede0140daba820dc.jpg": {
+  "sha256": "b112ab585f65039f4d8dff8b417a43a1be1df3b12f65b018339b57993a4c982a",
+  "bytes": 83714
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ee1f6935255965a3.jpg": {
+  "sha256": "731fdbd898629ab224ea7d8ec8c35b8ccc92277abbb9409639f6ca992e93de54",
+  "bytes": 147133
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ee1fb664d9867d8f.jpg": {
+  "sha256": "c99565c8c4f169c3c8da57c0484d271c5cfbae81cbcc08159895fbbbf9c67263",
+  "bytes": 176633
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ee64458a0a735fc2.jpg": {
+  "sha256": "c91c8e46236d24d0a3675d649863cb3251fd742c0209c033f24b686350cacbc6",
+  "bytes": 275353
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ee65f4552b73d440.jpg": {
+  "sha256": "f640763433412636817076b31101641e985db8163d743aa6bdec3cc711899a31",
+  "bytes": 111300
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ee73ae2492259924.jpg": {
+  "sha256": "1a5950e28e46de83cb550770561ca0645ebd0641eccbdb153f2837c176dfbb9d",
+  "bytes": 411392
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/eecf00b16f8da09b.jpg": {
+  "sha256": "92f2e68d5a4f905b97ae84e6acbdfd52d4b36661774a8f5e00e786fabf91db73",
+  "bytes": 78146
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/eee762f22867b8d4.jpg": {
+  "sha256": "9ec5405232f3fd61092c5fece4527bc4d922df17def25f0ab1aff243e36f2884",
+  "bytes": 165231
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/eeffc04e09ba17e2.jpg": {
+  "sha256": "866d337ed1a36d1bbd0b35c1367ab3fd2cbaadee521c128ea08ef32d99eb2471",
+  "bytes": 273247
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ef63472df93b9fff.jpg": {
+  "sha256": "ef7ed03b53989bb3079bca2ac9d946e2ec982f1af8ea915dbe0b11efaa68dab6",
+  "bytes": 964836
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/ef6d4a155ae3285e.jpg": {
+  "sha256": "c5ba65d09eea0c5f5e8f2881c4a4ddc6cf20c544c52c7bcbe142a3b0f58761a1",
+  "bytes": 535489
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/efcadfe827f75bf5.jpg": {
+  "sha256": "79dd98ba0dcdc0b6e8707a6e79fdbb6e054e30e531c2b28340d3bf99f6e434e5",
+  "bytes": 540909
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f0192ec821921d7e.jpg": {
+  "sha256": "f5e9447f62c0aabc336ac3418d9a1d32a3c438fccdb2daa1d535abfbe4b42c3b",
+  "bytes": 213207
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f0bf9697b4f0ebad.jpg": {
+  "sha256": "8fad9d939b8adabc916e9344fecbf1823574ff215c33a7f4b809bb3fe0794aae",
+  "bytes": 372648
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f0c84adfd36023b3.jpg": {
+  "sha256": "b4bc9ee0105a88b4dbd1c420c523f356464df3f613305a14ef79813fb61a20f0",
+  "bytes": 55511
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f1289343e71bddfb.jpg": {
+  "sha256": "720766e8dbe89d09c42227447b40fb4d1d4f43d589264bac1879c1f8eee04b69",
+  "bytes": 233718
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f1855657e4d27eee.jpg": {
+  "sha256": "00758c2e7ee04bacdfb0e6ae8c518839701d7103b84c4e2886d339e84e9c2b9c",
+  "bytes": 295504
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f1996864175ca4c2.jpg": {
+  "sha256": "42b6da080349c2a029bcc753989d27594a8050cc1f041f246fe16514083b04fb",
+  "bytes": 240256
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f1d4e1ad5e259552.jpg": {
+  "sha256": "83b7804442c7be4af009ac9253254307878631b6dedc6493a2b63c49cf6dda09",
+  "bytes": 268351
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f25ecdf10954d201.jpg": {
+  "sha256": "006763329e3dcef52ec7ad5ee59517975600e7c71c9669ccb86c9d2c89310ad6",
+  "bytes": 334547
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f2b4afee929ff6f6.jpg": {
+  "sha256": "702f9505938ce7c47978fe81899cdaad0d7c1a657a7ddb2e767bf2ec2934ca27",
+  "bytes": 921718
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f2e9023a352a1d41.jpg": {
+  "sha256": "570aa11a2dc1705dddde78b586ef8dd3d72858598ce759dc5d6cd904beb04e16",
+  "bytes": 658053
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f32de0bf1a95b9e4.jpg": {
+  "sha256": "84c6b51b9785f36fba35606c0c058d498985467c3d92e7ec066b8de7f161b7dd",
+  "bytes": 192850
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f396780361228226.jpg": {
+  "sha256": "e2bada4d1ff408797f06f408d151e31d3aa51d13082650a2244e90e734baef36",
+  "bytes": 275783
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f3d4fb242610a0c9.jpg": {
+  "sha256": "49fc652ddd38d640f922148d41066ecf29f3756a0137687d99621553919cd0f8",
+  "bytes": 512047
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f3fe737c8629a979.jpg": {
+  "sha256": "8f36961e7e5a1d06c9ab63b3614cf31156bed5d2a50aa8c00a79ecf6f1e6a90f",
+  "bytes": 906698
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f41bc46dbe16478d.jpg": {
+  "sha256": "5c1a0a5f0c346ea1c37228b2fcf0bcc05a678b315bbccb6217728e8c1f801547",
+  "bytes": 133491
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f420ee0b168de5f3.jpg": {
+  "sha256": "e46c8726e6ba14f67941aa5b5fbe3c959de2ec4e807b96ccffe4997e9431b608",
+  "bytes": 392879
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f4246a72d717ca99.jpg": {
+  "sha256": "3e8ae1b07c63f81e2a6e881d3dc0308a012e1f47862c3299d3eb138f2eafcb77",
+  "bytes": 512482
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f449063f1c558e7f.jpg": {
+  "sha256": "0f38a2a2e5941c320ee8646b009521fe7ddb07f4833465d5f5058591f0acb175",
+  "bytes": 168993
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f4bcac8dcc8e7df2.jpg": {
+  "sha256": "91eb84851fc99bf7cbd9d9656fff5675d7c08718529dbf95446d5d887a562069",
+  "bytes": 596826
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f4eba961b1205496.jpg": {
+  "sha256": "2b2afc0ab873c14ff1ed9130078d1637ca53f43044620d920c2b3412f1741fcb",
+  "bytes": 450935
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f54a81df46ae0d9a.jpg": {
+  "sha256": "051bd6abf75e0d673e457482f6cd859bc24e23e170fcac27ac67092e2119dc12",
+  "bytes": 492875
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f55f5ac16b1df397.jpg": {
+  "sha256": "1762b82f2659ea6e6282c841a01498af5991acde3ef5be7e2811d45b86f77741",
+  "bytes": 137829
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f5fb187fe3fcd3aa.jpg": {
+  "sha256": "aa1927f015579b0509ff0c79a06e0d063325c5a17476179778a247893b48767b",
+  "bytes": 224557
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f6b7d76234a7d471.jpg": {
+  "sha256": "f96067525f5408b8f0f53fda2ef08adfac3fbcb2f5c5c0d57308531f73f192fc",
+  "bytes": 204739
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f758015f7db0f35a.jpg": {
+  "sha256": "7e7f818eb54dfce88a10f3498612e281691aba5ce10a1f41dff436e176c457aa",
+  "bytes": 292303
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f78023cb40b8ca02.jpg": {
+  "sha256": "ea4b9ca408fe0a98d057280297db5aeb762b635df5daa6fbe8bc2b1832493f41",
+  "bytes": 269880
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f7923c7226760308.jpg": {
+  "sha256": "bf849dc743ff1408bf3680b8f672adf6798b9bec4867fd3402203137cc7a9c52",
+  "bytes": 651648
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f7a0d027bc94ce4a.jpg": {
+  "sha256": "d2b90fb6907979c2b91987b5a0b11c2077d34bbd5e40fc43eced133daf5d7b01",
+  "bytes": 236254
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f7d38d020f1135bb.jpg": {
+  "sha256": "8705800236331a53c3e711e7349bf91255b9c01ada6b0eba9dbb3c57aa273ace",
+  "bytes": 204344
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f7e2a754b421ed04.jpg": {
+  "sha256": "eb5aa5fba2bab0fc065a6756176c12e64cc789a214ce3dafa1f6dea98ccaaf16",
+  "bytes": 152225
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f91d699c2bf47915.jpg": {
+  "sha256": "3eb2c1c1e8a3768bf411913a71121a75c12f737bb8806ad6a684ec54972e422e",
+  "bytes": 157275
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/f937ed6609b91eae.jpg": {
+  "sha256": "8ad44a6aee1616309d56c377f8ed823c06ed2acccadb2e7be96325551d97b7e8",
+  "bytes": 255204
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/fa51b8026b5fa585.jpg": {
+  "sha256": "64a1e8ba93e09d8118db10816c14716dfbd2293b29d9aa6665fa9c8e61b1a0a7",
+  "bytes": 172022
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/fa642b387ab0c133.jpg": {
+  "sha256": "bad4de78e982f9ecafb8d466d7b2a10e6d74e8c17d2f94f2a5bffa17d31261db",
+  "bytes": 497028
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/fa7c84d7249bfcdb.jpg": {
+  "sha256": "08405103f8fbe81c5556f3dd98f46bbe11f8d1eeab752f428da769e44bd617c1",
+  "bytes": 404181
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/faa0453ecfeb8ade.jpg": {
+  "sha256": "f2595b36ad8b8324d73f970aa99ac5afd451ecdc7457c982a6cff1e582ffa792",
+  "bytes": 106325
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/fb182ea71db4588d.jpg": {
+  "sha256": "2a1be17b5f10d146779fcbe7afe42a3b8466db802c6b80604709c6d6beb136d3",
+  "bytes": 372357
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/fb419e1acf7221fe.jpg": {
+  "sha256": "265f6694c399371a84c4c9d40c71161d8605ac9974b2fbec11fe576cfed909e4",
+  "bytes": 553908
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/fb429b100cf87578.jpg": {
+  "sha256": "3866f048139613a40ca3dddbba07b9609a77f67368091bfaa4fdb82d91630251",
+  "bytes": 159187
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/fc2760110136c64a.jpg": {
+  "sha256": "a6beb237ddc6433088849781df8e2999e217c7d7f406d5038e948f613d558e6e",
+  "bytes": 186550
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/fcb4487a40c89fc1.jpg": {
+  "sha256": "b5d7a8451fdbdc165c24cb88fcea39616a3ccd62b2166a8fae2c57d35e05aaaa",
+  "bytes": 180280
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/fd9c7c4a50ecd517.jpg": {
+  "sha256": "589184e81b4e05211654c166873cf140990af57e5a12424ccced8301aa1c63c4",
+  "bytes": 199809
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/fdf90530521378ad.jpg": {
+  "sha256": "28b034d11e0f0ff964da8247fbef68a62b0f5c435bb0d0846ce3179931320830",
+  "bytes": 157490
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/fe2fcd5ce4b52f20.jpg": {
+  "sha256": "fbc9b07f72c94471593ef61504187c37920ea3b4f332690526bfaa4219b44ca6",
+  "bytes": 772932
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/feb23dc87863b2b4.jpg": {
+  "sha256": "876c6213b4a86f8afeff8907bda53cd4afb0837609d40b085c3ac95db217e23f",
+  "bytes": 435648
+ },
+ "https://open-images-dataset.s3.amazonaws.com/validation/fef54ede1354f96b.jpg": {
+  "sha256": "3bef278049a6e0049c05ce2806d4162e8bb6af2b0d2f6d49544d0050ec7f58f2",
+  "bytes": 209474
+ },
+ "https://storage.googleapis.com/openimages/2018_04/validation/validation-images-with-rotation.csv": {
+  "sha256": "ed93a0e121fe345effdfc7359b848dbc64a1ff6778c8c73563157cb500b33a17",
+  "bytes": 15245485
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-annotations-bbox.csv": {
+  "sha256": "d8bbd59410af14835d7733165a7bb8a3f0213981b22dd5077b0b9f7878991ff2",
+  "bytes": 25105048
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-annotations-object-segmentation.csv": {
+  "sha256": "a876ff7a1a68de771e668baa9886f0ca2331992cd4af5497401be41828a5de89",
+  "bytes": 2920821
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-0.zip": {
+  "sha256": "12681fae2608032d3b9c09d3beb1ee35de21706db125ab4784baa22677817de3",
+  "bytes": 3746207
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-1.zip": {
+  "sha256": "effbb15384e96789b54cf1da4ef58af66f1fa88b4b7517ffea9c395a58687993",
+  "bytes": 3671742
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-2.zip": {
+  "sha256": "730da4cb4dc489520c3b01183c2357cca27cc71f72d7912de55b160c76fcce28",
+  "bytes": 3507780
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-3.zip": {
+  "sha256": "e3238f5f5dbddf5a56e8ed80a4b6a318f8a6b81e154f0ba4a37b0d5deff0ec4a",
+  "bytes": 4122191
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-4.zip": {
+  "sha256": "1fb8b193c272fbdf967a4462853ae1cade3bb22499459ed0151a8a8eeffcc94c",
+  "bytes": 3459177
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-5.zip": {
+  "sha256": "975f9947f3c885dac989343abaabc54b3a20a5c62bad0b73cafea4d5613a9a53",
+  "bytes": 3549308
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-6.zip": {
+  "sha256": "6f67ab924b5e3dc66f35d7e4d3819ce3066d0f821880821d64e2b6b72402a825",
+  "bytes": 3503979
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-7.zip": {
+  "sha256": "3a55873469ea7aca33881303631a84376879a1f73758eb3e0c0fe222444019a5",
+  "bytes": 3473248
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-8.zip": {
+  "sha256": "7b305513e6902822ddba0ee74598f2b3bd750f443e8d3f4173cb58f0d7d7caa4",
+  "bytes": 3853829
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-9.zip": {
+  "sha256": "8ef4912a5345d9b8bb169194a2e0b3efe6b9f34bba7c003fc0f4c635c4b91294",
+  "bytes": 3849739
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-a.zip": {
+  "sha256": "36517587858273e4abfac6338ddf86a25a8d84386ef7c44af587cfc8bf786cfd",
+  "bytes": 3360016
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-b.zip": {
+  "sha256": "1736e6f6c305e0395c374fe694e6a02fd808030c10e6a49f675d4dc41ab2c8d0",
+  "bytes": 3530025
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-c.zip": {
+  "sha256": "039d03912245fb08dd5305db62db966b9255946cd3a30394ebae4bc01094a75e",
+  "bytes": 3619116
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-d.zip": {
+  "sha256": "63c6cc4f9bfd9ff9769875176de04a7767138b0ed7751e899805d75ebc3fb645",
+  "bytes": 3402178
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-e.zip": {
+  "sha256": "a16b2818fab76950b4f222c342c88bbf95d5fd3d02ea4663c4521462c33ce30d",
+  "bytes": 3721143
+ },
+ "https://storage.googleapis.com/openimages/v5/validation-masks/validation-masks-f.zip": {
+  "sha256": "dd0e7855bc3d16d00992aa530ee46457dc7f04495700a216b0c791f05ac729ec",
+  "bytes": 3193857
+ },
+ "https://storage.googleapis.com/openimages/v7/oidv7-class-descriptions-boxable.csv": {
+  "sha256": "1839e0e7e84130ae281f7f67413768601b031581c0c42e7fc17527b8e2a99aa9",
+  "bytes": 12064
+ },
+ "https://storage.googleapis.com/openimages/v7/oidv7-class-descriptions.csv": {
+  "sha256": "84a4373a0efb7fd6d93fe19b0e7ceb6c1b855c233d13b9b78a9a33655c9fdce3",
+  "bytes": 501178
+ },
+ "https://storage.googleapis.com/openimages/v7/oidv7-val-annotations-human-imagelabels.csv": {
+  "sha256": "92ddbdfceb3626e044df5e89100b24f6c22a79c1888a4bddd00a6f231d86d56a",
+  "bytes": 28392297
+ },
+ "https://storage.googleapis.com/openimages/v7/oidv7-val-annotations-machine-imagelabels.csv": {
+  "sha256": "912df0b0cb905d02a6011de61f61fdfad80ac1b946075571f7b66852ba64d12e",
+  "bytes": 31390821
+ }
+}

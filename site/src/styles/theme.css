@@ -1,0 +1,160 @@
+/* Starlight theme: maps Starlight's variables to the console / Playground tokens
+   (tokens.css, loaded first). Flat, compact, 2px radius, no shadows, system fonts.
+   Light/dark switching comes from the tokens: Starlight always sets data-theme on <html>. */
+
+:root,
+:root[data-theme='light'],
+:root[data-theme='dark'] {
+  --sl-font: var(--font);
+  --sl-font-system: var(--font);
+  --sl-font-system-mono: var(--mono);
+
+  --sl-color-white: var(--text);
+  --sl-color-gray-1: var(--text);
+  --sl-color-gray-2: var(--text-2);
+  --sl-color-gray-3: var(--text-2);
+  --sl-color-gray-4: var(--text-3);
+  --sl-color-gray-5: var(--border);
+  --sl-color-gray-6: var(--surface-3);
+  --sl-color-gray-7: var(--surface-2);
+  --sl-color-black: var(--surface);
+
+  --sl-color-accent-low: var(--accent-soft);
+  --sl-color-accent: var(--accent);
+  --sl-color-accent-high: var(--accent);
+  --sl-color-text-accent: var(--accent);
+  --sl-color-text: var(--text);
+  --sl-color-bg: var(--surface);
+  --sl-color-bg-nav: var(--surface);
+  --sl-color-bg-sidebar: var(--surface-2);
+  --sl-color-bg-inline-code: var(--surface-3);
+  --sl-color-hairline-light: var(--border);
+  --sl-color-hairline: var(--border);
+  --sl-color-hairline-shade: var(--border);
+  --sl-color-backdrop-overlay: var(--overlay);
+
+  --sl-color-green-low: var(--success-soft);
+  --sl-color-green: var(--success);
+  --sl-color-green-high: var(--success);
+  --sl-color-orange-low: var(--warning-soft);
+  --sl-color-orange: var(--warning);
+  --sl-color-orange-high: var(--warning);
+  --sl-color-red-low: var(--danger-soft);
+  --sl-color-red: var(--danger);
+  --sl-color-red-high: var(--danger);
+  --sl-color-blue-low: var(--info-soft);
+  --sl-color-blue: var(--info);
+  --sl-color-blue-high: var(--info);
+
+  --sl-shadow-sm: none;
+  --sl-shadow-md: none;
+  --sl-shadow-lg: none;
+
+  --sl-nav-height: var(--topbar-h);
+  --sl-sidebar-width: 17rem;
+  --sl-content-width: 46rem;
+  --sl-content-pad-x: 1.5rem;
+  --sl-nav-pad-x: 1rem;
+
+  --sl-text-body: 0.9375rem;
+  --sl-text-body-sm: 0.8125rem;
+  --sl-text-code: 0.8125rem;
+  --sl-text-code-sm: 0.75rem;
+  --sl-text-h1: 1.625rem;
+  --sl-text-h2: 1.25rem;
+  --sl-text-h3: 1.0625rem;
+  --sl-text-h4: 0.9375rem;
+  --sl-line-height: 1.55;
+  --sl-line-height-headings: 1.3;
+}
+
+/* flat: no radii beyond the token, no shadows */
+.sl-markdown-content :not(pre) > code,
+.sl-markdown-content pre,
+.sl-markdown-content table,
+.starlight-aside,
+.sl-link-button,
+.card,
+site-search button,
+summary,
+select,
+input,
+button { border-radius: var(--radius); box-shadow: none; }
+
+.sl-markdown-content :not(pre) > code { padding: 0.1em 0.35em; border: 1px solid var(--border); }
+
+/* compact chrome */
+.site-title { font-size: var(--fs-lg); font-weight: 600; gap: var(--sp-2); }
+.site-title img { height: 22px; width: 22px; }
+header.header { border-bottom: 1px solid var(--border); }
+/* ---------- Sidebar (Starlight SidebarSublist; its rules sit in @layer starlight.core, so these win) ----------
+   Nested items are indented one step right of a 1px guide line that sits under the parent label's text; the current page is a quiet tint with a 2px accent bar over the guide line. */
+.sidebar-content { gap: var(--sp-3); }
+.sidebar-content ul { --sl-sidebar-item-padding-inline: 0.5rem; }
+.sidebar-content .top-level > li + li { margin-top: 0.125rem; }
+.sidebar-content ul ul { margin-block: 0.125rem 0.5rem; }
+/* nested lists: a 1px guide line under the parent label's text start (= the summary's 0.5rem inline padding);
+   child labels sit one step (the link's own 0.5rem padding) right of the line. Recursive for deeper levels. */
+.sidebar-content ul ul li { margin-inline-start: var(--sl-sidebar-item-padding-inline); border-inline-start: 1px solid var(--border); padding-inline-start: 0; }
+/* the current page's 2px accent bar covers the guide line */
+.sidebar-content ul ul a[aria-current='page']::before { inset-inline-start: -1px; }
+/* group headings: small, semibold, full text colour; chevron on the right, no turning animation */
+.sidebar-content summary { padding-block: 0.3rem; border-radius: var(--radius); }
+.sidebar-content summary:hover { background: var(--surface-3); }
+.sidebar-content summary .large { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.sidebar-content .caret { width: 1rem; height: 1rem; color: var(--text-3); transition: none; }
+/* items: quiet grey, one size; the top-level links (Playground, Changelog) read as headings */
+.sidebar-content a { position: relative; padding-block: 0.3rem; border-radius: var(--radius); font-size: var(--fs-sm); line-height: 1.4; color: var(--text-2); }
+.sidebar-content a.large { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.sidebar-content a:hover,
+.sidebar-content a:focus-visible { background: var(--surface-3); color: var(--text); }
+.sidebar-content a[aria-current='page'],
+.sidebar-content a[aria-current='page']:hover,
+.sidebar-content a[aria-current='page']:focus { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.sidebar-content a[aria-current='page']::before { content: ''; position: absolute; inset-block: 0.2rem; inset-inline-start: 0; width: 2px; background: var(--accent); border-radius: 1px; }
+.sl-markdown-content h2 { margin-top: 2rem; }
+.sl-markdown-content table { font-size: var(--fs-sm); }
+.sl-markdown-content th { background: var(--surface-2); vertical-align: middle; }
+.sl-markdown-content :is(th, td) { padding: 0.35rem 0.6rem; }
+.sl-markdown-content a { text-underline-offset: 2px; }
+/* Demo image captions: upright and muted (CJK italics look slanted), 0.5rem below the image (its paragraph has no bottom margin). */
+.sl-markdown-content p:has(> img) + p:has(> em:only-child) { margin-top: 0.5rem; color: var(--text-2); font-size: 0.875rem; }
+.sl-markdown-content p:has(> img) + p > em:only-child { font-style: normal; }
+.starlight-aside { border-inline-start-width: 3px; }
+
+/* shared site top bar inside the Starlight header (src/components/starlight/Header.astro) */
+header.header { padding-block: 0; }
+.site-top.docs { position: static; z-index: auto; border: 0; background: transparent; height: 100%; }
+.site-top.docs .wrap { max-width: none; padding: 0; }
+.site-top.docs .bar { height: 100%; gap: var(--sp-4); }
+.site-top.docs .brand { color: var(--text); }
+.site-top.docs .site-nav { height: 100%; }
+.docs-search { min-width: 0; margin-left: var(--sp-2); }
+.site-foot.compact { margin-top: var(--sp-5); background: transparent; }
+
+/* components.css has a console `.code` block (background, border); Expressive Code names each line's inner div `.code` too */
+.expressive-code .ec-line .code { position: static; background: none; border: 0; }
+/* markdown key/value tables with an empty header row (`| | |`): no empty grey bar */
+.sl-markdown-content thead:has(th:empty):not(:has(th:not(:empty))) { display: none; }
+
+/* "View as Markdown" and "Try in Playground" (a link, or disabled while LAUNCH.playground is false) on the title row (src/components/starlight/PageTitle.astro) */
+.md-actions { flex: none; max-width: 100%; display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-2); font-size: var(--fs-sm); line-height: 1.4; }
+.md-actions :is(a, .md-playground) { display: inline-flex; align-items: center; gap: var(--sp-1); min-height: 28px; padding: 0 var(--sp-2); border: 1px solid var(--sl-color-hairline); border-radius: var(--radius); background: none; color: var(--sl-color-gray-2); font: inherit; text-decoration: none; white-space: nowrap; }
+.md-actions a { cursor: pointer; }
+.md-actions a:hover { border-color: var(--accent); background: var(--surface-3); color: var(--sl-color-text); }
+.md-actions a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.md-actions .md-playground.is-disabled { color: var(--text-3); cursor: not-allowed; }
+.md-actions .soon-tag { margin-left: 0; }
+.md-actions .ic { width: 14px; height: 14px; flex: none; }
+
+/* Starlight, starlight-openapi and Expressive Code hard-code 3px-8px radii (the Design System 0.4 control radius is 2px).
+   Their rules sit in @layer starlight.* or in scoped styles; these unlayered ones win. Pills (the badge dot) stay round. */
+.sl-badge,
+kbd,
+.pagination-links a,
+starlight-toc a,
+mobile-starlight-toc .toggle,
+mobile-starlight-toc a,
+site-search dialog,
+.expressive-code .frame,
+.expressive-code .frame pre { border-radius: var(--radius); }

@@ -1,0 +1,1231 @@
+{
+  "usecase": "03-receipts-to-json",
+  "language": "python",
+  "client": "stack_client 1.0.0",
+  "startedAt": "2026-11-12T04:45:36Z",
+  "elapsedMs": 36,
+  "items": [
+    {
+      "id": "cord-001",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/ocr",
+          "model": "ppocr-v6",
+          "list": 0.25,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 346,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "outcome": "validated",
+        "model": "ppocr-v6",
+        "receipt": {
+          "merchant": null,
+          "date": null,
+          "currency": null,
+          "currencyMark": null,
+          "lineItems": [
+            {
+              "description": "Nasi (MLY)",
+              "quantity": 1,
+              "unitPrice": null,
+              "amount": 6000,
+              "source": {
+                "model": "ppocr-v6",
+                "lines": [
+                  0,
+                  1
+                ],
+                "bbox": [
+                  138,
+                  750,
+                  748,
+                  799
+                ],
+                "confidence": 0.9964
+              }
+            }
+          ],
+          "sources": {
+            "subtotal": {
+              "model": "ppocr-v6",
+              "lines": [
+                2,
+                3
+              ],
+              "bbox": [
+                138,
+                842,
+                746,
+                890
+              ],
+              "confidence": 0.9997
+            },
+            "total": {
+              "model": "ppocr-v6",
+              "lines": [
+                4,
+                5
+              ],
+              "bbox": [
+                137,
+                887,
+                745,
+                939
+              ],
+              "confidence": 0.9999
+            }
+          },
+          "subtotal": 6000,
+          "discount": null,
+          "service": null,
+          "tax": null,
+          "total": 6000
+        },
+        "checks": [
+          {
+            "name": "total_present",
+            "passed": true,
+            "detail": "a total was found"
+          },
+          {
+            "name": "line_items_present",
+            "passed": true,
+            "detail": "1 line items"
+          },
+          {
+            "name": "line_items_complete",
+            "passed": true,
+            "detail": "every item has a description and an amount"
+          },
+          {
+            "name": "line_item_arithmetic",
+            "passed": true,
+            "detail": "quantity x unit price = amount"
+          },
+          {
+            "name": "items_sum_to_subtotal",
+            "passed": true,
+            "detail": "items add up to 6000, subtotal is 6000"
+          },
+          {
+            "name": "total_matches_parts",
+            "passed": true,
+            "detail": "subtotal - discount + service + tax is 6000, total is 6000"
+          },
+          {
+            "name": "confidence_floor",
+            "passed": true,
+            "detail": "every field line has confidence of at least 0.8"
+          }
+        ],
+        "attempts": [
+          {
+            "model": "ppocr-v6",
+            "passed": true,
+            "failedChecks": [],
+            "receipt": {
+              "merchant": null,
+              "date": null,
+              "currency": null,
+              "currencyMark": null,
+              "lineItems": [
+                {
+                  "description": "Nasi (MLY)",
+                  "quantity": 1,
+                  "unitPrice": null,
+                  "amount": 6000,
+                  "source": {
+                    "model": "ppocr-v6",
+                    "lines": [
+                      0,
+                      1
+                    ],
+                    "bbox": [
+                      138,
+                      750,
+                      748,
+                      799
+                    ],
+                    "confidence": 0.9964
+                  }
+                }
+              ],
+              "sources": {
+                "subtotal": {
+                  "model": "ppocr-v6",
+                  "lines": [
+                    2,
+                    3
+                  ],
+                  "bbox": [
+                    138,
+                    842,
+                    746,
+                    890
+                  ],
+                  "confidence": 0.9997
+                },
+                "total": {
+                  "model": "ppocr-v6",
+                  "lines": [
+                    4,
+                    5
+                  ],
+                  "bbox": [
+                    137,
+                    887,
+                    745,
+                    939
+                  ],
+                  "confidence": 0.9999
+                }
+              },
+              "subtotal": 6000,
+              "discount": null,
+              "service": null,
+              "tax": null,
+              "total": 6000
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cord-002",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/ocr",
+          "model": "ppocr-v6",
+          "list": 0.25,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 216,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "outcome": "validated",
+        "model": "ppocr-v6",
+        "receipt": {
+          "merchant": null,
+          "date": null,
+          "currency": null,
+          "currencyMark": null,
+          "lineItems": [
+            {
+              "description": "Populaire Cholate",
+              "quantity": null,
+              "unitPrice": 14500,
+              "amount": 4500,
+              "source": {
+                "model": "ppocr-v6",
+                "lines": [
+                  0,
+                  1,
+                  2
+                ],
+                "bbox": [
+                  67,
+                  605,
+                  665,
+                  693
+                ],
+                "confidence": 0.9983
+              }
+            },
+            {
+              "description": "Paddle Pop Ch :0 Magma",
+              "quantity": null,
+              "unitPrice": 13000,
+              "amount": 3000,
+              "source": {
+                "model": "ppocr-v6",
+                "lines": [
+                  3,
+                  4,
+                  5
+                ],
+                "bbox": [
+                  65,
+                  686,
+                  676,
+                  771
+                ],
+                "confidence": 0.9461
+              }
+            }
+          ],
+          "sources": {
+            "subtotal": {
+              "model": "ppocr-v6",
+              "lines": [
+                6,
+                7
+              ],
+              "bbox": [
+                93,
+                806,
+                690,
+                858
+              ],
+              "confidence": 0.999
+            },
+            "tax": {
+              "model": "ppocr-v6",
+              "lines": [
+                8,
+                9
+              ],
+              "bbox": [
+                89,
+                850,
+                695,
+                903
+              ],
+              "confidence": 0.977
+            },
+            "total": {
+              "model": "ppocr-v6",
+              "lines": [
+                10,
+                11
+              ],
+              "bbox": [
+                86,
+                893,
+                701,
+                951
+              ],
+              "confidence": 0.9952
+            }
+          },
+          "subtotal": 7500,
+          "discount": null,
+          "service": null,
+          "tax": 750,
+          "total": 8250
+        },
+        "checks": [
+          {
+            "name": "total_present",
+            "passed": true,
+            "detail": "a total was found"
+          },
+          {
+            "name": "line_items_present",
+            "passed": true,
+            "detail": "2 line items"
+          },
+          {
+            "name": "line_items_complete",
+            "passed": true,
+            "detail": "every item has a description and an amount"
+          },
+          {
+            "name": "line_item_arithmetic",
+            "passed": true,
+            "detail": "quantity x unit price = amount"
+          },
+          {
+            "name": "items_sum_to_subtotal",
+            "passed": true,
+            "detail": "items add up to 7500, subtotal is 7500"
+          },
+          {
+            "name": "total_matches_parts",
+            "passed": true,
+            "detail": "subtotal - discount + service + tax is 8250, total is 8250"
+          },
+          {
+            "name": "confidence_floor",
+            "passed": true,
+            "detail": "every field line has confidence of at least 0.8"
+          }
+        ],
+        "attempts": [
+          {
+            "model": "ppocr-v6",
+            "passed": true,
+            "failedChecks": [],
+            "receipt": {
+              "merchant": null,
+              "date": null,
+              "currency": null,
+              "currencyMark": null,
+              "lineItems": [
+                {
+                  "description": "Populaire Cholate",
+                  "quantity": null,
+                  "unitPrice": 14500,
+                  "amount": 4500,
+                  "source": {
+                    "model": "ppocr-v6",
+                    "lines": [
+                      0,
+                      1,
+                      2
+                    ],
+                    "bbox": [
+                      67,
+                      605,
+                      665,
+                      693
+                    ],
+                    "confidence": 0.9983
+                  }
+                },
+                {
+                  "description": "Paddle Pop Ch :0 Magma",
+                  "quantity": null,
+                  "unitPrice": 13000,
+                  "amount": 3000,
+                  "source": {
+                    "model": "ppocr-v6",
+                    "lines": [
+                      3,
+                      4,
+                      5
+                    ],
+                    "bbox": [
+                      65,
+                      686,
+                      676,
+                      771
+                    ],
+                    "confidence": 0.9461
+                  }
+                }
+              ],
+              "sources": {
+                "subtotal": {
+                  "model": "ppocr-v6",
+                  "lines": [
+                    6,
+                    7
+                  ],
+                  "bbox": [
+                    93,
+                    806,
+                    690,
+                    858
+                  ],
+                  "confidence": 0.999
+                },
+                "tax": {
+                  "model": "ppocr-v6",
+                  "lines": [
+                    8,
+                    9
+                  ],
+                  "bbox": [
+                    89,
+                    850,
+                    695,
+                    903
+                  ],
+                  "confidence": 0.977
+                },
+                "total": {
+                  "model": "ppocr-v6",
+                  "lines": [
+                    10,
+                    11
+                  ],
+                  "bbox": [
+                    86,
+                    893,
+                    701,
+                    951
+                  ],
+                  "confidence": 0.9952
+                }
+              },
+              "subtotal": 7500,
+              "discount": null,
+              "service": null,
+              "tax": 750,
+              "total": 8250
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cord-003",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/ocr",
+          "model": "ppocr-v6",
+          "list": 0.25,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 174,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "outcome": "validated",
+        "model": "ppocr-v6",
+        "receipt": {
+          "merchant": null,
+          "date": null,
+          "currency": null,
+          "currencyMark": null,
+          "lineItems": [
+            {
+              "description": "Hulk Topper Package",
+              "quantity": null,
+              "unitPrice": null,
+              "amount": 100000,
+              "source": {
+                "model": "ppocr-v6",
+                "lines": [
+                  0,
+                  1
+                ],
+                "bbox": [
+                  145,
+                  265,
+                  509,
+                  304
+                ],
+                "confidence": 0.9986
+              }
+            }
+          ],
+          "sources": {
+            "total": {
+              "model": "ppocr-v6",
+              "lines": [
+                2,
+                3
+              ],
+              "bbox": [
+                300,
+                313,
+                515,
+                364
+              ],
+              "confidence": 0.968
+            }
+          },
+          "subtotal": null,
+          "discount": null,
+          "service": null,
+          "tax": null,
+          "total": 100000
+        },
+        "checks": [
+          {
+            "name": "total_present",
+            "passed": true,
+            "detail": "a total was found"
+          },
+          {
+            "name": "line_items_present",
+            "passed": true,
+            "detail": "1 line items"
+          },
+          {
+            "name": "line_items_complete",
+            "passed": true,
+            "detail": "every item has a description and an amount"
+          },
+          {
+            "name": "line_item_arithmetic",
+            "passed": true,
+            "detail": "quantity x unit price = amount"
+          },
+          {
+            "name": "total_matches_parts",
+            "passed": true,
+            "detail": "subtotal - discount + service + tax is 100000, total is 100000"
+          },
+          {
+            "name": "confidence_floor",
+            "passed": true,
+            "detail": "every field line has confidence of at least 0.8"
+          }
+        ],
+        "attempts": [
+          {
+            "model": "ppocr-v6",
+            "passed": true,
+            "failedChecks": [],
+            "receipt": {
+              "merchant": null,
+              "date": null,
+              "currency": null,
+              "currencyMark": null,
+              "lineItems": [
+                {
+                  "description": "Hulk Topper Package",
+                  "quantity": null,
+                  "unitPrice": null,
+                  "amount": 100000,
+                  "source": {
+                    "model": "ppocr-v6",
+                    "lines": [
+                      0,
+                      1
+                    ],
+                    "bbox": [
+                      145,
+                      265,
+                      509,
+                      304
+                    ],
+                    "confidence": 0.9986
+                  }
+                }
+              ],
+              "sources": {
+                "total": {
+                  "model": "ppocr-v6",
+                  "lines": [
+                    2,
+                    3
+                  ],
+                  "bbox": [
+                    300,
+                    313,
+                    515,
+                    364
+                  ],
+                  "confidence": 0.968
+                }
+              },
+              "subtotal": null,
+              "discount": null,
+              "service": null,
+              "tax": null,
+              "total": 100000
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "inv-011",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/ocr",
+          "model": "ppocr-v6",
+          "list": 0.25,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 731,
+          "replayed": false
+        },
+        {
+          "endpoint": "/v1/documents/parse",
+          "model": "paddleocr-vl",
+          "list": 2.0,
+          "charged": 2.0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 1007,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "outcome": "validated",
+        "model": "paddleocr-vl",
+        "receipt": {
+          "merchant": "Brightwater Print Studio",
+          "date": "2026-08-04",
+          "currency": null,
+          "currencyMark": "$",
+          "lineItems": [
+            {
+              "description": "Software licence, per seat",
+              "quantity": 1,
+              "unitPrice": 16.0,
+              "amount": 16.0,
+              "source": {
+                "model": "paddleocr-vl",
+                "lines": [
+                  7
+                ],
+                "bbox": [
+                  190,
+                  443,
+                  952,
+                  785
+                ],
+                "confidence": null
+              }
+            },
+            {
+              "description": "Brake pad set",
+              "quantity": 10,
+              "unitPrice": 34.34,
+              "amount": 343.4,
+              "source": {
+                "model": "paddleocr-vl",
+                "lines": [
+                  7
+                ],
+                "bbox": [
+                  190,
+                  443,
+                  952,
+                  785
+                ],
+                "confidence": null
+              }
+            },
+            {
+              "description": "Design consultation (hours)",
+              "quantity": 1,
+              "unitPrice": 94.1,
+              "amount": 94.1,
+              "source": {
+                "model": "paddleocr-vl",
+                "lines": [
+                  7
+                ],
+                "bbox": [
+                  190,
+                  443,
+                  952,
+                  785
+                ],
+                "confidence": null
+              }
+            },
+            {
+              "description": "Catering, per head",
+              "quantity": 1,
+              "unitPrice": 17.74,
+              "amount": 17.74,
+              "source": {
+                "model": "paddleocr-vl",
+                "lines": [
+                  7
+                ],
+                "bbox": [
+                  190,
+                  443,
+                  952,
+                  785
+                ],
+                "confidence": null
+              }
+            }
+          ],
+          "sources": {
+            "subtotal": {
+              "model": "paddleocr-vl",
+              "lines": [
+                7
+              ],
+              "bbox": [
+                190,
+                443,
+                952,
+                785
+              ],
+              "confidence": null
+            },
+            "discount": {
+              "model": "paddleocr-vl",
+              "lines": [
+                7
+              ],
+              "bbox": [
+                190,
+                443,
+                952,
+                785
+              ],
+              "confidence": null
+            },
+            "tax": {
+              "model": "paddleocr-vl",
+              "lines": [
+                7
+              ],
+              "bbox": [
+                190,
+                443,
+                952,
+                785
+              ],
+              "confidence": null
+            },
+            "total": {
+              "model": "paddleocr-vl",
+              "lines": [
+                7
+              ],
+              "bbox": [
+                190,
+                443,
+                952,
+                785
+              ],
+              "confidence": null
+            },
+            "date": {
+              "model": "paddleocr-vl",
+              "lines": [
+                5
+              ],
+              "bbox": [
+                649,
+                340,
+                856,
+                370
+              ],
+              "confidence": null
+            },
+            "merchant": {
+              "model": "paddleocr-vl",
+              "lines": [
+                0
+              ],
+              "bbox": [
+                184,
+                166,
+                537,
+                221
+              ],
+              "confidence": null
+            }
+          },
+          "subtotal": 471.24,
+          "discount": 23.56,
+          "service": null,
+          "tax": 26.86,
+          "total": 474.54
+        },
+        "checks": [
+          {
+            "name": "total_present",
+            "passed": true,
+            "detail": "a total was found"
+          },
+          {
+            "name": "line_items_present",
+            "passed": true,
+            "detail": "4 line items"
+          },
+          {
+            "name": "line_items_complete",
+            "passed": true,
+            "detail": "every item has a description and an amount"
+          },
+          {
+            "name": "line_item_arithmetic",
+            "passed": true,
+            "detail": "quantity x unit price = amount"
+          },
+          {
+            "name": "items_sum_to_subtotal",
+            "passed": true,
+            "detail": "items add up to 471.24, subtotal is 471.24"
+          },
+          {
+            "name": "total_matches_parts",
+            "passed": true,
+            "detail": "subtotal - discount + service + tax is 474.54, total is 474.54"
+          },
+          {
+            "name": "date_not_in_future",
+            "passed": true,
+            "detail": "date 2026-08-04"
+          },
+          {
+            "name": "confidence_floor",
+            "passed": true,
+            "detail": "every field line has confidence of at least 0.8"
+          }
+        ],
+        "attempts": [
+          {
+            "model": "ppocr-v6",
+            "passed": false,
+            "failedChecks": [
+              "line_items_complete"
+            ],
+            "receipt": {
+              "merchant": "Brightwater Print Studio",
+              "date": "2026-08-04",
+              "currency": null,
+              "currencyMark": "$",
+              "lineItems": [
+                {
+                  "description": "",
+                  "quantity": 1,
+                  "unitPrice": 16.0,
+                  "amount": 16.0,
+                  "source": {
+                    "model": "ppocr-v6",
+                    "lines": [
+                      17,
+                      18,
+                      19
+                    ],
+                    "bbox": [
+                      661,
+                      492,
+                      938,
+                      520
+                    ],
+                    "confidence": 0.9303
+                  }
+                },
+                {
+                  "description": "Software licence, per seat",
+                  "quantity": 10,
+                  "unitPrice": 34.34,
+                  "amount": 343.4,
+                  "source": {
+                    "model": "ppocr-v6",
+                    "lines": [
+                      20,
+                      21,
+                      22,
+                      23
+                    ],
+                    "bbox": [
+                      196,
+                      510,
+                      939,
+                      559
+                    ],
+                    "confidence": 0.9986
+                  }
+                },
+                {
+                  "description": "Brake pad set",
+                  "quantity": 1,
+                  "unitPrice": 94.1,
+                  "amount": 94.1,
+                  "source": {
+                    "model": "ppocr-v6",
+                    "lines": [
+                      24,
+                      25,
+                      26,
+                      27
+                    ],
+                    "bbox": [
+                      197,
+                      548,
+                      941,
+                      595
+                    ],
+                    "confidence": 0.9934
+                  }
+                },
+                {
+                  "description": "Design consultation (hours)",
+                  "quantity": 1,
+                  "unitPrice": 17.74,
+                  "amount": 17.74,
+                  "source": {
+                    "model": "ppocr-v6",
+                    "lines": [
+                      28,
+                      29,
+                      30,
+                      31
+                    ],
+                    "bbox": [
+                      198,
+                      581,
+                      942,
+                      634
+                    ],
+                    "confidence": 0.9844
+                  }
+                }
+              ],
+              "sources": {
+                "subtotal": {
+                  "model": "ppocr-v6",
+                  "lines": [
+                    33,
+                    34
+                  ],
+                  "bbox": [
+                    607,
+                    662,
+                    944,
+                    689
+                  ],
+                  "confidence": 0.9963
+                },
+                "discount": {
+                  "model": "ppocr-v6",
+                  "lines": [
+                    35,
+                    36
+                  ],
+                  "bbox": [
+                    609,
+                    686,
+                    944,
+                    714
+                  ],
+                  "confidence": 0.9973
+                },
+                "tax": {
+                  "model": "ppocr-v6",
+                  "lines": [
+                    37,
+                    38
+                  ],
+                  "bbox": [
+                    608,
+                    712,
+                    945,
+                    739
+                  ],
+                  "confidence": 0.9614
+                },
+                "total": {
+                  "model": "ppocr-v6",
+                  "lines": [
+                    39,
+                    40
+                  ],
+                  "bbox": [
+                    609,
+                    749,
+                    947,
+                    779
+                  ],
+                  "confidence": 1
+                },
+                "date": {
+                  "model": "ppocr-v6",
+                  "lines": [
+                    8
+                  ],
+                  "bbox": [
+                    768,
+                    339,
+                    853,
+                    362
+                  ],
+                  "confidence": 0.9939
+                },
+                "merchant": {
+                  "model": "ppocr-v6",
+                  "lines": [
+                    1
+                  ],
+                  "bbox": [
+                    180,
+                    162,
+                    539,
+                    222
+                  ],
+                  "confidence": 0.9805
+                }
+              },
+              "subtotal": 471.24,
+              "discount": 23.56,
+              "service": null,
+              "tax": 26.86,
+              "total": 474.54
+            }
+          },
+          {
+            "model": "paddleocr-vl",
+            "passed": true,
+            "failedChecks": [],
+            "receipt": {
+              "merchant": "Brightwater Print Studio",
+              "date": "2026-08-04",
+              "currency": null,
+              "currencyMark": "$",
+              "lineItems": [
+                {
+                  "description": "Software licence, per seat",
+                  "quantity": 1,
+                  "unitPrice": 16.0,
+                  "amount": 16.0,
+                  "source": {
+                    "model": "paddleocr-vl",
+                    "lines": [
+                      7
+                    ],
+                    "bbox": [
+                      190,
+                      443,
+                      952,
+                      785
+                    ],
+                    "confidence": null
+                  }
+                },
+                {
+                  "description": "Brake pad set",
+                  "quantity": 10,
+                  "unitPrice": 34.34,
+                  "amount": 343.4,
+                  "source": {
+                    "model": "paddleocr-vl",
+                    "lines": [
+                      7
+                    ],
+                    "bbox": [
+                      190,
+                      443,
+                      952,
+                      785
+                    ],
+                    "confidence": null
+                  }
+                },
+                {
+                  "description": "Design consultation (hours)",
+                  "quantity": 1,
+                  "unitPrice": 94.1,
+                  "amount": 94.1,
+                  "source": {
+                    "model": "paddleocr-vl",
+                    "lines": [
+                      7
+                    ],
+                    "bbox": [
+                      190,
+                      443,
+                      952,
+                      785
+                    ],
+                    "confidence": null
+                  }
+                },
+                {
+                  "description": "Catering, per head",
+                  "quantity": 1,
+                  "unitPrice": 17.74,
+                  "amount": 17.74,
+                  "source": {
+                    "model": "paddleocr-vl",
+                    "lines": [
+                      7
+                    ],
+                    "bbox": [
+                      190,
+                      443,
+                      952,
+                      785
+                    ],
+                    "confidence": null
+                  }
+                }
+              ],
+              "sources": {
+                "subtotal": {
+                  "model": "paddleocr-vl",
+                  "lines": [
+                    7
+                  ],
+                  "bbox": [
+                    190,
+                    443,
+                    952,
+                    785
+                  ],
+                  "confidence": null
+                },
+                "discount": {
+                  "model": "paddleocr-vl",
+                  "lines": [
+                    7
+                  ],
+                  "bbox": [
+                    190,
+                    443,
+                    952,
+                    785
+                  ],
+                  "confidence": null
+                },
+                "tax": {
+                  "model": "paddleocr-vl",
+                  "lines": [
+                    7
+                  ],
+                  "bbox": [
+                    190,
+                    443,
+                    952,
+                    785
+                  ],
+                  "confidence": null
+                },
+                "total": {
+                  "model": "paddleocr-vl",
+                  "lines": [
+                    7
+                  ],
+                  "bbox": [
+                    190,
+                    443,
+                    952,
+                    785
+                  ],
+                  "confidence": null
+                },
+                "date": {
+                  "model": "paddleocr-vl",
+                  "lines": [
+                    5
+                  ],
+                  "bbox": [
+                    649,
+                    340,
+                    856,
+                    370
+                  ],
+                  "confidence": null
+                },
+                "merchant": {
+                  "model": "paddleocr-vl",
+                  "lines": [
+                    0
+                  ],
+                  "bbox": [
+                    184,
+                    166,
+                    537,
+                    221
+                  ],
+                  "confidence": null
+                }
+              },
+              "subtotal": 471.24,
+              "discount": 23.56,
+              "service": null,
+              "tax": 26.86,
+              "total": 474.54
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "ledger": {
+    "calls": 5,
+    "listTotal": 3.0,
+    "chargedTotal": 2.0
+  }
+}

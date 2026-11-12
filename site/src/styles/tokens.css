@@ -1,0 +1,88 @@
+/* Foldbun Stack web apps (site, console, playground): tokens.
+   Tokens first; every color in components comes from a token.
+   Colours: Foldbun Design System 0.4, scheme "wheat" (design-tokens.json -> .schemes.wheat); data / chart / instance
+   colours are the product's own and stay as they were. */
+
+/* ---------- Tokens: light (default) ---------- */
+:root {
+  --bg: #f7f7f4;
+  --surface: #ffffff;
+  --surface-2: #f0f1ed;      /* wheat subtle: table header, code, sidebar */
+  --surface-3: #e7e9e2;      /* wheat sunken: hover, pressed, skeleton */
+  --border: #d7dad1;
+  --border-strong: #858b7e;  /* wheat field: inputs (3:1 on white) */
+  --text: #262a23;
+  --text-2: #5d6557;
+  --text-3: #697061;         /* wheat placeholder */
+  --accent: #8b502d;          /* wheat action; 6.4:1 on white, white text on it 6.4:1 */
+  --accent-hover: #704024;
+  --accent-text: #ffffff;
+  --accent-soft: #fff3db;
+  --accent-ink: #5a3d25;      /* text on --accent-soft */
+  --focus: #8b502d;
+  --success: #22663f;  --success-soft: #eaf5ed;
+  --warning: #79520e;  --warning-soft: #fff3d2;
+  --danger: #a3343d;   --danger-hover: #862a32; --danger-soft: #fbecef; --danger-text: #ffffff;
+  --info: #345b7d;     --info-soft: #ecf3f9;
+  --internal: #7a3fb0;       /* operations (internal) marker; no wheat counterpart */
+  --chart-1: #2557c7;
+  --chart-grid: #e8e8e8;
+  --shadow: 0 2px 8px rgba(0,0,0,.12);
+  --overlay: rgba(25,29,23,.40);
+  color-scheme: light;
+}
+
+/* ---------- Tokens: dark ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #181c18; --surface: #222722; --surface-2: #2c322b; --surface-3: #353d33;
+    --border: #485145; --border-strong: #818b7b;
+    --text: #f0f2eb; --text-2: #b8c0b0; --text-3: #acb5a4;
+    --accent: #e9bb8e; --accent-hover: #f0ceaa; --accent-text: #39251a; --accent-soft: #3b3026; --accent-ink: #f5d7b4;
+    --focus: #e9bb8e;
+    --success: #a8dab6; --success-soft: #253b2c;
+    --warning: #eed296; --warning-soft: #3b3321;
+    --danger: #f6b6bd; --danger-hover: #fbcdd2; --danger-soft: #432b30; --danger-text: #3a1a1e;
+    --info: #b4d5ee; --info-soft: #293947;
+    --internal: #b88ae6;
+    --chart-1: #6d9bff; --chart-grid: #353d33;
+    --shadow: 0 2px 10px rgba(0,0,0,.5); --overlay: rgba(0,0,0,.62);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #181c18; --surface: #222722; --surface-2: #2c322b; --surface-3: #353d33;
+  --border: #485145; --border-strong: #818b7b;
+  --text: #f0f2eb; --text-2: #b8c0b0; --text-3: #acb5a4;
+  --accent: #e9bb8e; --accent-hover: #f0ceaa; --accent-text: #39251a; --accent-soft: #3b3026; --accent-ink: #f5d7b4;
+  --focus: #e9bb8e;
+  --success: #a8dab6; --success-soft: #253b2c;
+  --warning: #eed296; --warning-soft: #3b3321;
+  --danger: #f6b6bd; --danger-hover: #fbcdd2; --danger-soft: #432b30; --danger-text: #3a1a1e;
+  --info: #b4d5ee; --info-soft: #293947;
+  --internal: #b88ae6;
+  --chart-1: #6d9bff; --chart-grid: #353d33;
+  --shadow: 0 2px 10px rgba(0,0,0,.5); --overlay: rgba(0,0,0,.62);
+  color-scheme: dark;
+}
+
+/* ---------- Logo: one <img> per theme (the mark is multi-colour, so no currentColor); show the one that matches ---------- */
+.logo-dark { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .logo-light { display: none; }
+  :root:not([data-theme="light"]) .logo-dark { display: inline; }
+}
+:root[data-theme="dark"] .logo-light { display: none; }
+:root[data-theme="dark"] .logo-dark { display: inline; }
+
+/* ---------- Scale ---------- */
+:root {
+  --font: "Segoe UI", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+  --mono: "Cascadia Mono", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px; --fs-lg: 16px; --fs-xl: 20px; --fs-2xl: 28px;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
+  --radius: 2px;
+  --control-h: 32px; --control-h-sm: 24px; --row-h: 34px;
+  --topbar-h: 48px; --nav-w: 216px;
+  --t-fast: 80ms;
+}

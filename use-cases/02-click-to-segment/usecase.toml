@@ -1,0 +1,63 @@
+id = "02-click-to-segment"
+order = 2
+title = { en = "Click-to-segment component with a key-holding backend", zh = "点击分割组件与持有密钥的后端" }
+summary = { en = "Segment one object with a few clicks in the browser: a small backend holds the key, uploads each image once and sends every click to sam-lite; a click simulator measures clicks, quality and cost.", zh = "在浏览器里点几下分割出一个物体：一个小型后端持有密钥，每张图只上传一次，把每次点击发给 sam-lite；点击模拟器实测点击次数、分割质量和成本。" }
+models = ["sam-lite"]
+tier = "funded"
+kind = "server"
+languages = ["typescript", "python", "go"]
+reference = "typescript"
+docs = ["/docs/images/", "/docs/rate-limits/", "/docs/billing/"]
+playground = "/playground/?model=sam-lite"
+
+[sizes.smoke]
+manifest = "assets/smoke/manifest.json"
+# 3 objects x at most 4 clicks. Usually one image encoding (0.2) per object plus 0.01 per click (about 0.72), but the
+# cache is not guaranteed, so the cap plans every click as a miss: 12 x 0.21.
+budget_credits = 2.6
+
+# The 30 objects (one per image) are a release asset: extract 02-click-to-segment-full.tar.gz into assets/ (see
+# assets/full.json; its items carry maxClicks = 10, the click limit of the full protocol). Usually one image encoding (0.2)
+# per object plus 0.01 per click (at most 0.2 + 10 x 0.01 = 0.30 per object, 9 in all), but the cache is not guaranteed,
+# so the cap plans every click as a miss: 30 objects x 10 clicks x (0.2 + 0.01) = 63.
+# Only sam-lite runs: a second pass with sam3 would need the click simulator to name the model per run, which the
+# harness does not express (`[sizes]` has no per-model variant), so it is left out.
+[sizes.full]
+manifest = "assets/full.json"
+budget_credits = 63.0
+languages = ["typescript"]
+
+[compare]
+"items[].output.imageId" = { exact = true }
+"items[].output.width" = { exact = true }
+"items[].output.height" = { exact = true }
+"items[].output.clicks" = { len = true }
+"items[].output.clicks[].x" = { exact = true }
+"items[].output.clicks[].y" = { exact = true }
+"items[].output.clicks[].positive" = { exact = true }
+"items[].output.clicks[].iou" = { abs = 0.002 }
+"items[].output.clicks[].score" = { abs = 0.01 }
+"items[].output.clicks[].cache" = { exact = true }
+"items[].output.clicks[].listCredits" = { abs = 0.000001 }
+"items[].output.noc85" = { exact = true }
+"items[].output.noc90" = { exact = true }
+"ledger.calls" = { exact = true }
+"ledger.listTotal" = { abs = 0.000001 }
+
+# Against the real API the encoding cache may or may not be warm, so the cache state of a click and what follows from it
+# (the list price) are not compared; the geometry, the clicks and the scores are.
+[compare_live]
+"items[].output.clicks[].cache" = { ignore = true }
+"items[].output.clicks[].listCredits" = { ignore = true }
+"ledger.listTotal" = { ignore = true }
+
+[quality]
+# Floors for the metrics `evaluate.py` prints on the full set (30 objects, at most 10 clicks), set with a margin around
+# the first recorded run (expected/full-summary.json). No timing metric is published.
+miou_at_3 = { min = 0.88 }
+miou_at_10 = { min = 0.87 }
+noc85_mean = { max = 2.5 }
+noc90_mean = { max = 3 }
+noc90_reached = { min = 0.85 }
+# 0.30 when only each object's first click misses the cache, 2.1 when every click does.
+list_credits_per_object = { max = 2.1 }

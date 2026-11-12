@@ -1,0 +1,14 @@
+name: Use case or language request
+description: Propose a new use case, or a language for existing use cases.
+labels: [request]
+body:
+  - type: textarea
+    id: problem
+    attributes: { label: Problem, description: "The engineering problem to solve, with its constraints: volume, latency, cost, accuracy" }
+    validations: { required: true }
+  - type: textarea
+    id: languages
+    attributes: { label: Languages, description: "Which languages, and why they are a realistic choice for this problem" }
+  - type: textarea
+    id: data
+    attributes: { label: Data, description: "A dataset with a licence that allows redistribution, if you know one" }

@@ -1,0 +1,65 @@
+{
+ "usecase": "01-dataset-prelabelling",
+ "version": 1,
+ "classes": [
+  {
+   "name": "Dog",
+   "prompt": "dog"
+  },
+  {
+   "name": "Cat",
+   "prompt": "cat"
+  },
+  {
+   "name": "Bird",
+   "prompt": "bird"
+  },
+  {
+   "name": "Boat",
+   "prompt": "boat"
+  }
+ ],
+ "set": "smoke",
+ "items": [
+  {
+   "id": "746b596e2148b044",
+   "image": "images/746b596e2148b044.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "7803588ebab09921",
+   "image": "images/7803588ebab09921.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "16774edaeacc5aed",
+   "image": "images/16774edaeacc5aed.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  },
+  {
+   "id": "5da2941bab9c2f4a",
+   "image": "images/5da2941bab9c2f4a.jpg",
+   "prompts": [
+    "dog",
+    "cat",
+    "bird",
+    "boat"
+   ]
+  }
+ ]
+}

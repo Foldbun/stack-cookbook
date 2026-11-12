@@ -1,0 +1,17 @@
+{
+  "objects": 3,
+  "objects_ok": 3,
+  "noc85_mean": 1.333,
+  "noc85_reached": 1.0,
+  "noc90_mean": 1.333,
+  "noc90_reached": 1.0,
+  "miou_at_1": 0.885,
+  "miou_at_2": 0.9424,
+  "miou_at_3": 0.9424,
+  "miou_at_4": 0.9424,
+  "clicks_per_object": 1.333,
+  "list_credits_per_object": 0.213333,
+  "planning_credits_per_object": 0.28,
+  "charged_credits_per_object": 0.0,
+  "cache_hit_rate": 0.25
+}

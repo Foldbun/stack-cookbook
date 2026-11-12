@@ -1,0 +1,27 @@
+{
+ "usecase": "03-receipts-to-json",
+ "version": 1,
+ "set": "smoke",
+ "items": [
+  {
+   "id": "cord-001",
+   "image": "images/cord-001.jpg",
+   "sha256": "49c15b2640381c9ddd7b12227cc290d4e4eea6d3218d6ca0343df9fbbdf1d2da"
+  },
+  {
+   "id": "cord-002",
+   "image": "images/cord-002.jpg",
+   "sha256": "91bf03a4724b29ca40b3d34e995c91ff89ca2daaeab61f718509340fd4b4f1ac"
+  },
+  {
+   "id": "cord-003",
+   "image": "images/cord-003.jpg",
+   "sha256": "9d39a6a24d60a7647ea0c8096f6ea58fcbf1aa99d4534002ebf4dac66c40918f"
+  },
+  {
+   "id": "inv-011",
+   "image": "images/inv-011.jpg",
+   "sha256": "826a22576c6234a63cf9a9c28fd19c482292756ee86b10ae42e928e9f7b6841c"
+  }
+ ]
+}
