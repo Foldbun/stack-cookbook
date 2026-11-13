@@ -1,0 +1,21 @@
+{
+ "usecase": "04-documents-to-rag-chunks",
+ "version": 1,
+ "set": "smoke",
+ "items": [
+  {
+   "id": "d01-p2",
+   "image": "images/d01-p2.jpg",
+   "document": "d01",
+   "page": 2,
+   "sha256": "d4a7bb1bdca3df1f37922981e467d292985b376c64c6e755561a683f552a2d1a"
+  },
+  {
+   "id": "d01-photo-p3",
+   "image": "images/d01-photo-p3.jpg",
+   "document": "d01",
+   "page": 3,
+   "sha256": "ea3a8f5b5145d1283181974e927b02ebfb497967000e633cf2a25a4450a74c24"
+  }
+ ]
+}

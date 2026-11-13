@@ -1,0 +1,19 @@
+{
+ "usecase": "04-documents-to-rag-chunks",
+ "version": 1,
+ "set": "smoke",
+ "items": [
+  {
+   "id": "d01-p2",
+   "image": "images/d01-p2.jpg",
+   "document": "d01",
+   "page": 2
+  },
+  {
+   "id": "d01-photo-p3",
+   "image": "images/d01-photo-p3.jpg",
+   "document": "d01",
+   "page": 3
+  }
+ ]
+}

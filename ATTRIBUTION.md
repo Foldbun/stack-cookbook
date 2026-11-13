@@ -11,6 +11,7 @@ The code in this repository is MIT licensed (see `LICENSE`). Images, datasets an
 | Open Images V7 boxes, image-level labels and segmentation masks (use cases 01, 02, 05) | "Open Images Dataset V7, Google LLC" | CC BY 4.0; boxes converted to pixel coordinates, masks resized |
 | CORD v2 receipts (use case 03) | [CORD v2, NAVER Clova](https://github.com/clovaai/cord) | CC BY 4.0; re-encoded as JPEG, ground truth normalised |
 | Synthetic invoices (use case 03) | Generated in this repository by `datasets/generators/invoices.py` from fictional data | CC0 1.0 |
+| Synthetic document pages (use case 04) | Generated in this repository by `datasets/generators/documents.py`; layout, headings, tables and formulas are synthetic, body text is excerpted from public-domain books (Adam Smith, 1776; Charles Darwin, 1859; Henry David Thoreau, 1854; Albert Einstein, 1920 translation by Robert W. Lawson), see `datasets/LICENSES.md` | CC0 1.0 for the generated pages; the excerpted text is in the public domain |
 
 The per-file rows are in `datasets/attribution/ATTRIBUTION-<use case>.csv` (full sets) and `datasets/smoke/<use case>/ATTRIBUTION.csv` (smoke sets, also under `use-cases/*/assets/smoke/`). How each source's licence was checked, and what each one requires, is in [`datasets/LICENSES.md`](datasets/LICENSES.md).
 

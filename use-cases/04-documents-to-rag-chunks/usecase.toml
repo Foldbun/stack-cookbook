@@ -1,0 +1,40 @@
+id = "04-documents-to-rag-chunks"
+order = 4
+title = { en = "Scanned documents to Markdown chunks for a search index", zh = "扫描文档转为可入索引的 Markdown 切块" }
+summary = { en = "Parse every page with paddleocr-vl, remove headers and footers that repeat across pages, and cut the text into chunks that keep tables whole and carry page, box and heading path.", zh = "用 paddleocr-vl 解析每一页，去掉跨页重复的页眉页脚，把正文切成块；表格整块不切，每块带页码、位置框和标题路径。" }
+models = ["paddleocr-vl"]
+tier = "billed"
+languages = ["python"]
+reference = "python"
+docs = ["/docs/use-cases/document-parsing/", "/docs/rate-limits/", "/docs/billing/"]
+playground = "/playground/?model=paddleocr-vl"
+
+[sizes.smoke]
+manifest = "assets/smoke/manifest.json"
+budget_credits = 4.0
+
+# The 30 pages (15 clean, 15 photographed) are a release asset: extract 04-documents-to-rag-chunks-full.tar.gz into assets/
+# (see assets/full.json). One paddleocr-vl call per page at 2 credits: 30 x 2 = 60. A failed call is not charged, so the
+# cap leaves no room for anything else.
+[sizes.full]
+manifest = "assets/full.json"
+budget_credits = 60.0
+languages = ["python"]
+
+[compare]
+"items[].output.document" = { exact = true }
+"items[].output.page" = { exact = true }
+"items[].output.blocks" = { len = true }
+"items[].output.blocks[].type" = { exact = true }
+"items[].output.blocks[].dropped" = { exact = true }
+"items[].output.chunks" = { len = true }
+"items[].output.chunks[].page" = { exact = true }
+"items[].output.chunks[].headings" = { exact = true }
+"items[].output.chunks[].blockTypes" = { exact = true }
+"items[].output.chunks[].chars" = { abs = 40 }
+"ledger.calls" = { exact = true }
+
+[quality]
+# Floors are set after the first full run on the real API; until then none apply. The metrics evaluate.py prints
+# (text_ned, table_cell_f1, reading_order_tau, the clean/photographed gaps, tables_split, cost_per_1000_pages_list)
+# are measured, not guessed.

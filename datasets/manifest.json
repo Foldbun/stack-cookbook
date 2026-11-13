@@ -83,6 +83,19 @@
     "manifest.json": "8f824ddda075308a10883db16e25e07aa2f762ee19381f76a1c89a85ba5f4018",
     "truth.json": "7191345b8e578083902b22f81de676eb1c96283600e0a917cf6445c5d3168218"
    }
+  },
+  "04-documents-to-rag-chunks": {
+   "file": "04-documents-to-rag-chunks-full.tar.gz",
+   "bytes": 7728978,
+   "sha256": "2ae59ec7edc47bacdc8e82eba52df283b2731dceb8eb4a701594e37391426883",
+   "files": 33,
+   "smoke": {
+    "ATTRIBUTION.csv": "07de5b153d981de20d7e84b4e021bf12f15b32c3bb4e569c74cd2a7abc476302",
+    "images/d01-p2.jpg": "d4a7bb1bdca3df1f37922981e467d292985b376c64c6e755561a683f552a2d1a",
+    "images/d01-photo-p3.jpg": "ea3a8f5b5145d1283181974e927b02ebfb497967000e633cf2a25a4450a74c24",
+    "manifest.json": "5b56c3fb336973542d6df4f510ba1aef0d9ccbfbdfd11fb46dff62d13e174586",
+    "truth.json": "0a144515a0085e977713afd806997e91dc45715b9d4e7fccf40228a71a5839ad"
+   }
   }
  }
 }

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Foldbun/stack-cookbook/main/use-cases/04-documents-to-rag-chunks/output.schema.json",
+  "title": "items[].output of 04-documents-to-rag-chunks",
+  "description": "One page: what the model returned (blocks in reading order, the page as Markdown) and the chunks that start on this page. A chunk never crosses a page boundary. A page that failed has status error and no output (a page the model could not read is `bad_model_output`: it is not retried and the document continues without it).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["document", "page", "sha256", "markdown", "blocks", "chunks"],
+  "properties": {
+    "document": { "type": "string", "description": "Document id from the manifest; pages of one document are chunked together and repeated headers and footers are found across them." },
+    "page": { "type": "integer", "minimum": 1 },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "sha256 of the page image file." },
+    "markdown": { "type": "string", "description": "The page as Markdown, as the API returned it." },
+    "blocks": {
+      "type": "array",
+      "description": "All blocks of the page as returned, in reading order. `dropped` marks header and footer blocks that repeat on other pages of the document: they are not in the chunks.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "order", "bbox"],
+        "properties": {
+          "type": { "enum": ["text", "title", "table", "formula", "figure", "caption", "header", "footer", "list", "other"] },
+          "order": { "type": "integer", "minimum": 0 },
+          "bbox": { "type": "array", "items": { "type": "integer" }, "minItems": 4, "maxItems": 4, "description": "[x1, y1, x2, y2] in pixels of the page image, x2 and y2 exclusive." },
+          "text": { "type": "string" },
+          "markdown": { "type": "string" },
+          "dropped": { "const": "repeated_header_footer" }
+        }
+      }
+    },
+    "chunks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "document", "page", "text", "chars", "headings", "blockTypes", "bbox", "blocks", "sha256"],
+        "properties": {
+          "id": { "type": "string", "description": "<document>-cNNNN, numbered in page order." },
+          "document": { "type": "string" },
+          "page": { "type": "integer", "minimum": 1 },
+          "text": { "type": "string", "description": "Markdown: headings as # lines, tables as HTML, formulas as LaTeX between $$." },
+          "chars": { "type": "integer", "minimum": 1 },
+          "headings": { "type": "array", "items": { "type": "string" }, "description": "The heading path the chunk sits under, from the top heading down (it includes the chunk's own heading when it starts with one)." },
+          "blockTypes": { "type": "array", "items": { "type": "string" }, "description": "Block types in the chunk, first appearance order." },
+          "bbox": { "type": "array", "items": { "type": "integer" }, "minItems": 4, "maxItems": 4, "description": "Merged box of the chunk's blocks on its page." },
+          "blocks": { "type": "array", "items": { "type": "array", "items": { "type": "integer" }, "minItems": 2, "maxItems": 2 }, "description": "[page, order] of every block the chunk draws from." },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "sha256 of the source page image file." }
+        }
+      }
+    }
+  }
+}

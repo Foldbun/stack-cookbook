@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 250" role="img" aria-labelledby="t d" font-family="system-ui, sans-serif" font-size="14">
+  <title id="t">Document pipeline</title>
+  <desc id="d">Page images are uploaded and parsed one page per call by paddleocr-vl into layout blocks. Headers and footers that repeat across the pages of a document are dropped. The remaining blocks are cut into chunks: a title opens a chunk, text is packed to about 800 characters, tables and formulas are never cut. The chunks are written to chunks.jsonl and the document to Markdown.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#667"/></marker>
+  </defs>
+  <g fill="#f4f6fa" stroke="#667" stroke-width="1.5">
+    <rect x="10" y="30" width="120" height="60" rx="6"/>
+    <rect x="170" y="30" width="130" height="60" rx="6"/>
+    <rect x="340" y="30" width="130" height="60" rx="6"/>
+    <rect x="510" y="30" width="130" height="60" rx="6"/>
+    <rect x="680" y="30" width="190" height="60" rx="6" fill="#e6f4ea"/>
+    <rect x="340" y="150" width="130" height="60" rx="6"/>
+    <rect x="510" y="150" width="130" height="60" rx="6"/>
+    <rect x="680" y="150" width="190" height="60" rx="6" fill="#e6f4ea"/>
+  </g>
+  <g fill="#223" text-anchor="middle">
+    <text x="70" y="55">Page images</text><text x="70" y="75" font-size="12">one image per page</text>
+    <text x="235" y="55">paddleocr-vl</text><text x="235" y="75" font-size="12">2 credits per page</text>
+    <text x="405" y="55">Blocks</text><text x="405" y="75" font-size="12">in reading order</text>
+    <text x="575" y="55">Drop repeats</text><text x="575" y="75" font-size="12">headers, footers</text>
+    <text x="775" y="55">Chunks</text><text x="775" y="75" font-size="12">about 800 characters</text>
+    <text x="405" y="175">Table, formula</text><text x="405" y="195" font-size="12">never cut</text>
+    <text x="575" y="175">Title</text><text x="575" y="195" font-size="12">opens a chunk</text>
+    <text x="775" y="175">chunks.jsonl</text><text x="775" y="195" font-size="12">+ document Markdown</text>
+  </g>
+  <g stroke="#667" stroke-width="1.5" fill="none" marker-end="url(#a)">
+    <path d="M130 60H168"/><path d="M300 60H338"/><path d="M470 60H508"/><path d="M640 60H678"/>
+    <path d="M775 90V148"/>
+  </g>
+  <g stroke="#667" stroke-width="1.5" stroke-dasharray="4 3" fill="none">
+    <path d="M470 180H508"/><path d="M640 180H678" marker-end="url(#a)"/>
+  </g>
+  <g fill="#445" font-size="12" text-anchor="middle">
+    <text x="820" y="125">write</text><text x="490" y="146">rules</text>
+  </g>
+</svg>

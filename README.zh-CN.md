@@ -33,6 +33,7 @@ curl：`bash ../curl/run.sh`。TypeScript：`cd ../typescript && pnpm install &&
 | [01 用文字提示词预标注图像数据集](use-cases/01-dataset-prelabelling/README.zh-CN.md) | 按量扣费 |  | ✓ |  | ✓ |
 | [02 点击分割组件与持有密钥的后端](use-cases/02-click-to-segment/README.zh-CN.md) | 已充值 |  | ✓ | ✓ | ✓ |
 | [03 收据和发票转为经过校验的 JSON](use-cases/03-receipts-to-json/README.zh-CN.md) | 按量扣费 |  | ✓ | ✓ | ✓ |
+| [04 扫描文档转为可入索引的 Markdown 切块](use-cases/04-documents-to-rag-chunks/README.zh-CN.md) | 按量扣费 |  | ✓ |  |  |
 | [05 按图、按文字搜索图库，并找出近重复图片](use-cases/05-image-library-search/README.zh-CN.md) | 公共池 |  | ✓ |  | ✓ |
 | [08 监控线上集成的成本与时延](use-cases/08-cost-and-latency-monitoring/README.zh-CN.md) | 已充值 |  | ✓ |  |  |
 <!-- /usecases -->

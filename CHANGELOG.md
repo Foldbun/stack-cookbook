@@ -4,6 +4,7 @@ All notable changes to this repository. Versions follow [Semantic Versioning](ht
 
 ## Unreleased
 
+- `04-documents-to-rag-chunks`: scanned and photographed document pages to Markdown chunks for a search index with `paddleocr-vl` (Python): one `/v1/documents/parse` call per page, repeated headers and footers removed across pages, chunks that keep tables whole and carry page, box and heading path, `chunks.jsonl` and one Markdown file per document. An optional `--pdf` input renders pages with `pypdfium2`. Dataset: 30 synthetic pages (15 clean, 15 photographed) with block, table-cell and Markdown ground truth (CC0, public-domain text). `evaluate.py` reports text NED, table cell F1, reading-order tau, the clean/photographed gap, chunk statistics and cost per 1,000 pages; no latency.
 - `08-cost-and-latency-monitoring` (Python): `monitoring.py` wraps the client file and exports Prometheus metrics from the billing, cache and timing of every answer and from each batch `item` event, with a sliding-hour spend guard (alert or refuse); a 21-call replay, `evaluate.py` (books agree, cache hits, guard trigger, middleware overhead), an alert-rules file and a Grafana dashboard.
 - The vendored API description `harness/vendor/openapi.yaml` is now 1.1.0 (adds `GET /v1/whoami`, `account_disabled`, `forbidden` and `moved` error codes, upload limits, batch result cap; one phrase naming a retired host is generalised). The fake API serves `GET /v1/whoami`.
 - Root test dependencies: `prometheus-client` (tests of use case 08).

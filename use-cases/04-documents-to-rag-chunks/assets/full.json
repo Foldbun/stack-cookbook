@@ -1,0 +1,188 @@
+{
+ "usecase": "04-documents-to-rag-chunks",
+ "version": 1,
+ "set": "full",
+ "note": "The 30 items of the full set. The images are not in git: download 04-documents-to-rag-chunks-full.tar.gz from the release named in datasets/manifest.json and extract it into this directory (it adds images/, truth.json and its own manifest.json).",
+ "items": [
+  {
+   "id": "d01-p1",
+   "image": "images/d01-p1.jpg",
+   "document": "d01",
+   "page": 1
+  },
+  {
+   "id": "d01-p2",
+   "image": "images/d01-p2.jpg",
+   "document": "d01",
+   "page": 2
+  },
+  {
+   "id": "d01-p3",
+   "image": "images/d01-p3.jpg",
+   "document": "d01",
+   "page": 3
+  },
+  {
+   "id": "d01-photo-p1",
+   "image": "images/d01-photo-p1.jpg",
+   "document": "d01-photo",
+   "page": 1
+  },
+  {
+   "id": "d01-photo-p2",
+   "image": "images/d01-photo-p2.jpg",
+   "document": "d01-photo",
+   "page": 2
+  },
+  {
+   "id": "d01-photo-p3",
+   "image": "images/d01-photo-p3.jpg",
+   "document": "d01-photo",
+   "page": 3
+  },
+  {
+   "id": "d02-p1",
+   "image": "images/d02-p1.jpg",
+   "document": "d02",
+   "page": 1
+  },
+  {
+   "id": "d02-p2",
+   "image": "images/d02-p2.jpg",
+   "document": "d02",
+   "page": 2
+  },
+  {
+   "id": "d02-p3",
+   "image": "images/d02-p3.jpg",
+   "document": "d02",
+   "page": 3
+  },
+  {
+   "id": "d02-photo-p1",
+   "image": "images/d02-photo-p1.jpg",
+   "document": "d02-photo",
+   "page": 1
+  },
+  {
+   "id": "d02-photo-p2",
+   "image": "images/d02-photo-p2.jpg",
+   "document": "d02-photo",
+   "page": 2
+  },
+  {
+   "id": "d02-photo-p3",
+   "image": "images/d02-photo-p3.jpg",
+   "document": "d02-photo",
+   "page": 3
+  },
+  {
+   "id": "d03-p1",
+   "image": "images/d03-p1.jpg",
+   "document": "d03",
+   "page": 1
+  },
+  {
+   "id": "d03-p2",
+   "image": "images/d03-p2.jpg",
+   "document": "d03",
+   "page": 2
+  },
+  {
+   "id": "d03-photo-p1",
+   "image": "images/d03-photo-p1.jpg",
+   "document": "d03-photo",
+   "page": 1
+  },
+  {
+   "id": "d03-photo-p2",
+   "image": "images/d03-photo-p2.jpg",
+   "document": "d03-photo",
+   "page": 2
+  },
+  {
+   "id": "d04-p1",
+   "image": "images/d04-p1.jpg",
+   "document": "d04",
+   "page": 1
+  },
+  {
+   "id": "d04-p2",
+   "image": "images/d04-p2.jpg",
+   "document": "d04",
+   "page": 2
+  },
+  {
+   "id": "d04-p3",
+   "image": "images/d04-p3.jpg",
+   "document": "d04",
+   "page": 3
+  },
+  {
+   "id": "d04-photo-p1",
+   "image": "images/d04-photo-p1.jpg",
+   "document": "d04-photo",
+   "page": 1
+  },
+  {
+   "id": "d04-photo-p2",
+   "image": "images/d04-photo-p2.jpg",
+   "document": "d04-photo",
+   "page": 2
+  },
+  {
+   "id": "d04-photo-p3",
+   "image": "images/d04-photo-p3.jpg",
+   "document": "d04-photo",
+   "page": 3
+  },
+  {
+   "id": "d05-p1",
+   "image": "images/d05-p1.jpg",
+   "document": "d05",
+   "page": 1
+  },
+  {
+   "id": "d05-p2",
+   "image": "images/d05-p2.jpg",
+   "document": "d05",
+   "page": 2
+  },
+  {
+   "id": "d05-photo-p1",
+   "image": "images/d05-photo-p1.jpg",
+   "document": "d05-photo",
+   "page": 1
+  },
+  {
+   "id": "d05-photo-p2",
+   "image": "images/d05-photo-p2.jpg",
+   "document": "d05-photo",
+   "page": 2
+  },
+  {
+   "id": "d06-p1",
+   "image": "images/d06-p1.jpg",
+   "document": "d06",
+   "page": 1
+  },
+  {
+   "id": "d06-p2",
+   "image": "images/d06-p2.jpg",
+   "document": "d06",
+   "page": 2
+  },
+  {
+   "id": "d06-photo-p1",
+   "image": "images/d06-photo-p1.jpg",
+   "document": "d06-photo",
+   "page": 1
+  },
+  {
+   "id": "d06-photo-p2",
+   "image": "images/d06-photo-p2.jpg",
+   "document": "d06-photo",
+   "page": 2
+  }
+ ]
+}

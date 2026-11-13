@@ -9,6 +9,7 @@ every download in `sources.lock.json`. Licences and attribution: [LICENSES.md](L
 | `01-dataset-prelabelling` | 60 images, 4 classes (Dog, Cat, Bird, Boat), boxes | Open Images V7 validation | 4 images, 0.9 MB | 10.6 MB |
 | `02-click-to-segment` | 30 objects with masks | Open Images V7 validation masks | 3 objects, 0.4 MB | 4.6 MB |
 | `03-receipts-to-json` | 60 CORD v2 receipts + 20 synthetic invoices (10 clean, 10 photographed) | CORD v2 (CC BY 4.0), generator (CC0) | 3 receipts + 1 photographed invoice, 0.5 MB | 11.7 MB |
+| `04-documents-to-rag-chunks` | 30 synthetic document pages: 15 clean + the same 15 photographed (6 documents of 2 to 3 pages) | generator (CC0), body text from public-domain books | 2 pages, 0.4 MB | 7.7 MB |
 | `05-image-library-search` | 400 images, 100 near-duplicate variants, 40 text queries | Open Images V7 validation | 20 images + 5 variants + 5 queries, 2.9 MB | 73.7 MB |
 
 ## Layout
@@ -16,7 +17,7 @@ every download in `sources.lock.json`. Licences and attribution: [LICENSES.md](L
 ```
 datasets/
   build/            builders (python -m datasets.build[.<name>])
-  generators/       synthetic data (invoices.py)
+  generators/       synthetic data (invoices.py, documents.py + documents_corpus.json: the public-domain excerpts)
   smoke/<use case>/ committed smoke sets: manifest.json, truth.json, ATTRIBUTION.csv, images/ (and masks/)
   attribution/      ATTRIBUTION-<use case>.csv for the full sets (committed)
   (use-cases/<use case>/assets/full.json is the committed copy of each full set's manifest, written by the builders)
@@ -42,6 +43,8 @@ uv run --project datasets python -m datasets.build.openimages 01 02 05
 uv run --project datasets python -m datasets.build.cord [--invoices-only]
 uv run --project datasets python -m datasets.build.near_duplicates --help
 uv run --project datasets python -m datasets.generators.invoices --help
+uv run --project datasets python -m datasets.build.documents      # 04 alone (also what `--only 04` runs)
+uv run --project datasets python -m datasets.generators.documents --help
 uv run --project datasets python -m datasets.build.sheets          # contact sheets into dist/sheets/
 uv run --project datasets python -m datasets.build.repo_manifests [--check]   # use-cases/*/assets/full.json from the archives in dist/
 ```
@@ -57,7 +60,7 @@ missing from `.cache/`, with 4 parallel connections and the User-Agent `foldbun-
 - `manifest.json` (the input the implementations read) never contains ground truth. `truth.json` (read only by the
   evaluators) never contains anything an implementation needs.
 - Boxes are `[x1, y1, x2, y2]` in pixels of the stored image. Images are JPEG; Open Images photos have a long side of at
-  most 1024 px, CORD receipts at most 1300 px.
+  most 1024 px, CORD receipts at most 1300 px, document pages (04) 1754 px.
 - The harness `--limit N` takes the first N manifest items.
 
 ## `manifest.json`
@@ -73,6 +76,7 @@ missing from `.cache/`, with 4 parallel connections and the User-Agent `foldbun-
 | 01 | `prompts`: the four text prompts, `["dog","cat","bird","boat"]` | `classes`: `[{name, prompt}]` |
 | 02 | `label`: lower-case class name of the target object (display only); `maxClicks` (committed full manifest only, 10): the click limit of the protocol. `id` is `<imageId>-<boxId>`; several items never share an image | none |
 | 03 | none (`id` is `cord-NNN` or `inv-NNN`) | none |
+| 04 | `document`: id of the document the page belongs to (`d01`; `d01-photo` for the photographed copy in the full set); `page`: page number in that document | none |
 | 05 | `kind`: `"original"` or `"variant"` | `queries`: `[{id, text}]`, text is `a photo of a <class>` |
 
 ## `truth.json`
@@ -99,6 +103,8 @@ CORD's unmodified `gt_parse`. CORD has no date or vendor field. For synthetic in
 quantity, unit_price, amount } ], line_item_count, subtotal, discount, tax_rate_percent, tax, total }`, numbers with
 two decimals, internally consistent (items add up to the subtotal; subtotal - discount + tax = total). Photographed
 invoices are inv-011 to inv-020.
+
+**04** `items[id] = { document, page, variant ("clean" or "photographed"), twin (id of the other variant of the same page), width, height, blocks, markdown }`. `blocks` are the page's layout blocks in reading order: `{ order, type, text, bbox, level?, cells?, latex? }` with `type` one of `header`, `title`, `text`, `caption`, `table`, `formula`, `footer`; `level` (1 or 2) on titles; `cells` (matrix of strings) on tables, whose `text` is the same table as HTML; `latex` on formulas, whose `text` is `$$latex$$`. `bbox` is in pixels of the stored image; for a photographed page it is the clean page's box carried through the same perspective and rotation (its enclosing rectangle). `markdown` is the page as Markdown, blocks joined by a blank line. Ids are `dNN-pK` (clean) and `dNN-photo-pK`; the smoke manifest puts `d01-p2` and `d01-photo-p3` in one document, `d01`. Pages are 1240 x 1754 px (A4 at 150 dpi); the long-side limit of 1024 px used for photos does not suit text pages.
 
 **05** `items[id] = { width, height, labels: [names], split: "a" | "b" }` for originals and variants (a variant inherits
 the labels and the split of its source). `labels` are the human-verified positive image-level labels. Plus:

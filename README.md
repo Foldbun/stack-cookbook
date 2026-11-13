@@ -32,6 +32,7 @@ The examples call the API with a key created in the Foldbun Stack console. API k
 | [01 Pre-label an image dataset from text prompts](use-cases/01-dataset-prelabelling/README.md) | Billed |  | ✓ |  | ✓ |
 | [02 Click-to-segment component with a key-holding backend](use-cases/02-click-to-segment/README.md) | Funded |  | ✓ | ✓ | ✓ |
 | [03 Receipts and invoices to validated JSON](use-cases/03-receipts-to-json/README.md) | Billed |  | ✓ | ✓ | ✓ |
+| [04 Scanned documents to Markdown chunks for a search index](use-cases/04-documents-to-rag-chunks/README.md) | Billed |  | ✓ |  |  |
 | [05 Search an image library by image, by text, and for near-duplicates](use-cases/05-image-library-search/README.md) | Public pool |  | ✓ |  | ✓ |
 | [08 Monitor cost and latency of a production integration](use-cases/08-cost-and-latency-monitoring/README.md) | Funded |  | ✓ |  |  |
 <!-- /usecases -->

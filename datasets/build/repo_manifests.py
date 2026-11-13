@@ -16,7 +16,7 @@ import tarfile
 
 from .common import DIST, USE_CASES, repo_manifest, write_repo_manifest
 
-UCS = {"01": "01-dataset-prelabelling", "02": "02-click-to-segment", "03": "03-receipts-to-json", "05": "05-image-library-search"}
+UCS = {"01": "01-dataset-prelabelling", "02": "02-click-to-segment", "03": "03-receipts-to-json", "04": "04-documents-to-rag-chunks", "05": "05-image-library-search"}
 
 
 def archive_manifest(uc: str) -> dict:
