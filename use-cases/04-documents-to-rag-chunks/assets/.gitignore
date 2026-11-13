@@ -1,0 +1,5 @@
+# Extracted from 04-documents-to-rag-chunks-full.tar.gz (see full.json); not committed.
+images/
+truth.json
+manifest.json
+ATTRIBUTION.csv

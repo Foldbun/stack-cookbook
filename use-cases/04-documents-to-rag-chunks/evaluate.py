@@ -188,10 +188,10 @@ def percentile(values, q):
 
 def split_tables(entries):
     """Number of table blocks that are not whole in exactly one chunk (dropped blocks are not chunked and not counted)."""
-    chunks = [c for e in entries for c in e["output"]["chunks"]]
     bad = total = 0
     for e in entries:
         page = e["output"]["page"]
+        chunks = e["output"]["chunks"]  # a chunk never crosses a page, and page numbers repeat across documents
         for b in e["output"]["blocks"]:
             if b["type"] != "table" or b.get("dropped"):
                 continue

@@ -376,7 +376,34 @@ Not measured yet.
 Full set (30 pages):
 
 <!-- metrics: expected/full-summary.json -->
-Not measured yet.
+| Metric | Value |
+|---|---|
+| `pages` | 30 |
+| `pages_scored` | 30 |
+| `pages_failed` | 0 |
+| `text_ned` | 0.0015 |
+| `table_cell_f1` | 1 |
+| `reading_order_tau` | 0.9976 |
+| `text_ned_clean` | 0.0018 |
+| `table_cell_f1_clean` | 1 |
+| `reading_order_tau_clean` | 0.9952 |
+| `text_ned_photographed` | 0.0012 |
+| `table_cell_f1_photographed` | 1 |
+| `reading_order_tau_photographed` | 1 |
+| `formula_recall` | 1 |
+| `tables_found_rate` | 1 |
+| `text_ned_gap` | -0.0006 |
+| `table_cell_f1_gap` | 0 |
+| `chunks` | 120 |
+| `chunks_per_page` | 4 |
+| `chunk_chars_p10` | 63 |
+| `chunk_chars_p50` | 499 |
+| `chunk_chars_p90` | 758 |
+| `chunk_chars_max` | 781 |
+| `tables_in_chunks` | 16 |
+| `tables_split` | 0 |
+| `blocks_dropped` | 85 |
+| `cost_per_1000_pages_list` | 2,000 |
 <!-- /metrics -->
 
 ## Cost <!-- #cost -->
@@ -384,7 +411,10 @@ Not measured yet.
 One page is one `paddleocr-vl` call at 2 credits, whatever the page contains: 2,000 credits per 1,000 pages at list price. The cost per 1,000 pages in the table is computed with every page at list price. For large batches of plain text, `ppocr-v6` costs 0.25 credits per image (see use case 03) but returns lines without layout, tables or reading order.
 
 <!-- cost -->
-Not measured yet.
+| Run | Calls | List price (credits) | Charged (credits) |
+|---|---|---|---|
+| smoke | 2 | 4 | 4 |
+| full | 30 | 56 | 56 |
 <!-- /cost -->
 
 - A call that fails is not charged, and a repeated idempotency key within 24 hours is replayed without being charged, so `--resume` and reruns cost nothing for pages already read.

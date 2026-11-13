@@ -399,7 +399,39 @@ The monitoring layer costs about 20 microseconds per call on a 6-vCPU cloud VM, 
 Measured on a real run, server-side timing of the answers and the numbers `evaluate.py` prints:
 
 <!-- metrics: expected/full-summary.json -->
-Not measured yet.
+| Metric | Value |
+|---|---|
+| `ledger_consistent` | 1 |
+| `credits_list_gap` | 0 |
+| `credits_charged_gap` | 0 |
+| `calls_total` | 21 |
+| `calls_failed` | 0 |
+| `cache_hits` | 15 |
+| `cache_misses` | 0 |
+| `cache_hit_rate` | 1 |
+| `cache_saved_credits` | 4.5 |
+| `guard_triggered` | 1 |
+| `guard_trigger_call` | 16 |
+| `credits_list.ppocr-v6` | 1.5 |
+| `credits_charged.ppocr-v6` | 0 |
+| `credits_list.sam-lite` | 0.1 |
+| `credits_charged.sam-lite` | 0 |
+| `credits_list.sam3` | 0.25 |
+| `credits_charged.sam3` | 0.25 |
+| `cache_hits.sam-lite` | 10 |
+| `cache_hits.sam3` | 5 |
+| `queue_ms_p50.ppocr-v6` | 0 |
+| `queue_ms_p95.ppocr-v6` | 0 |
+| `processing_ms_p50.ppocr-v6` | 564 |
+| `processing_ms_p95.ppocr-v6` | 656 |
+| `queue_ms_p50.sam-lite` | 0 |
+| `queue_ms_p95.sam-lite` | 0 |
+| `processing_ms_p50.sam-lite` | 51 |
+| `processing_ms_p95.sam-lite` | 79 |
+| `queue_ms_p50.sam3` | 0 |
+| `queue_ms_p95.sam3` | 0 |
+| `processing_ms_p50.sam3` | 164 |
+| `processing_ms_p95.sam3` | 249 |
 <!-- /metrics -->
 
 Until a live run is recorded, `expected/offline.json` holds the replay against the offline fake API. It shows how the layer behaves, not how the models perform: the fake's timings and cache state are scripted.
@@ -407,7 +439,10 @@ Until a live run is recorded, `expected/offline.json` holds the replay against t
 ## Cost <!-- #cost -->
 
 <!-- cost -->
-Not measured yet.
+| Run | Calls | List price (credits) | Charged (credits) |
+|---|---|---|---|
+| smoke | 21 | 2.55 | 0.75 |
+| full | 21 | 1.85 | 0.25 |
 <!-- /cost -->
 
 The list price of a smoke run is 2.55 credits; what is debited depends on the account (see Results). Full is the same replay.

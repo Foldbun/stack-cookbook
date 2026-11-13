@@ -400,7 +400,39 @@ def run_call(mc, entry, handles):
 真实运行的实测数据，包括应答里服务端的耗时，以及 `evaluate.py` 打印的数字：
 
 <!-- metrics: expected/full-summary.json -->
-尚未实测。
+| 指标 | 数值 |
+|---|---|
+| `ledger_consistent` | 1 |
+| `credits_list_gap` | 0 |
+| `credits_charged_gap` | 0 |
+| `calls_total` | 21 |
+| `calls_failed` | 0 |
+| `cache_hits` | 15 |
+| `cache_misses` | 0 |
+| `cache_hit_rate` | 1 |
+| `cache_saved_credits` | 4.5 |
+| `guard_triggered` | 1 |
+| `guard_trigger_call` | 16 |
+| `credits_list.ppocr-v6` | 1.5 |
+| `credits_charged.ppocr-v6` | 0 |
+| `credits_list.sam-lite` | 0.1 |
+| `credits_charged.sam-lite` | 0 |
+| `credits_list.sam3` | 0.25 |
+| `credits_charged.sam3` | 0.25 |
+| `cache_hits.sam-lite` | 10 |
+| `cache_hits.sam3` | 5 |
+| `queue_ms_p50.ppocr-v6` | 0 |
+| `queue_ms_p95.ppocr-v6` | 0 |
+| `processing_ms_p50.ppocr-v6` | 564 |
+| `processing_ms_p95.ppocr-v6` | 656 |
+| `queue_ms_p50.sam-lite` | 0 |
+| `queue_ms_p95.sam-lite` | 0 |
+| `processing_ms_p50.sam-lite` | 51 |
+| `processing_ms_p95.sam-lite` | 79 |
+| `queue_ms_p50.sam3` | 0 |
+| `queue_ms_p95.sam3` | 0 |
+| `processing_ms_p50.sam3` | 164 |
+| `processing_ms_p95.sam3` | 249 |
 <!-- /metrics -->
 
 在记录第一次线上运行之前，`expected/offline.json` 保存的是对离线假 API 的回放。它展示监控层怎么工作，不代表模型的表现：假服务的耗时和缓存状态都是脚本设定的。
@@ -408,7 +440,10 @@ def run_call(mc, entry, handles):
 ## 成本 <!-- #cost -->
 
 <!-- cost -->
-尚未实测。
+| 运行 | 调用次数 | 标价（credits） | 实扣（credits） |
+|---|---|---|---|
+| smoke | 21 | 2.55 | 0.75 |
+| full | 21 | 1.85 | 0.25 |
 <!-- /cost -->
 
 一次 smoke 运行的标价是 2.55 credits；实际扣多少取决于账户（见「结果」）。Full 与它相同。

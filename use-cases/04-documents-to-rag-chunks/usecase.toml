@@ -35,6 +35,13 @@ languages = ["python"]
 "ledger.calls" = { exact = true }
 
 [quality]
-# Floors are set after the first full run on the real API; until then none apply. The metrics evaluate.py prints
-# (text_ned, table_cell_f1, reading_order_tau, the clean/photographed gaps, tables_split, cost_per_1000_pages_list)
-# are measured, not guessed.
+# Floors for the metrics evaluate.py prints on the full set (30 pages: 15 clean, 15 photographed), set with a margin
+# around the first recorded run (expected/full-summary.json).
+text_ned = { max = 0.02 }
+text_ned_photographed = { max = 0.03 }
+table_cell_f1 = { min = 0.95 }
+reading_order_tau = { min = 0.95 }
+formula_recall = { min = 0.8 }
+tables_found_rate = { min = 0.9 }
+tables_split = { max = 0 }
+pages_failed = { max = 1 }

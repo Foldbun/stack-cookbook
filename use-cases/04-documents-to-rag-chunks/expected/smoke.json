@@ -1,0 +1,490 @@
+{
+  "usecase": "04-documents-to-rag-chunks",
+  "language": "python",
+  "client": "stack_client 1.0.0",
+  "startedAt": "2026-11-13T10:04:58Z",
+  "elapsedMs": 4213,
+  "items": [
+    {
+      "id": "d01-p2",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/documents/parse",
+          "model": "paddleocr-vl",
+          "list": 2,
+          "charged": 2,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 2267,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "document": "d01",
+        "page": 2,
+        "sha256": "d4a7bb1bdca3df1f37922981e467d292985b376c64c6e755561a683f552a2d1a",
+        "markdown": "One man draws out the wire; another straightens it; a third cuts it; a fourth points it; a fifth grinds it at the top for receiving the head; to make the head requires two or three distinct operations; to put it on is a peculiar business; to whiten the pins is another; it is even a trade by itself to put them into the paper; and the important business of making a pin is, in this manner, divided into about eighteen distinct operations, which, in some manufactories, are all performed by distinct hands, though in others the same man will sometimes perform two or three of them. I have seen a small manufacture of this kind, where ten men only were employed, and where some of them consequently performed two or three distinct operations.\n\n### 2. The pin workshop\n\n<div style=\"text-align: center;\">Table 1. Output of a small pin workshop by operation (invented figures)</div>\n\n<table border=1 style='margin: auto; word-wrap: break-word;'><tr><td style='text-align: center; word-wrap: break-word;'>Operation</td><td style='text-align: center; word-wrap: break-word;'>Workers</td><td style='text-align: center; word-wrap: break-word;'>Pins per day</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Drawing the wire</td><td style='text-align: center; word-wrap: break-word;'>1</td><td style='text-align: center; word-wrap: break-word;'>445</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Straightening it</td><td style='text-align: center; word-wrap: break-word;'>2</td><td style='text-align: center; word-wrap: break-word;'>1,222</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Cutting it</td><td style='text-align: center; word-wrap: break-word;'>1</td><td style='text-align: center; word-wrap: break-word;'>512</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Pointing it</td><td style='text-align: center; word-wrap: break-word;'>2</td><td style='text-align: center; word-wrap: break-word;'>764</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Grinding the top</td><td style='text-align: center; word-wrap: break-word;'>3</td><td style='text-align: center; word-wrap: break-word;'>1,167</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Whitening</td><td style='text-align: center; word-wrap: break-word;'>1</td><td style='text-align: center; word-wrap: break-word;'>380</td></tr></table>\n\nBut though they were very poor, and therefore but indifferently accommodated with the necessary machinery, they could, when they exerted themselves, make them about twelve pounds of pins in a day. There are in a pound upwards of four thousand pins of a middling size. Those ten persons, therefore, could make them upwards of forty-eight thousand pins in a day. Each person, therefore, making a tenth part of forty-eight thousand pins, might be considered as making four thousand eight hundred pins in a day. But if they had all wrought separately and independently, and without any of them having been educated to this peculiar business, they certainly could not each of them have made twenty, perhaps not one pin in a day; that is, certainly, not the two hundred and fortieth, perhaps not the four thousand eight hundredth, part of what they are at present capable of performing, in consequence of a proper division and combination of their different operations.",
+        "blocks": [
+          {
+            "type": "header",
+            "order": 0,
+            "bbox": [
+              116,
+              57,
+              512,
+              86
+            ],
+            "text": "Wealth of Nations · Book I, Chapter 1",
+            "markdown": "Wealth of Nations · Book I, Chapter 1",
+            "dropped": "repeated_header_footer"
+          },
+          {
+            "type": "text",
+            "order": 1,
+            "bbox": [
+              112,
+              160,
+              1119,
+              545
+            ],
+            "text": "One man draws out the wire; another straightens it; a third cuts it; a fourth points it; a fifth grinds it at the top for receiving the head; to make the head requires two or three distinct operations; to put it on is a peculiar business; to whiten the pins is another; it is even a trade by itself to put them into the paper; and the important business of making a pin is, in this manner, divided into about eighteen distinct operations, which, in some manufactories, are all performed by distinct hands, though in others the same man will sometimes perform two or three of them. I have seen a small manufacture of this kind, where ten men only were employed, and where some of them consequently performed two or three distinct operations.",
+            "markdown": "One man draws out the wire; another straightens it; a third cuts it; a fourth points it; a fifth grinds it at the top for receiving the head; to make the head requires two or three distinct operations; to put it on is a peculiar business; to whiten the pins is another; it is even a trade by itself to put them into the paper; and the important business of making a pin is, in this manner, divided into about eighteen distinct operations, which, in some manufactories, are all performed by distinct hands, though in others the same man will sometimes perform two or three of them. I have seen a small manufacture of this kind, where ten men only were employed, and where some of them consequently performed two or three distinct operations."
+          },
+          {
+            "type": "title",
+            "order": 2,
+            "bbox": [
+              113,
+              571,
+              479,
+              609
+            ],
+            "text": "2. The pin workshop",
+            "markdown": "### 2. The pin workshop"
+          },
+          {
+            "type": "caption",
+            "order": 3,
+            "bbox": [
+              114,
+              624,
+              1016,
+              655
+            ],
+            "text": "Table 1. Output of a small pin workshop by operation (invented figures)",
+            "markdown": "Table 1. Output of a small pin workshop by operation (invented figures)"
+          },
+          {
+            "type": "table",
+            "order": 4,
+            "bbox": [
+              218,
+              663,
+              1022,
+              1033
+            ],
+            "text": "<table><tr><td>Operation</td><td>Workers</td><td>Pins per day</td></tr><tr><td>Drawing the wire</td><td>1</td><td>445</td></tr><tr><td>Straightening it</td><td>2</td><td>1,222</td></tr><tr><td>Cutting it</td><td>1</td><td>512</td></tr><tr><td>Pointing it</td><td>2</td><td>764</td></tr><tr><td>Grinding the top</td><td>3</td><td>1,167</td></tr><tr><td>Whitening</td><td>1</td><td>380</td></tr></table>",
+            "markdown": "<table><tr><td>Operation</td><td>Workers</td><td>Pins per day</td></tr><tr><td>Drawing the wire</td><td>1</td><td>445</td></tr><tr><td>Straightening it</td><td>2</td><td>1,222</td></tr><tr><td>Cutting it</td><td>1</td><td>512</td></tr><tr><td>Pointing it</td><td>2</td><td>764</td></tr><tr><td>Grinding the top</td><td>3</td><td>1,167</td></tr><tr><td>Whitening</td><td>1</td><td>380</td></tr></table>"
+          },
+          {
+            "type": "text",
+            "order": 5,
+            "bbox": [
+              113,
+              1065,
+              1121,
+              1569
+            ],
+            "text": "But though they were very poor, and therefore but indifferently accommodated with the necessary machinery, they could, when they exerted themselves, make them about twelve pounds of pins in a day. There are in a pound upwards of four thousand pins of a middling size. Those ten persons, therefore, could make them upwards of forty-eight thousand pins in a day. Each person, therefore, making a tenth part of forty-eight thousand pins, might be considered as making four thousand eight hundred pins in a day. But if they had all wrought separately and independently, and without any of them having been educated to this peculiar business, they certainly could not each of them have made twenty, perhaps not one pin in a day; that is, certainly, not the two hundred and fortieth, perhaps not the four thousand eight hundredth, part of what they are at present capable of performing, in consequence of a proper division and combination of their different operations.",
+            "markdown": "But though they were very poor, and therefore but indifferently accommodated with the necessary machinery, they could, when they exerted themselves, make them about twelve pounds of pins in a day. There are in a pound upwards of four thousand pins of a middling size. Those ten persons, therefore, could make them upwards of forty-eight thousand pins in a day. Each person, therefore, making a tenth part of forty-eight thousand pins, might be considered as making four thousand eight hundred pins in a day. But if they had all wrought separately and independently, and without any of them having been educated to this peculiar business, they certainly could not each of them have made twenty, perhaps not one pin in a day; that is, certainly, not the two hundred and fortieth, perhaps not the four thousand eight hundredth, part of what they are at present capable of performing, in consequence of a proper division and combination of their different operations."
+          },
+          {
+            "type": "footer",
+            "order": 6,
+            "bbox": [
+              407,
+              1661,
+              703,
+              1687
+            ],
+            "text": "Public-domain sample text",
+            "markdown": "Public-domain sample text",
+            "dropped": "repeated_header_footer"
+          },
+          {
+            "type": "footer",
+            "order": 7,
+            "bbox": [
+              708,
+              1661,
+              831,
+              1688
+            ],
+            "text": "Page 2 of 3",
+            "markdown": "Page 2 of 3",
+            "dropped": "repeated_header_footer"
+          }
+        ],
+        "chunks": [
+          {
+            "id": "d01-c0001",
+            "document": "d01",
+            "page": 2,
+            "text": "One man draws out the wire; another straightens it; a third cuts it; a fourth points it; a fifth grinds it at the top for receiving the head; to make the head requires two or three distinct operations; to put it on is a peculiar business; to whiten the pins is another; it is even a trade by itself to put them into the paper; and the important business of making a pin is, in this manner, divided into about eighteen distinct operations, which, in some manufactories, are all performed by distinct hands, though in others the same man will sometimes perform two or three of them. I have seen a small manufacture of this kind, where ten men only were employed, and where some of them consequently performed two or three distinct operations.",
+            "chars": 740,
+            "headings": [],
+            "blockTypes": [
+              "text"
+            ],
+            "bbox": [
+              112,
+              160,
+              1119,
+              545
+            ],
+            "blocks": [
+              [
+                2,
+                1
+              ]
+            ],
+            "sha256": "d4a7bb1bdca3df1f37922981e467d292985b376c64c6e755561a683f552a2d1a"
+          },
+          {
+            "id": "d01-c0002",
+            "document": "d01",
+            "page": 2,
+            "text": "### 2. The pin workshop\n\nTable 1. Output of a small pin workshop by operation (invented figures)\n\n<table><tr><td>Operation</td><td>Workers</td><td>Pins per day</td></tr><tr><td>Drawing the wire</td><td>1</td><td>445</td></tr><tr><td>Straightening it</td><td>2</td><td>1,222</td></tr><tr><td>Cutting it</td><td>1</td><td>512</td></tr><tr><td>Pointing it</td><td>2</td><td>764</td></tr><tr><td>Grinding the top</td><td>3</td><td>1,167</td></tr><tr><td>Whitening</td><td>1</td><td>380</td></tr></table>",
+            "chars": 499,
+            "headings": [
+              "2. The pin workshop"
+            ],
+            "blockTypes": [
+              "title",
+              "caption",
+              "table"
+            ],
+            "bbox": [
+              113,
+              571,
+              1022,
+              1033
+            ],
+            "blocks": [
+              [
+                2,
+                2
+              ],
+              [
+                2,
+                3
+              ],
+              [
+                2,
+                4
+              ]
+            ],
+            "sha256": "d4a7bb1bdca3df1f37922981e467d292985b376c64c6e755561a683f552a2d1a"
+          },
+          {
+            "id": "d01-c0003",
+            "document": "d01",
+            "page": 2,
+            "text": "But though they were very poor, and therefore but indifferently accommodated with the necessary machinery, they could, when they exerted themselves, make them about twelve pounds of pins in a day. There are in a pound upwards of four thousand pins of a middling size. Those ten persons, therefore, could make them upwards of forty-eight thousand pins in a day. Each person, therefore, making a tenth part of forty-eight thousand pins, might be considered as making four thousand eight hundred pins in a day. But if they had all wrought separately and independently, and without any of them having been educated to this peculiar business, they certainly could not each of them have made twenty, perhaps not one pin in a day;",
+            "chars": 723,
+            "headings": [
+              "2. The pin workshop"
+            ],
+            "blockTypes": [
+              "text"
+            ],
+            "bbox": [
+              113,
+              1065,
+              1121,
+              1569
+            ],
+            "blocks": [
+              [
+                2,
+                5
+              ]
+            ],
+            "sha256": "d4a7bb1bdca3df1f37922981e467d292985b376c64c6e755561a683f552a2d1a"
+          },
+          {
+            "id": "d01-c0004",
+            "document": "d01",
+            "page": 2,
+            "text": "that is, certainly, not the two hundred and fortieth, perhaps not the four thousand eight hundredth, part of what they are at present capable of performing, in consequence of a proper division and combination of their different operations.",
+            "chars": 239,
+            "headings": [
+              "2. The pin workshop"
+            ],
+            "blockTypes": [
+              "text"
+            ],
+            "bbox": [
+              113,
+              1065,
+              1121,
+              1569
+            ],
+            "blocks": [
+              [
+                2,
+                5
+              ]
+            ],
+            "sha256": "d4a7bb1bdca3df1f37922981e467d292985b376c64c6e755561a683f552a2d1a"
+          }
+        ]
+      }
+    },
+    {
+      "id": "d01-photo-p3",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/documents/parse",
+          "model": "paddleocr-vl",
+          "list": 2,
+          "charged": 2,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 1183,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "document": "d01",
+        "page": 3,
+        "sha256": "ea3a8f5b5145d1283181974e927b02ebfb497967000e633cf2a25a4450a74c24",
+        "markdown": "The corn of France is, in the corn-provinces, fully as good, and in most years nearly about the same price with the corn of England, though, in opulence and improvement, France is perhaps inferior to England. The corn-lands of England, however, are better cultivated than those of France, and the corn-lands of France are said to be much better cultivated than those of Poland.\n\n<div style=\"text-align: center;\">Table 2. Day wages and yearly earnings by trade, in pence (invented figures)</div>\n\n<table border=1 style='margin: auto; word-wrap: break-word;'><tr><td style='text-align: center; word-wrap: break-word;'>Trade</td><td style='text-align: center; word-wrap: break-word;'>Day wage</td><td style='text-align: center; word-wrap: break-word;'>Days worked</td><td style='text-align: center; word-wrap: break-word;'>Yearly earnings</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Weaver</td><td style='text-align: center; word-wrap: break-word;'>18</td><td style='text-align: center; word-wrap: break-word;'>268</td><td style='text-align: center; word-wrap: break-word;'>4,824</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Smith</td><td style='text-align: center; word-wrap: break-word;'>24</td><td style='text-align: center; word-wrap: break-word;'>268</td><td style='text-align: center; word-wrap: break-word;'>6,432</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Carter</td><td style='text-align: center; word-wrap: break-word;'>24</td><td style='text-align: center; word-wrap: break-word;'>291</td><td style='text-align: center; word-wrap: break-word;'>6,984</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Miller</td><td style='text-align: center; word-wrap: break-word;'>27</td><td style='text-align: center; word-wrap: break-word;'>270</td><td style='text-align: center; word-wrap: break-word;'>7,290</td></tr><tr><td style='text-align: center; word-wrap: break-word;'>Cooper</td><td style='text-align: center; word-wrap: break-word;'>16</td><td style='text-align: center; word-wrap: break-word;'>250</td><td style='text-align: center; word-wrap: break-word;'>4,000</td></tr></table>\n\n### 3. A larger scale\n\nBut though the poor country, notwithstanding the inferiority of its cultivation, can, in some measure, rival the rich in the cheapness and goodness of its corn, it can pretend to no such competition in its manufactures, at least if those manufactures suit the soil, climate, and situation, of the rich country. The silks of France are better and cheaper than those of England, because the silk manufacture, at least under the present high duties upon the importation of raw silk, does not so well suit the climate of England as that of France. But the hardware and the coarse woollens of England are beyond all comparison superior to those of France, and much cheaper, too, in the same degree of goodness. In Poland there are said to be scarce any manufactures of any kind, a few of those coarser household manufactures excepted, without which no country can well subsist.",
+        "blocks": [
+          {
+            "type": "header",
+            "order": 0,
+            "bbox": [
+              200,
+              82,
+              583,
+              127
+            ],
+            "text": "Wealth of Nations · Book I, Chapter 1",
+            "markdown": "Wealth of Nations · Book I, Chapter 1",
+            "dropped": "repeated_header_footer"
+          },
+          {
+            "type": "text",
+            "order": 1,
+            "bbox": [
+              191,
+              181,
+              1155,
+              403
+            ],
+            "text": "The corn of France is, in the corn-provinces, fully as good, and in most years nearly about the same price with the corn of England, though, in opulence and improvement, France is perhaps inferior to England. The corn-lands of England, however, are better cultivated than those of France, and the corn-lands of France are said to be much better cultivated than those of Poland.",
+            "markdown": "The corn of France is, in the corn-provinces, fully as good, and in most years nearly about the same price with the corn of England, though, in opulence and improvement, France is perhaps inferior to England. The corn-lands of England, however, are better cultivated than those of France, and the corn-lands of France are said to be much better cultivated than those of Poland."
+          },
+          {
+            "type": "caption",
+            "order": 2,
+            "bbox": [
+              194,
+              387,
+              1115,
+              454
+            ],
+            "text": "Table 2. Day wages and yearly earnings by trade, in pence (invented figures)",
+            "markdown": "Table 2. Day wages and yearly earnings by trade, in pence (invented figures)"
+          },
+          {
+            "type": "table",
+            "order": 3,
+            "bbox": [
+              249,
+              423,
+              1093,
+              756
+            ],
+            "text": "<table><tr><td>Trade</td><td>Day wage</td><td>Days worked</td><td>Yearly earnings</td></tr><tr><td>Weaver</td><td>18</td><td>268</td><td>4,824</td></tr><tr><td>Smith</td><td>24</td><td>268</td><td>6,432</td></tr><tr><td>Carter</td><td>24</td><td>291</td><td>6,984</td></tr><tr><td>Miller</td><td>27</td><td>270</td><td>7,290</td></tr><tr><td>Cooper</td><td>16</td><td>250</td><td>4,000</td></tr></table>",
+            "markdown": "<table><tr><td>Trade</td><td>Day wage</td><td>Days worked</td><td>Yearly earnings</td></tr><tr><td>Weaver</td><td>18</td><td>268</td><td>4,824</td></tr><tr><td>Smith</td><td>24</td><td>268</td><td>6,432</td></tr><tr><td>Carter</td><td>24</td><td>291</td><td>6,984</td></tr><tr><td>Miller</td><td>27</td><td>270</td><td>7,290</td></tr><tr><td>Cooper</td><td>16</td><td>250</td><td>4,000</td></tr></table>"
+          },
+          {
+            "type": "title",
+            "order": 4,
+            "bbox": [
+              188,
+              756,
+              470,
+              800
+            ],
+            "text": "3. A larger scale",
+            "markdown": "### 3. A larger scale"
+          },
+          {
+            "type": "text",
+            "order": 5,
+            "bbox": [
+              179,
+              807,
+              1132,
+              1262
+            ],
+            "text": "But though the poor country, notwithstanding the inferiority of its cultivation, can, in some measure, rival the rich in the cheapness and goodness of its corn, it can pretend to no such competition in its manufactures, at least if those manufactures suit the soil, climate, and situation, of the rich country. The silks of France are better and cheaper than those of England, because the silk manufacture, at least under the present high duties upon the importation of raw silk, does not so well suit the climate of England as that of France. But the hardware and the coarse woollens of England are beyond all comparison superior to those of France, and much cheaper, too, in the same degree of goodness. In Poland there are said to be scarce any manufactures of any kind, a few of those coarser household manufactures excepted, without which no country can well subsist.",
+            "markdown": "But though the poor country, notwithstanding the inferiority of its cultivation, can, in some measure, rival the rich in the cheapness and goodness of its corn, it can pretend to no such competition in its manufactures, at least if those manufactures suit the soil, climate, and situation, of the rich country. The silks of France are better and cheaper than those of England, because the silk manufacture, at least under the present high duties upon the importation of raw silk, does not so well suit the climate of England as that of France. But the hardware and the coarse woollens of England are beyond all comparison superior to those of France, and much cheaper, too, in the same degree of goodness. In Poland there are said to be scarce any manufactures of any kind, a few of those coarser household manufactures excepted, without which no country can well subsist."
+          },
+          {
+            "type": "footer",
+            "order": 6,
+            "bbox": [
+              448,
+              1591,
+              718,
+              1622
+            ],
+            "text": "Public-domain sample text",
+            "markdown": "Public-domain sample text",
+            "dropped": "repeated_header_footer"
+          },
+          {
+            "type": "footer",
+            "order": 7,
+            "bbox": [
+              726,
+              1597,
+              843,
+              1624
+            ],
+            "text": "Page 3 of 3",
+            "markdown": "Page 3 of 3",
+            "dropped": "repeated_header_footer"
+          }
+        ],
+        "chunks": [
+          {
+            "id": "d01-c0005",
+            "document": "d01",
+            "page": 3,
+            "text": "The corn of France is, in the corn-provinces, fully as good, and in most years nearly about the same price with the corn of England, though, in opulence and improvement, France is perhaps inferior to England. The corn-lands of England, however, are better cultivated than those of France, and the corn-lands of France are said to be much better cultivated than those of Poland.\n\nTable 2. Day wages and yearly earnings by trade, in pence (invented figures)",
+            "chars": 455,
+            "headings": [
+              "2. The pin workshop"
+            ],
+            "blockTypes": [
+              "text",
+              "caption"
+            ],
+            "bbox": [
+              191,
+              181,
+              1155,
+              454
+            ],
+            "blocks": [
+              [
+                3,
+                1
+              ],
+              [
+                3,
+                2
+              ]
+            ],
+            "sha256": "ea3a8f5b5145d1283181974e927b02ebfb497967000e633cf2a25a4450a74c24"
+          },
+          {
+            "id": "d01-c0006",
+            "document": "d01",
+            "page": 3,
+            "text": "<table><tr><td>Trade</td><td>Day wage</td><td>Days worked</td><td>Yearly earnings</td></tr><tr><td>Weaver</td><td>18</td><td>268</td><td>4,824</td></tr><tr><td>Smith</td><td>24</td><td>268</td><td>6,432</td></tr><tr><td>Carter</td><td>24</td><td>291</td><td>6,984</td></tr><tr><td>Miller</td><td>27</td><td>270</td><td>7,290</td></tr><tr><td>Cooper</td><td>16</td><td>250</td><td>4,000</td></tr></table>",
+            "chars": 403,
+            "headings": [
+              "2. The pin workshop"
+            ],
+            "blockTypes": [
+              "table"
+            ],
+            "bbox": [
+              249,
+              423,
+              1093,
+              756
+            ],
+            "blocks": [
+              [
+                3,
+                3
+              ]
+            ],
+            "sha256": "ea3a8f5b5145d1283181974e927b02ebfb497967000e633cf2a25a4450a74c24"
+          },
+          {
+            "id": "d01-c0007",
+            "document": "d01",
+            "page": 3,
+            "text": "### 3. A larger scale\n\nBut though the poor country, notwithstanding the inferiority of its cultivation, can, in some measure, rival the rich in the cheapness and goodness of its corn, it can pretend to no such competition in its manufactures, at least if those manufactures suit the soil, climate, and situation, of the rich country. The silks of France are better and cheaper than those of England, because the silk manufacture, at least under the present high duties upon the importation of raw silk, does not so well suit the climate of England as that of France. But the hardware and the coarse woollens of England are beyond all comparison superior to those of France, and much cheaper, too, in the same degree of goodness.",
+            "chars": 728,
+            "headings": [
+              "3. A larger scale"
+            ],
+            "blockTypes": [
+              "title",
+              "text"
+            ],
+            "bbox": [
+              179,
+              756,
+              1132,
+              1262
+            ],
+            "blocks": [
+              [
+                3,
+                4
+              ],
+              [
+                3,
+                5
+              ]
+            ],
+            "sha256": "ea3a8f5b5145d1283181974e927b02ebfb497967000e633cf2a25a4450a74c24"
+          },
+          {
+            "id": "d01-c0008",
+            "document": "d01",
+            "page": 3,
+            "text": "In Poland there are said to be scarce any manufactures of any kind, a few of those coarser household manufactures excepted, without which no country can well subsist.",
+            "chars": 166,
+            "headings": [
+              "3. A larger scale"
+            ],
+            "blockTypes": [
+              "text"
+            ],
+            "bbox": [
+              179,
+              807,
+              1132,
+              1262
+            ],
+            "blocks": [
+              [
+                3,
+                5
+              ]
+            ],
+            "sha256": "ea3a8f5b5145d1283181974e927b02ebfb497967000e633cf2a25a4450a74c24"
+          }
+        ]
+      }
+    }
+  ],
+  "ledger": {
+    "calls": 2,
+    "listTotal": 4.0,
+    "chargedTotal": 4.0
+  }
+}

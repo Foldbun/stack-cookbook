@@ -1,0 +1,667 @@
+{
+  "usecase": "08-cost-and-latency-monitoring",
+  "language": "python",
+  "client": "stack_client 1.0.0",
+  "startedAt": "2026-11-13T10:06:47Z",
+  "elapsedMs": 9866,
+  "items": [
+    {
+      "id": "c01",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/ocr",
+          "model": "ppocr-v6",
+          "list": 0.25,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 438,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "ppocr-v6",
+        "endpoint": "/v1/ocr",
+        "cache": null,
+        "listCredits": 0.25,
+        "chargedCredits": 0,
+        "waivedCredits": 0
+      }
+    },
+    {
+      "id": "c02",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 78,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam-lite",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.01,
+        "chargedCredits": 0,
+        "waivedCredits": 0.2
+      }
+    },
+    {
+      "id": "c03",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 56,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam-lite",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.01,
+        "chargedCredits": 0,
+        "waivedCredits": 0.2
+      }
+    },
+    {
+      "id": "c04",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 50,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam-lite",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.01,
+        "chargedCredits": 0,
+        "waivedCredits": 0.2
+      }
+    },
+    {
+      "id": "c05",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/ocr",
+          "model": "ppocr-v6",
+          "list": 0.25,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 610,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "ppocr-v6",
+        "endpoint": "/v1/ocr",
+        "cache": null,
+        "listCredits": 0.25,
+        "chargedCredits": 0,
+        "waivedCredits": 0
+      }
+    },
+    {
+      "id": "c06",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 79,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam-lite",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.01,
+        "chargedCredits": 0,
+        "waivedCredits": 0.2
+      }
+    },
+    {
+      "id": "c07",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 50,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam-lite",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.01,
+        "chargedCredits": 0,
+        "waivedCredits": 0.2
+      }
+    },
+    {
+      "id": "c08",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam3",
+          "list": 0.05,
+          "charged": 0.05,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 164,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam3",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.05,
+        "chargedCredits": 0.05,
+        "waivedCredits": 0.5
+      }
+    },
+    {
+      "id": "c09",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 62,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam-lite",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.01,
+        "chargedCredits": 0,
+        "waivedCredits": 0.2
+      }
+    },
+    {
+      "id": "c10",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 52,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam-lite",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.01,
+        "chargedCredits": 0,
+        "waivedCredits": 0.2
+      }
+    },
+    {
+      "id": "c11",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam3",
+          "list": 0.05,
+          "charged": 0.05,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 120,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam3",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.05,
+        "chargedCredits": 0.05,
+        "waivedCredits": 0.5
+      }
+    },
+    {
+      "id": "c12",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 51,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam-lite",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.01,
+        "chargedCredits": 0,
+        "waivedCredits": 0.2
+      }
+    },
+    {
+      "id": "c13",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam3",
+          "list": 0.05,
+          "charged": 0.05,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 100,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam3",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.05,
+        "chargedCredits": 0.05,
+        "waivedCredits": 0.5
+      }
+    },
+    {
+      "id": "c14",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam3",
+          "list": 0.05,
+          "charged": 0.05,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 249,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam3",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.05,
+        "chargedCredits": 0.05,
+        "waivedCredits": 0.5
+      }
+    },
+    {
+      "id": "c15",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 49,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam-lite",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.01,
+        "chargedCredits": 0,
+        "waivedCredits": 0.2
+      }
+    },
+    {
+      "id": "c16",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam3",
+          "list": 0.05,
+          "charged": 0.05,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 228,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam3",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.05,
+        "chargedCredits": 0.05,
+        "waivedCredits": 0.5
+      }
+    },
+    {
+      "id": "c17",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/segment",
+          "model": "sam-lite",
+          "list": 0.01,
+          "charged": 0,
+          "cache": "hit",
+          "queueMs": 0,
+          "processingMs": 48,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "sam-lite",
+        "endpoint": "/v1/segment",
+        "cache": "hit",
+        "listCredits": 0.01,
+        "chargedCredits": 0,
+        "waivedCredits": 0.2
+      }
+    },
+    {
+      "id": "c18",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/ocr",
+          "model": "ppocr-v6",
+          "list": 0.25,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 656,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "ppocr-v6",
+        "endpoint": "/v1/ocr",
+        "cache": null,
+        "listCredits": 0.25,
+        "chargedCredits": 0,
+        "waivedCredits": 0
+      }
+    },
+    {
+      "id": "c19",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/ocr",
+          "model": "ppocr-v6",
+          "list": 0.25,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 564,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "ppocr-v6",
+        "endpoint": "/v1/ocr",
+        "cache": null,
+        "listCredits": 0.25,
+        "chargedCredits": 0,
+        "waivedCredits": 0
+      }
+    },
+    {
+      "id": "c20",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/ocr",
+          "model": "ppocr-v6",
+          "list": 0.25,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 632,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "ppocr-v6",
+        "endpoint": "/v1/ocr",
+        "cache": null,
+        "listCredits": 0.25,
+        "chargedCredits": 0,
+        "waivedCredits": 0
+      }
+    },
+    {
+      "id": "c21",
+      "status": "ok",
+      "calls": [
+        {
+          "endpoint": "/v1/ocr",
+          "model": "ppocr-v6",
+          "list": 0.25,
+          "charged": 0,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 431,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "kind": "call",
+        "model": "ppocr-v6",
+        "endpoint": "/v1/ocr",
+        "cache": null,
+        "listCredits": 0.25,
+        "chargedCredits": 0,
+        "waivedCredits": 0
+      }
+    },
+    {
+      "id": "summary",
+      "status": "ok",
+      "calls": [],
+      "output": {
+        "kind": "summary",
+        "calls": {
+          "total": 21,
+          "ok": 21,
+          "failed": 0,
+          "byModel": {
+            "ppocr-v6": 6,
+            "sam-lite": 10,
+            "sam3": 5
+          }
+        },
+        "credits": {
+          "list": 1.85,
+          "charged": 0.25,
+          "byModelUnit": [
+            {
+              "model": "ppocr-v6",
+              "unit": "image",
+              "list": 1.5,
+              "charged": 0.0
+            },
+            {
+              "model": "sam-lite",
+              "unit": "box",
+              "list": 0.1,
+              "charged": 0.0
+            },
+            {
+              "model": "sam3",
+              "unit": "prompt",
+              "list": 0.25,
+              "charged": 0.25
+            }
+          ]
+        },
+        "cache": {
+          "hits": 15,
+          "misses": 0,
+          "hitRate": 1.0,
+          "savedCredits": 4.5,
+          "byModel": {
+            "sam-lite": {
+              "hits": 10,
+              "misses": 0
+            },
+            "sam3": {
+              "hits": 5,
+              "misses": 0
+            }
+          }
+        },
+        "latency": {
+          "ppocr-v6": {
+            "queueMs": {
+              "p50": 0,
+              "p95": 0
+            },
+            "processingMs": {
+              "p50": 564,
+              "p95": 656
+            },
+            "count": 6
+          },
+          "sam-lite": {
+            "queueMs": {
+              "p50": 0,
+              "p95": 0
+            },
+            "processingMs": {
+              "p50": 51,
+              "p95": 79
+            },
+            "count": 10
+          },
+          "sam3": {
+            "queueMs": {
+              "p50": 0,
+              "p95": 0
+            },
+            "processingMs": {
+              "p50": 164,
+              "p95": 249
+            },
+            "count": 5
+          }
+        },
+        "guard": {
+          "maxPerHour": 0.2,
+          "mode": "alert",
+          "basis": "charged",
+          "triggered": true,
+          "triggeredAtCall": 16,
+          "alerts": 1
+        },
+        "balanceSpent": 0.25,
+        "metrics": {
+          "stack_credits_total{model=\"ppocr-v6\",unit=\"image\",charged=\"false\"}": 1.5,
+          "stack_credits_total{model=\"sam-lite\",unit=\"box\",charged=\"false\"}": 0.1,
+          "stack_credits_total{model=\"sam3\",unit=\"prompt\",charged=\"true\"}": 0.25,
+          "stack_calls_total{model=\"ppocr-v6\",status=\"ok\",code=\"none\"}": 6.0,
+          "stack_calls_total{model=\"sam-lite\",status=\"ok\",code=\"none\"}": 10.0,
+          "stack_calls_total{model=\"sam3\",status=\"ok\",code=\"none\"}": 5.0,
+          "stack_cache_hits_total{model=\"sam-lite\"}": 10.0,
+          "stack_cache_hits_total{model=\"sam3\"}": 5.0,
+          "stack_cache_saved_credits_total{model=\"sam-lite\"}": 2.0,
+          "stack_cache_saved_credits_total{model=\"sam3\"}": 2.5,
+          "stack_latency_ms_count{model=\"ppocr-v6\",phase=\"queue\"}": 6.0,
+          "stack_latency_ms_sum{model=\"ppocr-v6\",phase=\"queue\"}": 0.0,
+          "stack_latency_ms_count{model=\"ppocr-v6\",phase=\"processing\"}": 6.0,
+          "stack_latency_ms_sum{model=\"ppocr-v6\",phase=\"processing\"}": 3331.0,
+          "stack_latency_ms_count{model=\"sam-lite\",phase=\"queue\"}": 10.0,
+          "stack_latency_ms_sum{model=\"sam-lite\",phase=\"queue\"}": 0.0,
+          "stack_latency_ms_count{model=\"sam-lite\",phase=\"processing\"}": 10.0,
+          "stack_latency_ms_sum{model=\"sam-lite\",phase=\"processing\"}": 575.0,
+          "stack_latency_ms_count{model=\"sam3\",phase=\"queue\"}": 5.0,
+          "stack_latency_ms_sum{model=\"sam3\",phase=\"queue\"}": 0.0,
+          "stack_latency_ms_count{model=\"sam3\",phase=\"processing\"}": 5.0,
+          "stack_latency_ms_sum{model=\"sam3\",phase=\"processing\"}": 861.0,
+          "stack_spend_window_credits": 0.25,
+          "stack_spend_guard_tripped": 1.0
+        }
+      }
+    }
+  ],
+  "ledger": {
+    "calls": 21,
+    "listTotal": 1.85,
+    "chargedTotal": 0.25
+  }
+}

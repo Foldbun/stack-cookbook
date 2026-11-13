@@ -377,7 +377,34 @@ smoke 集（2 页）：
 完整集（30 页）：
 
 <!-- metrics: expected/full-summary.json -->
-尚未实测。
+| 指标 | 数值 |
+|---|---|
+| `pages` | 30 |
+| `pages_scored` | 30 |
+| `pages_failed` | 0 |
+| `text_ned` | 0.0015 |
+| `table_cell_f1` | 1 |
+| `reading_order_tau` | 0.9976 |
+| `text_ned_clean` | 0.0018 |
+| `table_cell_f1_clean` | 1 |
+| `reading_order_tau_clean` | 0.9952 |
+| `text_ned_photographed` | 0.0012 |
+| `table_cell_f1_photographed` | 1 |
+| `reading_order_tau_photographed` | 1 |
+| `formula_recall` | 1 |
+| `tables_found_rate` | 1 |
+| `text_ned_gap` | -0.0006 |
+| `table_cell_f1_gap` | 0 |
+| `chunks` | 120 |
+| `chunks_per_page` | 4 |
+| `chunk_chars_p10` | 63 |
+| `chunk_chars_p50` | 499 |
+| `chunk_chars_p90` | 758 |
+| `chunk_chars_max` | 781 |
+| `tables_in_chunks` | 16 |
+| `tables_split` | 0 |
+| `blocks_dropped` | 85 |
+| `cost_per_1000_pages_list` | 2,000 |
 <!-- /metrics -->
 
 ## 成本 <!-- #cost -->
@@ -385,7 +412,10 @@ smoke 集（2 页）：
 一页就是一次 `paddleocr-vl` 调用，2 credits，页面内容是什么都一样：按标价 1,000 页 2,000 credits。表中每 1,000 页成本按每页都是标价计算。大批量纯文本可以考虑 `ppocr-v6`，每张图 0.25 credits（见用例 03），但它只返回文字行，没有版面、表格和阅读顺序。
 
 <!-- cost -->
-尚未实测。
+| 运行 | 调用次数 | 标价（credits） | 实扣（credits） |
+|---|---|---|---|
+| smoke | 2 | 4 | 4 |
+| full | 30 | 56 | 56 |
 <!-- /cost -->
 
 - 失败的调用不扣费；24 小时内重复的幂等键只回放、不扣费，所以 `--resume` 和重跑不会为已读过的页面再付钱。
