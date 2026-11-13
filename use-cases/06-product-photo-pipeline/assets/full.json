@@ -1,0 +1,168 @@
+{
+ "usecase": "06-product-photo-pipeline",
+ "version": 1,
+ "set": "full",
+ "note": "The 40 items of the full set. The images are not in git: download 06-product-photo-pipeline-full.tar.gz from the release named in datasets/manifest.json and extract it into this directory (it adds images/, truth.json and its own manifest.json).",
+ "items": [
+  {
+   "id": "93efde7b40f6e375",
+   "image": "images/93efde7b40f6e375.jpg"
+  },
+  {
+   "id": "6810d6355c7fa115",
+   "image": "images/6810d6355c7fa115.jpg"
+  },
+  {
+   "id": "d08688e8f8baf578",
+   "image": "images/d08688e8f8baf578.jpg"
+  },
+  {
+   "id": "8fa6dae079de51d8",
+   "image": "images/8fa6dae079de51d8.jpg"
+  },
+  {
+   "id": "6bfb528ba0c5148e",
+   "image": "images/6bfb528ba0c5148e.jpg"
+  },
+  {
+   "id": "bcb19dc50d80a2c9",
+   "image": "images/bcb19dc50d80a2c9.jpg"
+  },
+  {
+   "id": "9f26942709846de3",
+   "image": "images/9f26942709846de3.jpg"
+  },
+  {
+   "id": "efd4cbed58c62a88",
+   "image": "images/efd4cbed58c62a88.jpg"
+  },
+  {
+   "id": "9bd3e32a2337f9bc",
+   "image": "images/9bd3e32a2337f9bc.jpg"
+  },
+  {
+   "id": "202487fc0ba87722",
+   "image": "images/202487fc0ba87722.jpg"
+  },
+  {
+   "id": "b571c3cfd3afd9e3",
+   "image": "images/b571c3cfd3afd9e3.jpg"
+  },
+  {
+   "id": "fc446fa0a49e1ae1",
+   "image": "images/fc446fa0a49e1ae1.jpg"
+  },
+  {
+   "id": "1fc9826e638207d3",
+   "image": "images/1fc9826e638207d3.jpg"
+  },
+  {
+   "id": "300eeee9e00aface",
+   "image": "images/300eeee9e00aface.jpg"
+  },
+  {
+   "id": "3b8cfe4f330ce356",
+   "image": "images/3b8cfe4f330ce356.jpg"
+  },
+  {
+   "id": "cdfd56443a589a37",
+   "image": "images/cdfd56443a589a37.jpg"
+  },
+  {
+   "id": "f0f117684f9dd57e",
+   "image": "images/f0f117684f9dd57e.jpg"
+  },
+  {
+   "id": "917be97d4553b0b9",
+   "image": "images/917be97d4553b0b9.jpg"
+  },
+  {
+   "id": "fdd6b016045ea8bf",
+   "image": "images/fdd6b016045ea8bf.jpg"
+  },
+  {
+   "id": "06df78346e1d333e",
+   "image": "images/06df78346e1d333e.jpg"
+  },
+  {
+   "id": "c4837e76d6ce7946",
+   "image": "images/c4837e76d6ce7946.jpg"
+  },
+  {
+   "id": "2beacefc4b7902bb",
+   "image": "images/2beacefc4b7902bb.jpg"
+  },
+  {
+   "id": "4babec5c7441cf9a",
+   "image": "images/4babec5c7441cf9a.jpg"
+  },
+  {
+   "id": "ce10b909451393b7",
+   "image": "images/ce10b909451393b7.jpg"
+  },
+  {
+   "id": "63f17327065b052c",
+   "image": "images/63f17327065b052c.jpg"
+  },
+  {
+   "id": "ed5344bed8018a43",
+   "image": "images/ed5344bed8018a43.jpg"
+  },
+  {
+   "id": "a0f881141625f648",
+   "image": "images/a0f881141625f648.jpg"
+  },
+  {
+   "id": "33ac3bd2015c44b2",
+   "image": "images/33ac3bd2015c44b2.jpg"
+  },
+  {
+   "id": "daded832e3ae26b5",
+   "image": "images/daded832e3ae26b5.jpg"
+  },
+  {
+   "id": "0774d2f6414c4b10",
+   "image": "images/0774d2f6414c4b10.jpg"
+  },
+  {
+   "id": "1888aa8f2a6fc780",
+   "image": "images/1888aa8f2a6fc780.jpg"
+  },
+  {
+   "id": "e3a41aa21875053e",
+   "image": "images/e3a41aa21875053e.jpg"
+  },
+  {
+   "id": "67bad60ec0f7af00",
+   "image": "images/67bad60ec0f7af00.jpg"
+  },
+  {
+   "id": "ce7aae56d7607c50",
+   "image": "images/ce7aae56d7607c50.jpg"
+  },
+  {
+   "id": "b426e52fccedea01",
+   "image": "images/b426e52fccedea01.jpg"
+  },
+  {
+   "id": "6330b50e38316f83",
+   "image": "images/6330b50e38316f83.jpg"
+  },
+  {
+   "id": "862c11c609cae816",
+   "image": "images/862c11c609cae816.jpg"
+  },
+  {
+   "id": "f4cf60464cc44394",
+   "image": "images/f4cf60464cc44394.jpg"
+  },
+  {
+   "id": "38fcb183f7662e5a",
+   "image": "images/38fcb183f7662e5a.jpg"
+  },
+  {
+   "id": "4b2fab847a85915c",
+   "image": "images/4b2fab847a85915c.jpg"
+  }
+ ]
+}

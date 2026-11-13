@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw
 
 from .common import DIST, SMOKE, WORK
 
-UCS = {"01": "01-dataset-prelabelling", "02": "02-click-to-segment", "03": "03-receipts-to-json", "04": "04-documents-to-rag-chunks", "05": "05-image-library-search"}
+UCS = {"01": "01-dataset-prelabelling", "02": "02-click-to-segment", "03": "03-receipts-to-json", "04": "04-documents-to-rag-chunks", "05": "05-image-library-search", "06": "06-product-photo-pipeline"}
 COLORS = {"Dog": (255, 80, 80), "Cat": (80, 200, 255), "Bird": (255, 220, 0), "Bicycle": (120, 255, 120)}
 
 

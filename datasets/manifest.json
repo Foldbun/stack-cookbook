@@ -48,6 +48,19 @@
     "truth.json": "c0b9fa826fda24f605957d41c75450e3e1aff0809f93edc572be51c1430a3377"
    }
   },
+  "04-documents-to-rag-chunks": {
+   "file": "04-documents-to-rag-chunks-full.tar.gz",
+   "bytes": 7728978,
+   "sha256": "2ae59ec7edc47bacdc8e82eba52df283b2731dceb8eb4a701594e37391426883",
+   "files": 33,
+   "smoke": {
+    "ATTRIBUTION.csv": "07de5b153d981de20d7e84b4e021bf12f15b32c3bb4e569c74cd2a7abc476302",
+    "images/d01-p2.jpg": "d4a7bb1bdca3df1f37922981e467d292985b376c64c6e755561a683f552a2d1a",
+    "images/d01-photo-p3.jpg": "ea3a8f5b5145d1283181974e927b02ebfb497967000e633cf2a25a4450a74c24",
+    "manifest.json": "5b56c3fb336973542d6df4f510ba1aef0d9ccbfbdfd11fb46dff62d13e174586",
+    "truth.json": "0a144515a0085e977713afd806997e91dc45715b9d4e7fccf40228a71a5839ad"
+   }
+  },
   "05-image-library-search": {
    "file": "05-image-library-search-full.tar.gz",
    "bytes": 73655115,
@@ -84,17 +97,21 @@
     "truth.json": "7191345b8e578083902b22f81de676eb1c96283600e0a917cf6445c5d3168218"
    }
   },
-  "04-documents-to-rag-chunks": {
-   "file": "04-documents-to-rag-chunks-full.tar.gz",
-   "bytes": 7728978,
-   "sha256": "2ae59ec7edc47bacdc8e82eba52df283b2731dceb8eb4a701594e37391426883",
-   "files": 33,
+  "06-product-photo-pipeline": {
+   "file": "06-product-photo-pipeline-full.tar.gz",
+   "bytes": 5103615,
+   "sha256": "78c9dd1db96133c88f028da493caf2a4c214feaa98a0847060cebde1eeab7792",
+   "files": 83,
    "smoke": {
-    "ATTRIBUTION.csv": "07de5b153d981de20d7e84b4e021bf12f15b32c3bb4e569c74cd2a7abc476302",
-    "images/d01-p2.jpg": "d4a7bb1bdca3df1f37922981e467d292985b376c64c6e755561a683f552a2d1a",
-    "images/d01-photo-p3.jpg": "ea3a8f5b5145d1283181974e927b02ebfb497967000e633cf2a25a4450a74c24",
-    "manifest.json": "5b56c3fb336973542d6df4f510ba1aef0d9ccbfbdfd11fb46dff62d13e174586",
-    "truth.json": "0a144515a0085e977713afd806997e91dc45715b9d4e7fccf40228a71a5839ad"
+    "ATTRIBUTION.csv": "d81c6aa48019d4dad69911c5aabcf952e0340794f2878cf5c5488e0dcd838919",
+    "images/93efde7b40f6e375.jpg": "87bb12d3f302d55627659daaf2b4c35bda8d7f86f569b2f4366455ac1747a3b8",
+    "images/daded832e3ae26b5.jpg": "40663f5c1bd0d81c19291051086f9d2badeee06b5c034768d30955fd0bae071e",
+    "images/efd4cbed58c62a88.jpg": "a30aca1464974fac3a28f3da17180730d0d8596d76139606235fe2e224f362b6",
+    "manifest.json": "0950882103435300a5ecf416e353b4373ca8f12392fb58dd5175413a0e751e98",
+    "masks/93efde7b40f6e375.png": "8ec9dc2597497f1587bd95567b6b9e6421078d8120c63ade80696b767a93368e",
+    "masks/daded832e3ae26b5.png": "4f5f0a31990a19dfef0285a194eff118255c2ec98d4aca2991dd583778f6fcd9",
+    "masks/efd4cbed58c62a88.png": "60b9a923bab02f5fd5f4ed785b842b5394a6e44baff47cf60e6efd331fcabedf",
+    "truth.json": "d61bc14d0ce6bf3e038882ad34fcc33a5c1ecd7196f8caea63da6a4f4c91ddf2"
    }
   }
  }

@@ -7,8 +7,8 @@ The code in this repository is MIT licensed (see `LICENSE`). Images, datasets an
 | Files | Source | Licence |
 |---|---|---|
 | `use-cases/00-quickstart/assets/smoke/settings.webp` | Synthetic screenshot made for the Foldbun Stack Playground | CC0 1.0 |
-| Open Images V7 validation images in the sets of use cases 01, 02 and 05, and the near-duplicate variants derived from them (`datasets/`, `use-cases/*/assets/`) | [Open Images V7](https://storage.googleapis.com/openimages/web/factsfigures_v7.html); author and source page per image in the attribution CSVs | CC BY 2.0 per image; resized and re-encoded |
-| Open Images V7 boxes, image-level labels and segmentation masks (use cases 01, 02, 05) | "Open Images Dataset V7, Google LLC" | CC BY 4.0; boxes converted to pixel coordinates, masks resized |
+| Open Images V7 validation images in the sets of use cases 01, 02, 05 and 06, and the near-duplicate variants derived from them (`datasets/`, `use-cases/*/assets/`) | [Open Images V7](https://storage.googleapis.com/openimages/web/factsfigures_v7.html); author and source page per image in the attribution CSVs | CC BY 2.0 per image; resized and re-encoded |
+| Open Images V7 boxes, image-level labels and segmentation masks (use cases 01, 02, 05, 06) | "Open Images Dataset V7, Google LLC" | CC BY 4.0; boxes converted to pixel coordinates, masks resized |
 | CORD v2 receipts (use case 03) | [CORD v2, NAVER Clova](https://github.com/clovaai/cord) | CC BY 4.0; re-encoded as JPEG, ground truth normalised |
 | Synthetic invoices (use case 03) | Generated in this repository by `datasets/generators/invoices.py` from fictional data | CC0 1.0 |
 | Synthetic document pages (use case 04) | Generated in this repository by `datasets/generators/documents.py`; layout, headings, tables and formulas are synthetic, body text is excerpted from public-domain books (Adam Smith, 1776; Charles Darwin, 1859; Henry David Thoreau, 1854; Albert Einstein, 1920 translation by Robert W. Lawson), see `datasets/LICENSES.md` | CC0 1.0 for the generated pages; the excerpted text is in the public domain |

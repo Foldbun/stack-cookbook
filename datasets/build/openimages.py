@@ -1,4 +1,4 @@
-"""Open Images V7 (validation split) subsets for use cases 01, 02 and 05.
+"""Open Images V7 (validation split) subsets for use cases 01, 02, 05 and 06.
 
   uv run --project datasets python -m datasets.build.openimages --help
   uv run --project datasets python -m datasets.build.openimages 01 02 05
@@ -6,6 +6,7 @@
 01  pre-labelling      60 images, 4 classes (Dog, Cat, Bird, Boat), box ground truth
 02  click-to-segment   30 objects with mask ground truth
 05  image-library      400 images + 100 generated near-duplicates, image-level labels as retrieval truth
+06  product photos     40 product-like objects (cups, vases, teapots ...) with mask ground truth
 
 Selection is person-free (see oi_meta.build_pool and oi_exclusions) and seeded. Images come from the public
 Open Images bucket (one request each, 4 workers, custom User-Agent), are cached under datasets/.cache/ and are
@@ -27,12 +28,13 @@ import numpy as np
 from PIL import Image
 
 from . import near_duplicates
-from .common import CACHE, CHANGE_NOTE, WORK, emit_set, fetch, fetch_many, reencode
+from .common import CACHE, CHANGE_NOTE, SMOKE, USE_CASES, WORK, emit_set, fetch, fetch_many, reencode, write_attribution
 from .oi_meta import IMAGE_URL, MASK_ZIP_URL, OI_DIR, build_pool, attribution_row, download_meta, _rows
 
 SEED = 20261112
 SOURCE_NOTE = "Open Images Dataset V7 (Google LLC): annotations CC BY 4.0; image CC BY 2.0 by the author listed"
 UC01, UC02, UC05 = "01-dataset-prelabelling", "02-click-to-segment", "05-image-library-search"
+UC06 = "06-product-photo-pipeline"
 
 # 01 classes (the design table lists Person and Car; both are excluded by the no-people / no-plates rule, so Cat and
 # Bird take their place, and Boat replaces Bicycle, which has too few clean images): name -> (prompt, Open Images box classes that count as this class)
@@ -468,13 +470,251 @@ def build_05() -> None:
     print(UC05, "originals 400, variants", len(dups), "queries", len(queries), "smoke", len(sm_ids))
 
 
-BUILDERS = {"01": build_01, "02": build_02, "05": build_05}
+# ------------------------------------------------------------------ 06
+# Product-like objects with an Open Images instance mask. The pool is the "product" profile of oi_meta.build_pool: the
+# classes that 01 / 02 / 05 exclude (bottles, bags, watches ...) are allowed again, but an image still qualifies only when no
+# person, body part, face, plate, text-like class or depiction is annotated on it or predicted with confidence >= 0.2.
+# family -> Open Images segmentation classes whose masks are merged into the ground truth of the image
+FAMILIES_06 = {
+    "Cup": ["Coffee cup", "Mug"], "Vase": ["Vase"], "Bowl": ["Bowl", "Mixing bowl"], "Bottle": ["Bottle"],
+    "Camera": ["Camera"], "Toy": ["Toy"], "Guitar": ["Guitar"], "Chest of drawers": ["Chest of drawers"],
+    "Cookware": ["Teapot", "Kettle", "Wok", "Frying pan", "Jug", "Pitcher (Container)", "Pressure cooker", "Slow cooker"],
+    "Appliance": ["Microwave oven", "Printer", "Washing machine", "Food processor", "Toaster"],
+}
+NORMAL_06 = {"Cup": 4, "Vase": 2, "Bowl": 3, "Bottle": 3, "Camera": 3, "Toy": 3, "Guitar": 2, "Chest of drawers": 2,
+             "Cookware": 3, "Appliance": 3}   # centred, one product
+NORMAL_CAP = 5
+HARD_06 = {"truncated": 4, "multi": 4, "thin": 4}          # deliberate hard cases for the quality rules, at most 2 per family
+BORDER_FRAC = 0.01                                          # outer band of the image that counts as "touching the edge"
+# Images dropped after looking at the contact sheets (id -> reason). Applied before the seeded take, so each one is
+# replaced by the next candidate of the same slot and every other image keeps its place.
+REJECT_06 = {
+    "e1ffa13fb120c12b": "brand name printed large on the cup",
+    "fdf90530521378ad": "hanging composition: the mask covers only one of several objects",
+    "7045280ce83f80ea": "brand name and packaging text dominate",
+    "a4ce8204dc010b24": "blog address watermark and caption text; two products, one masked",
+    "894c46aa0d7b512c": "a person's legs are visible",
+    "877dc9d3de07e4b2": "not a photograph (technical drawing)",
+    "6b314080cc535053": "large brand logo on the bottle",
+    "d133c517c7947101": "legible sign text in the frame",
+    "e68794b06f205792": "flowers in the vase are outside the mask",
+    "c4b9c0722eefbfdc": "flowers in the vase are outside the mask",
+    "af8494836e6adc45": "flowers in the vase are outside the mask",
+    "e10a4758270ac022": "museum plaque with legible text in the frame",
+    "e3f5c26de2e5735f": "dark shape at the edge that may be a person",
+    "d973420311b00730": "brand name printed large on the bottle",
+    "910796da8a49348e": "company watermark in the corner",
+    "96c6f29db05a8368": "brand name and model text on the packaging dominate; the masked part is an accessory",
+    "b74e6caff7b0229a": "a second object (lamp) is outside the mask",
+    "ed7d3e6b28a06e77": "cooking scene, not a product photo",
+    "b10730442db3217a": "kitchen interior; the product is a small part of the frame",
+    "f286d9d21ea84aac": "legible printed text in the frame",
+    "dcaf07749bc94f41": "photographer watermark in the corner",
+    "81cc3a779b90e177": "several objects and a plant stem outside the mask",
+    "25275432b3ec6f9b": "two products in the frame, only one is masked",
+    "aa81ff2c072c62f7": "museum placard with legible text in the frame",
+    "94546d65a40d0a9a": "part of a person may be visible at the top edge",
+    "05544d84d21af1c1": "brand name and lens engraving are the dominant detail",
+    "79bcd5c3550d9e65": "possible person at the edge of the frame and lettering on the object",
+    "88e4a839c0ff5fc6": "other objects (whisk, tin) are outside the mask",
+    "8d279daa12ffc691": "brand name printed large on the cup",
+    "9ba8af4d3eabf601": "camera rig with tripod and monitor, the mask covers only the camera body",
+    "a3aade02e5418967": "sweets outside the mask are part of the composition",
+    "dd42197939e82d8c": "not a photograph (rendered illustration)",
+    "d74ceb78372a9694": "website watermark in the corner",
+    "d6ea15e0a1f1fd0b": "handwritten museum labels in the frame",
+    "85c4debd240770d0": "brand name and lens engraving fill the frame",
+    "8f5244eec98887a6": "engraved inscription with names is legible",
+    "cd4e964d17223b05": "label text on the bottle is legible and offensive",
+    "758f3553177b6e69": "lenses next to the camera are outside the mask",
+    "a1792883a6ba5d4c": "camera rig with tripod and monitor, the mask covers only the camera body",
+    "6142a6f0fdcaf904": "oven interior with food, not a product photo",
+    "340d7d29dcbe278d": "food fills the frame, not a product photo",
+    "9fe7c70d327b0111": "brand name printed large on the bottles",
+    "8e0cc5199a0ee659": "photographer watermark in the corner and brand name on the lens cap",
+    "a7ec5be4f77a65a8": "brand name printed large on the housing",
+    "678d43310d14d676": "text overlay that is not part of the scene",
+    "37052661d85d40b2": "collage with captions that name people",
+    "c88aa18f9fffa58d": "large printed word on the mug",
+    "a32e3afe08e4a238": "business name printed large on the mug",
+    "af97d848a0c85289": "web address printed on the tripod plate",
+    "ee515c9191f83f06": "branded packaging fills the frame",
+    "fbdf5daeb9cc7bdd": "kitchen interior, not a product photo",
+    "fbce19c2567a7240": "large logo lettering on the guitar",
+    "f4721d94d13eebf7": "food fills the frame, not a product photo",
+    "274b93016f1073da": "a person is reflected in the teapot",
+    "680742e474d75e29": "cooking hob scene, not a product photo",
+    "77153a3efa75f4a4": "photographer watermark and printed number",
+    "914ea0ebfffad164": "kitchen interior, not a product photo",
+    "b73597a889663f1c": "brand name printed large on the bottle",
+    "a2d8194362af5a99": "collage of four photographs",
+    "42fdbf5f7c05f39d": "kitchen interior, not a product photo",
+    "93f18c33e62ccee9": "game machine with on-screen text, not a product photo",
+    "6bc56f8366132974": "other objects (pineapple, lemon) outside the mask",
+    "be6a86c753495f3a": "laundry room interior, the product is a small part of the frame",
+    "cd9af78d9354f152": "legible book titles in the frame",
+    "43197f53dc624b26": "business logo printed on the cup and saucer",
+    "600b65f391e6cf70": "brand lettering on the strap and the camera is the dominant detail",
+    "56578e312e04853a": "branded packaging with large lettering",
+    "d3d5fbcb4c708d11": "blog watermark; food fills the frame",
+    "daa88aa68ff91d62": "steaming pot outdoors, a cooking scene rather than a product photo",
+    "e144287d1ff5bce7": "company logo printed on the toys",
+    "598ce21cc779ff81": "kitchen interior; the mask follows a stove front and towels, not a product",
+    "f2f0c6170f6935a7": "street scene with discarded furniture and a house, not a product photo",
+}
+
+
+def _union_mask(rows, zips):
+    acc = None
+    for r in rows:
+        m = np.array(Image.open(io.BytesIO(zips[r["MaskPath"][0]].read(r["MaskPath"]))).convert("L")) > 127
+        acc = m if acc is None else (acc | m)
+    return acc
+
+
+def _features_06(m: np.ndarray) -> dict:
+    h, w = m.shape
+    ys, xs = np.nonzero(m)
+    if not len(xs):
+        return {}
+    bx, by = max(1, round(w * BORDER_FRAC)), max(1, round(h * BORDER_FRAC))
+    sides = [m[:by].any(0).mean(), m[-by:].any(0).mean(), m[:, :bx].any(1).mean(), m[:, -bx:].any(1).mean()]
+    box = (xs.max() + 1 - xs.min()) * (ys.max() + 1 - ys.min())
+    return {"frac": float(m.mean()), "solidity": float(m.sum() / box), "touch": float(max(sides)),
+            "cx": float((xs.min() + xs.max()) / 2 / w), "cy": float((ys.min() + ys.max()) / 2 / h)}
+
+
+def candidates_06(pool, zips) -> dict:
+    """image id -> candidate record (family, kind in normal / truncated / multi / thin, instance rows). Deterministic."""
+    fam_of = {name: f for f, names in FAMILIES_06.items() for name in names}
+    mids = {pool.mid(n): n for n in fam_of}
+    by_img = collections.defaultdict(list)
+    for r in _rows("segmentation"):
+        if r["ImageID"] in pool.imgs and r["LabelName"] in mids:
+            by_img[r["ImageID"]].append(r)
+    out = {}
+    for i, rows in sorted(by_img.items()):
+        fams = {fam_of[mids[r["LabelName"]]] for r in rows}
+        # another product family boxed on the image (at least 4% of the frame) would end up in the cut-out but not in the mask
+        others = {fam_of[mids[b["LabelName"]]] for b in pool.boxes[i] if b["LabelName"] in mids
+                  and (float(b["XMax"]) - float(b["XMin"])) * (float(b["YMax"]) - float(b["YMin"])) >= 0.04} - fams
+        if len(fams) != 1 or others or i in REJECT_06:
+            continue
+        if any(b["IsGroupOf"] == "1" for b in pool.boxes[i] if b["LabelName"] in mids):
+            continue
+        try:
+            f = _features_06(_union_mask(rows, zips))
+        except KeyError:
+            continue
+        if not f:
+            continue
+        n_inst = len(rows)
+        centred = 0.25 <= f["cx"] <= 0.75 and 0.25 <= f["cy"] <= 0.75
+        if f["touch"] > 0.03:
+            kind = "truncated" if f["frac"] >= 0.12 else None
+        elif n_inst >= 2 and f["frac"] >= 0.08 and all(float(r["BoxXMax"]) - float(r["BoxXMin"]) > 0.08 for r in rows):
+            kind = "multi"
+        elif n_inst == 1 and f["solidity"] < 0.45 and f["frac"] >= 0.04:
+            kind = "thin"
+        elif n_inst == 1 and f["solidity"] >= 0.45 and 0.05 <= f["frac"] <= 0.65 and centred:
+            kind = "normal"
+        else:
+            kind = None
+        if kind:
+            out[i] = {"family": next(iter(fams)), "kind": kind, "n": n_inst, "rows": rows,
+                      "classes": sorted({mids[r["LabelName"]] for r in rows})}
+    return out
+
+
+def build_06() -> None:
+    pool = build_pool("product")
+    rng = random.Random(SEED + 6)
+    zips = {c: mask_zip(c) for c in "0123456789abcdef"}
+    cands = candidates_06(pool, zips)
+    order = {k: [i for i, c in cands.items() if c["kind"] == k] for k in ("normal", "truncated", "multi", "thin")}
+    for k in order:
+        rng.shuffle(order[k])
+    chosen = []
+    for fam, n in NORMAL_06.items():
+        fam_order = [i for i in order["normal"] if cands[i]["family"] == fam]
+        got = take_downloadable(fam_order, n)
+        print(UC06, "normal", fam, "candidates", len(fam_order), "chosen", len(got))
+        chosen += got
+    # families with fewer clean candidates than their target are topped up from the others (at most NORMAL_CAP per family)
+    count = collections.Counter(cands[i]["family"] for i in chosen)
+    for i in order["normal"]:
+        if len(chosen) >= sum(NORMAL_06.values()):
+            break
+        if i not in chosen and count[cands[i]["family"]] < NORMAL_CAP and take_downloadable([i], 1):
+            chosen.append(i)
+            count[cands[i]["family"]] += 1
+    for kind, n in HARD_06.items():
+        per_fam, got = collections.Counter(), []
+        for i in take_downloadable(order[kind], 40):
+            if per_fam[cands[i]["family"]] < 2 and len(got) < n:
+                per_fam[cands[i]["family"]] += 1
+                got.append(i)
+        print(UC06, kind, "candidates", len(order[kind]), "chosen", len(got))
+        chosen += got
+    assert len(chosen) == 40 and len(set(chosen)) == 40, len(chosen)
+    st = stage(UC06)
+    (st / "masks").mkdir()
+    items, truth_items, attr = [], {}, []
+    for i in chosen:
+        c = cands[i]
+        w, h = reencode(cached_image(i), st / "images" / f"{i}.jpg")
+        m = Image.fromarray(_union_mask(c["rows"], zips).astype(np.uint8) * 255).resize((w, h), Image.NEAREST)
+        arr = (np.array(m) > 127).astype(np.uint8) * 255
+        Image.fromarray(arr).save(st / "masks" / f"{i}.png", optimize=True)
+        ys, xs = np.nonzero(arr)
+        items.append({"id": i, "image": f"images/{i}.jpg"})
+        truth_items[i] = {"family": c["family"], "kind": c["kind"], "oi_classes": c["classes"], "instances": c["n"],
+                          "mask": f"masks/{i}.png", "width": w, "height": h,
+                          "bbox": [int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1],
+                          "area_fraction": round(float((arr > 0).mean()), 4)}
+        attr.append(attribution_row(pool.imgs[i], f"images/{i}.jpg", CHANGE_NOTE))
+        attr.append({**attribution_row(pool.imgs[i], f"masks/{i}.png",
+                                       "Instance masks of the listed classes merged (union), resized (nearest) to the stored image size, binarised",
+                                       "segmentation mask: CC BY 4.0, Google LLC"),
+                     "licence": "CC BY 4.0", "licence_url": "https://creativecommons.org/licenses/by/4.0/",
+                     "author": "Google LLC (Open Images Dataset V7)", "author_url": "https://storage.googleapis.com/openimages/web/index.html",
+                     "title": "mask of " + " + ".join(c["classes"]), "source_page_url": "https://storage.googleapis.com/openimages/web/download_v7.html",
+                     "original_url": MASK_ZIP_URL.format(c=c["rows"][0]["MaskPath"][0]) + "#" + ",".join(r["MaskPath"] for r in c["rows"])})
+    # smoke: two ordinary products of different families and one edge-truncated image (the quality rules send it to review)
+    smoke_ids = [next(i for i in chosen if truth_items[i]["family"] == "Cup" and truth_items[i]["kind"] == "normal"),
+                 next(i for i in chosen if truth_items[i]["family"] == "Bottle" and truth_items[i]["kind"] == "normal"),
+                 next(i for i in chosen if truth_items[i]["kind"] == "truncated")]
+    smoke_files = sorted(f for i in smoke_ids for f in (f"images/{i}.jpg", f"masks/{i}.png"))
+    truth = {"source": SOURCE_NOTE,
+             "mask_format": "PNG, 8-bit, 255 = product, 0 = background, same size as the stored image; the union of every instance "
+                            "mask of the family's Open Images classes on that image",
+             "kinds": {"normal": "one centred product", "truncated": "the product touches the frame edge",
+                       "multi": "two or more products of the same family", "thin": "thin structures (handles, necks, legs)"},
+             "items": truth_items}
+    emit_set(UC06, st, items=items, truth=truth, attribution=attr,
+             smoke_items=[it for it in items if it["id"] in smoke_ids],
+             smoke_truth={**{k: v for k, v in truth.items() if k != "items"}, "items": {i: truth_items[i] for i in smoke_ids}},
+             smoke_files=smoke_files)
+    # the use case keeps a plain copy of the smoke set (no symlinks) next to its full-set manifest
+    dst = USE_CASES / UC06 / "assets"
+    if (dst / "smoke").exists():
+        shutil.rmtree(dst / "smoke")
+    shutil.copytree(SMOKE / UC06, dst / "smoke")
+    # the harness looks for files under assets/, so the rows of this copy name them as smoke/images/... (like 02)
+    write_attribution(dst / "smoke" / "ATTRIBUTION.csv", [{**a, "file": "smoke/" + a["file"]} for a in attr if a["file"] in set(smoke_files)])
+    (dst / ".gitignore").write_text("# Extracted from 06-product-photo-pipeline-full.tar.gz (see full.json); not committed.\n"
+                                    "images/\nmasks/\ntruth.json\nmanifest.json\nATTRIBUTION.csv\n")
+    print(UC06, "images", len(items), dict(collections.Counter(t["family"] for t in truth_items.values())),
+          dict(collections.Counter(t["kind"] for t in truth_items.values())))
+
+
+BUILDERS = {"01": build_01, "02": build_02, "05": build_05, "06": build_06}
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("use_cases", nargs="*", choices=list(BUILDERS), default=None,
-                    help="which use cases to build (default: 01 02 05)")
+                    help="which use cases to build (default: 01 02 05 06)")
     a = ap.parse_args()
     for uc in a.use_cases or BUILDERS:
         BUILDERS[uc]()

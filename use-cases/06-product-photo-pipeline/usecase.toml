@@ -1,0 +1,58 @@
+id = "06-product-photo-pipeline"
+order = 6
+title = { en = "Marketplace photos to catalogue images", zh = "把商家照片变成统一的商品目录图" }
+summary = { en = "Cut the product out of each photo with birefnet, check the cut-out locally with four quality rules, and compose the ones that pass into 1200 x 1200 white-background WebP images with a soft shadow; the rest go to a review list with the reason.", zh = "用 birefnet 把商品从每张照片里抠出来，在本地用四条质检规则检查抠图；通过的合成为 1200 x 1200 的白底 WebP（带柔和投影），不通过的连同原因进入复核清单。" }
+models = ["birefnet"]
+tier = "billed"
+languages = ["python"]
+reference = "python"
+docs = ["/docs/use-cases/background-removal/", "/docs/images/", "/docs/rate-limits/", "/docs/billing/"]
+playground = "/playground/?model=birefnet"
+
+[sizes.smoke]
+manifest = "assets/smoke/manifest.json"
+# 3 photos x 1 credit (remove-background is 1 credit per image and is not discounted by the cache).
+budget_credits = 3.0
+
+# The 40 photos and their ground-truth masks are a release asset: extract 06-product-photo-pipeline-full.tar.gz into
+# assets/ (see assets/full.json). 40 photos x 1 credit.
+[sizes.full]
+manifest = "assets/full.json"
+budget_credits = 40.0
+
+[compare]
+"items[].status" = { exact = true }
+"items[].output.cutout.format" = { exact = true }
+"items[].output.cutout.width" = { exact = true }
+"items[].output.cutout.height" = { exact = true }
+"items[].output.quality.coverage" = { abs = 0.002 }
+"items[].output.quality.edge_touch" = { abs = 0.002 }
+"items[].output.quality.semi_transparent" = { abs = 0.002 }
+"items[].output.quality.pieces" = { exact = true }
+"items[].output.quality.reasons" = { set = true }
+"items[].output.quality.passed" = { exact = true }
+"items[].output.catalogue.width" = { exact = true }
+"items[].output.catalogue.height" = { exact = true }
+"ledger.calls" = { exact = true }
+"ledger.listTotal" = { abs = 0.000001 }
+
+# A live run returns a real cut-out, so the quality numbers and the verdicts depend on the model: only the shape of the
+# output and the bill are compared.
+[compare_live]
+"items[].status" = { ignore = true }
+"items[].output.cutout.width" = { ignore = true }
+"items[].output.cutout.height" = { ignore = true }
+"items[].output.quality.coverage" = { ignore = true }
+"items[].output.quality.edge_touch" = { ignore = true }
+"items[].output.quality.semi_transparent" = { ignore = true }
+"items[].output.quality.pieces" = { ignore = true }
+"items[].output.quality.reasons" = { ignore = true }
+"items[].output.quality.passed" = { ignore = true }
+"items[].output.catalogue.width" = { ignore = true }
+"items[].output.catalogue.height" = { ignore = true }
+
+[quality]
+# Floors for the metrics `evaluate.py` prints on the full set. Only the bill is bounded for now: the cut-out quality and the
+# agreement of the rules with the ground truth are set after the first recorded full run (expected/full-summary.json), with a
+# margin around what it measured. No timing metric is published.
+cost_per_1000_images_list = { max = 1000 }

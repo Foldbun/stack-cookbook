@@ -1,0 +1,68 @@
+{
+ "usecase": "06-product-photo-pipeline",
+ "set": "smoke",
+ "source": "Open Images Dataset V7 (Google LLC): annotations CC BY 4.0; image CC BY 2.0 by the author listed",
+ "mask_format": "PNG, 8-bit, 255 = product, 0 = background, same size as the stored image; the union of every instance mask of the family's Open Images classes on that image",
+ "kinds": {
+  "normal": "one centred product",
+  "truncated": "the product touches the frame edge",
+  "multi": "two or more products of the same family",
+  "thin": "thin structures (handles, necks, legs)"
+ },
+ "items": {
+  "93efde7b40f6e375": {
+   "family": "Cup",
+   "kind": "normal",
+   "oi_classes": [
+    "Coffee cup"
+   ],
+   "instances": 1,
+   "mask": "masks/93efde7b40f6e375.png",
+   "width": 1024,
+   "height": 768,
+   "bbox": [
+    193,
+    26,
+    899,
+    548
+   ],
+   "area_fraction": 0.3276
+  },
+  "efd4cbed58c62a88": {
+   "family": "Bottle",
+   "kind": "normal",
+   "oi_classes": [
+    "Bottle"
+   ],
+   "instances": 1,
+   "mask": "masks/efd4cbed58c62a88.png",
+   "width": 768,
+   "height": 1024,
+   "bbox": [
+    246,
+    41,
+    525,
+    1001
+   ],
+   "area_fraction": 0.2854
+  },
+  "daded832e3ae26b5": {
+   "family": "Appliance",
+   "kind": "truncated",
+   "oi_classes": [
+    "Washing machine"
+   ],
+   "instances": 2,
+   "mask": "masks/daded832e3ae26b5.png",
+   "width": 1024,
+   "height": 683,
+   "bbox": [
+    0,
+    104,
+    1024,
+    683
+   ],
+   "area_fraction": 0.7586
+  }
+ }
+}

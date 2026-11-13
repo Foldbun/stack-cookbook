@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "items[].output of use case 06",
+  "type": "object",
+  "required": ["cutout", "quality", "catalogue"],
+  "additionalProperties": false,
+  "properties": {
+    "cutout": {
+      "type": "object",
+      "description": "The cut-out as the API returned it.",
+      "required": ["format", "width", "height", "bytes"],
+      "additionalProperties": false,
+      "properties": {
+        "format": { "const": "webp" },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "bytes": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "description": "The four quality rules applied to the alpha channel; reasons is empty when the cut-out passed.",
+      "required": ["coverage", "edge_touch", "semi_transparent", "pieces", "reasons", "passed"],
+      "additionalProperties": false,
+      "properties": {
+        "coverage": { "type": "number", "minimum": 0, "maximum": 1 },
+        "edge_touch": { "type": "number", "minimum": 0, "maximum": 1 },
+        "semi_transparent": { "type": "number", "minimum": 0, "maximum": 1 },
+        "pieces": { "type": "integer", "minimum": 0 },
+        "reasons": { "type": "array", "items": { "enum": ["coverage_low", "coverage_high", "edge_cut", "semi_transparent", "multiple_pieces"] } },
+        "passed": { "type": "boolean" }
+      }
+    },
+    "catalogue": {
+      "description": "The composed catalogue image; null when the cut-out did not pass.",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["file", "width", "height", "bytes"],
+          "additionalProperties": false,
+          "properties": {
+            "file": { "type": "string" },
+            "width": { "const": 1200 },
+            "height": { "const": 1200 },
+            "bytes": { "type": "integer", "minimum": 1 }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -11,6 +11,7 @@ every download in `sources.lock.json`. Licences and attribution: [LICENSES.md](L
 | `03-receipts-to-json` | 60 CORD v2 receipts + 20 synthetic invoices (10 clean, 10 photographed) | CORD v2 (CC BY 4.0), generator (CC0) | 3 receipts + 1 photographed invoice, 0.5 MB | 11.7 MB |
 | `04-documents-to-rag-chunks` | 30 synthetic document pages: 15 clean + the same 15 photographed (6 documents of 2 to 3 pages) | generator (CC0), body text from public-domain books | 2 pages, 0.4 MB | 7.7 MB |
 | `05-image-library-search` | 400 images, 100 near-duplicate variants, 40 text queries | Open Images V7 validation | 20 images + 5 variants + 5 queries, 2.9 MB | 73.7 MB |
+| `06-product-photo-pipeline` | 40 product-like objects (9 families) with masks | Open Images V7 validation masks | 3 objects, 0.4 MB | 5.1 MB |
 
 ## Layout
 
@@ -36,10 +37,10 @@ Run from the repository root. `uv` installs the dependencies declared in `datase
 (Pillow, numpy, pyarrow, reportlab, pypdfium2).
 
 ```
-uv run --project datasets python -m datasets.build                 # build 01, 02, 03, 05 and write manifest.json
+uv run --project datasets python -m datasets.build                 # build 01, 02, 03, 05, 06 and write manifest.json
 uv run --project datasets python -m datasets.build --only 01 05    # a subset
 uv run --project datasets python -m datasets.build --verify        # rebuild from cache, compare with manifest.json
-uv run --project datasets python -m datasets.build.openimages 01 02 05
+uv run --project datasets python -m datasets.build.openimages 01 02 05 06
 uv run --project datasets python -m datasets.build.cord [--invoices-only]
 uv run --project datasets python -m datasets.build.near_duplicates --help
 uv run --project datasets python -m datasets.generators.invoices --help
@@ -78,6 +79,7 @@ missing from `.cache/`, with 4 parallel connections and the User-Agent `foldbun-
 | 03 | none (`id` is `cord-NNN` or `inv-NNN`) | none |
 | 04 | `document`: id of the document the page belongs to (`d01`; `d01-photo` for the photographed copy in the full set); `page`: page number in that document | none |
 | 05 | `kind`: `"original"` or `"variant"` | `queries`: `[{id, text}]`, text is `a photo of a <class>` |
+| 06 | none (`id` is the Open Images image id) | none |
 
 ## `truth.json`
 
@@ -115,6 +117,15 @@ source; any other pair of images is a non-duplicate. Use `split` to choose a thr
 on the other (`b`). Recipes (10 variants each in the full set): resize, crop, jpeg, color, flip, watermark,
 resize+jpeg, crop+color, flip+jpeg, crop+resize.
 
+**06** `items[id] = { family, kind, oi_classes, instances, mask, width, height, bbox, area_fraction }`. `mask` is an 8-bit PNG
+(255 = product) of the stored image size. When an image carries several instances, the mask is the **union** of every
+instance mask of the family's Open Images classes on that image (`instances` counts them); the truth is the whole
+product(s), because the endpoint cuts out everything salient. `family` is Cup (Coffee cup, Mug), Bowl (Bowl, Mixing
+bowl), Bottle, Camera, Toy, Guitar, Chest of drawers, Vase or Cookware (Teapot, Kettle, Wok, Frying pan, Jug, Pitcher,
+cookers) or Appliance (Microwave oven, Printer, Washing machine, Food processor, Toaster). `kind` marks the hard cases
+for the quality rules: `normal` (one centred product), `truncated` (the mask touches the frame edge), `multi` (two or
+more instances) and `thin` (mask fills less than 45 percent of its bounding box: necks, handles, legs).
+
 ## `ATTRIBUTION.csv`
 
 Columns: `file, id, title, author, author_url, source_page_url, licence, licence_url, original_url, modified, notes`.
@@ -134,6 +145,16 @@ One row per committed image and mask; `file` matches the path in the manifest.
 - 02: masks with a mask-to-box ratio of at least 0.45 and 5 to 60 percent of the image, one object per image, at most
   three per class, never a group or truncated box.
 - 05: 40 queries from a fixed class list, 10 originals sampled per query class, the remaining 40 originals random.
+- 06: uses the `product` profile of `oi_meta.build_pool`. Product-like classes that 01 / 02 / 05 exclude (bottles, bags,
+  watches, toys, cameras, instruments ...: `PRODUCT_ALLOWED` in `oi_exclusions.py`) are allowed again, but person, body-part,
+  face, plate, clothing-on-body and text-like classes, depictions and every machine label of an excluded class with
+  confidence >= 0.2 still exclude the image, so no image has any person-related annotation or prediction. 01 / 02 / 05
+  use the default profile and are unchanged (their archives are byte-identical). Selection: one product family per
+  image (no other family boxed at 4 percent of the frame or more), 28 `normal` (centred, 5 to 65 percent of the frame),
+  4 `truncated`, 4 `multi`, 4 `thin`; families with too few clean candidates are topped up from the others (at most 5
+  each). The 3 smoke images are 2 `normal` (Cup, Bottle) and 1 `truncated`. Images rejected in the manual review of the
+  contact sheets are in `REJECT_06` (about 70 images, with reasons: brand names or logos printed large, watermarks,
+  legible text, people or reflections of people, collages, scenes that are not product photos, objects outside the mask).
 - Images dropped after looking at the contact sheets are listed with a reason in `REJECT` (`openimages.py`).
   Images removed in a later review are listed in `REMOVED` and receipts in `EXCLUDE_INDEX` / the exclusion rules of `cord.py`;
   they are applied after the seeded selection, so every other image keeps its place and each removed one is replaced by

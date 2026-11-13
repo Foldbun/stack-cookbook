@@ -32,3 +32,16 @@ KEYWORDS = re.compile(r"\b(person|people|persons|man|men|woman|women|boy|girl|ch
  r"cross|crucifix|church|temple|mosque|synagogue|shrine|religion|religious|buddha|jesus|mary|god|flag|swastika|political|election|"
  r"license plate|vehicle registration plate|number plate|medical|hospital|surgery|syringe|pill|clothing|apparel|uniform|jacket|coat|shirt|dress|"
  r"hat|cap|helmet|glasses|sunglasses|shoe|shoes|boot|boots|sandal|sock|glove|bag|backpack|handbag)\b", re.I)
+
+
+# Use case 06 (product photos) lets some product-like classes back in. They are excluded for 01 / 02 / 05 because photos of
+# them often show people; for 06 the person-related names, the keyword filter for body parts and the machine-label check stay
+# as they are, so an image only qualifies when nothing about a person is annotated or predicted on it.
+PRODUCT_ALLOWED = {"Toy", "Bottle", "Watch", "Handbag", "Backpack", "Luggage and bags", "Suitcase", "Briefcase", "Footwear",
+                   "Boot", "Sandal", "High heels", "Umbrella", "Fashion accessory", "Camera",
+                   "Teddy bear", "Bed", "Pillow", "Guitar", "Violin", "Cello", "Piano", "Drum",
+                   "Sunglasses", "Glasses", "Hat", "Sun hat", "Helmet", "Bicycle helmet", "Scarf", "Tie", "Necklace",
+                   "Earring", "Belt", "Glove", "Sock", "Perfume", "Cosmetics", "Ball (Object)",
+                   "Football", "Tennis ball", "Racket", "Tennis racket", "Binoculars", "Tripod",
+                   "Headphones", "Microphone", "Maraca",
+                   "Baseball glove", "Baseball bat", "Flying disc", "Sports equipment", "Hair dryer"}

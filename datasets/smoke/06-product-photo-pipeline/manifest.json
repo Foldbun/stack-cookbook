@@ -1,0 +1,19 @@
+{
+ "usecase": "06-product-photo-pipeline",
+ "version": 1,
+ "set": "smoke",
+ "items": [
+  {
+   "id": "93efde7b40f6e375",
+   "image": "images/93efde7b40f6e375.jpg"
+  },
+  {
+   "id": "efd4cbed58c62a88",
+   "image": "images/efd4cbed58c62a88.jpg"
+  },
+  {
+   "id": "daded832e3ae26b5",
+   "image": "images/daded832e3ae26b5.jpg"
+  }
+ ]
+}

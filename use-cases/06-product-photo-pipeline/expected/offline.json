@@ -1,0 +1,125 @@
+{
+  "usecase": "06-product-photo-pipeline",
+  "language": "python",
+  "client": "stack_client 1.0.0",
+  "startedAt": "2026-11-13T10:04:25Z",
+  "elapsedMs": 576,
+  "items": [
+    {
+      "id": "93efde7b40f6e375",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1.0,
+          "charged": 1.0,
+          "cache": null,
+          "queueMs": 4,
+          "processingMs": 900,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 768,
+          "bytes": 53508
+        },
+        "quality": {
+          "coverage": 0.3276,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0255,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/93efde7b40f6e375.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 52842
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "efd4cbed58c62a88",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1.0,
+          "charged": 1.0,
+          "cache": null,
+          "queueMs": 4,
+          "processingMs": 900,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 768,
+          "height": 1024,
+          "bytes": 45514
+        },
+        "quality": {
+          "coverage": 0.2854,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0366,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/efd4cbed58c62a88.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 32246
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "daded832e3ae26b5",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1.0,
+          "charged": 1.0,
+          "cache": null,
+          "queueMs": 4,
+          "processingMs": 900,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 683,
+          "bytes": 72906
+        },
+        "quality": {
+          "coverage": 0.7587,
+          "edge_touch": 0.9541,
+          "semi_transparent": 0.0143,
+          "pieces": 1,
+          "reasons": [
+            "edge_cut"
+          ],
+          "passed": false
+        },
+        "catalogue": null
+      },
+      "status": "ok"
+    }
+  ],
+  "ledger": {
+    "calls": 3,
+    "listTotal": 3.0,
+    "chargedTotal": 3.0
+  }
+}

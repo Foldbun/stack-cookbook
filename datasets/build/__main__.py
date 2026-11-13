@@ -1,6 +1,6 @@
 """Build every dataset and write the manifests.
 
-  uv run --project datasets python -m datasets.build            # build 01 02 03 04 05, write datasets/manifest.json
+  uv run --project datasets python -m datasets.build            # build 01 02 03 04 05 06, write datasets/manifest.json
   uv run --project datasets python -m datasets.build --verify   # rebuild from cache, compare against the committed manifest
   uv run --project datasets python -m datasets.build --only 01 05
 
@@ -19,7 +19,7 @@ from . import cord, documents, openimages
 from .common import ATTRIBUTION, DATASETS, DIST, SMOKE, files_listing, sha256_file, write_json
 
 MANIFEST = DATASETS / "manifest.json"
-UCS = {"01": "01-dataset-prelabelling", "02": "02-click-to-segment", "03": "03-receipts-to-json", "04": "04-documents-to-rag-chunks", "05": "05-image-library-search"}
+UCS = {"01": "01-dataset-prelabelling", "02": "02-click-to-segment", "03": "03-receipts-to-json", "04": "04-documents-to-rag-chunks", "05": "05-image-library-search", "06": "06-product-photo-pipeline"}
 
 
 def build(only: list[str]) -> None:

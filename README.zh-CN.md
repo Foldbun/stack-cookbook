@@ -35,6 +35,7 @@ curl：`bash ../curl/run.sh`。TypeScript：`cd ../typescript && pnpm install &&
 | [03 收据和发票转为经过校验的 JSON](use-cases/03-receipts-to-json/README.zh-CN.md) | 按量扣费 |  | ✓ | ✓ | ✓ |
 | [04 扫描文档转为可入索引的 Markdown 切块](use-cases/04-documents-to-rag-chunks/README.zh-CN.md) | 按量扣费 |  | ✓ |  |  |
 | [05 按图、按文字搜索图库，并找出近重复图片](use-cases/05-image-library-search/README.zh-CN.md) | 公共池 |  | ✓ |  | ✓ |
+| [06 把商家照片变成统一的商品目录图](use-cases/06-product-photo-pipeline/README.zh-CN.md) | 按量扣费 |  | ✓ |  |  |
 | [08 监控线上集成的成本与时延](use-cases/08-cost-and-latency-monitoring/README.zh-CN.md) | 已充值 |  | ✓ |  |  |
 <!-- /usecases -->
 

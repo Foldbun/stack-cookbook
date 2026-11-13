@@ -1,0 +1,6 @@
+# Extracted from 06-product-photo-pipeline-full.tar.gz (see full.json); not committed.
+/images/
+/masks/
+/truth.json
+/manifest.json
+/ATTRIBUTION.csv

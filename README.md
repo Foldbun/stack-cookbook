@@ -34,6 +34,7 @@ The examples call the API with a key created in the Foldbun Stack console. API k
 | [03 Receipts and invoices to validated JSON](use-cases/03-receipts-to-json/README.md) | Billed |  | ✓ | ✓ | ✓ |
 | [04 Scanned documents to Markdown chunks for a search index](use-cases/04-documents-to-rag-chunks/README.md) | Billed |  | ✓ |  |  |
 | [05 Search an image library by image, by text, and for near-duplicates](use-cases/05-image-library-search/README.md) | Public pool |  | ✓ |  | ✓ |
+| [06 Marketplace photos to catalogue images](use-cases/06-product-photo-pipeline/README.md) | Billed |  | ✓ |  |  |
 | [08 Monitor cost and latency of a production integration](use-cases/08-cost-and-latency-monitoring/README.md) | Funded |  | ✓ |  |  |
 <!-- /usecases -->
 

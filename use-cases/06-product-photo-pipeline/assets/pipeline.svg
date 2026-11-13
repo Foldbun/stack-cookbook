@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 170" role="img" aria-label="Photo, cut-out, four quality rules, then catalogue image or review list">
+  <style>
+    rect { fill: #f4f4f5; stroke: #71717a; stroke-width: 1.5; }
+    .ok rect { fill: #e7f5ec; stroke: #2f855a; }
+    .no rect { fill: #fdecec; stroke: #c53030; }
+    text { font: 13px sans-serif; fill: #18181b; text-anchor: middle; }
+    path { stroke: #71717a; stroke-width: 1.5; fill: none; }
+  </style>
+  <g><rect x="10" y="60" width="110" height="50" rx="6"/><text x="65" y="90">photo (JPEG)</text></g>
+  <g><rect x="170" y="60" width="150" height="50" rx="6"/><text x="245" y="82">remove-background</text><text x="245" y="98">birefnet, webp</text></g>
+  <g><rect x="370" y="60" width="150" height="50" rx="6"/><text x="445" y="82">4 quality rules</text><text x="445" y="98">on the alpha channel</text></g>
+  <g class="ok"><rect x="570" y="15" width="180" height="50" rx="6"/><text x="660" y="37">crop, pad, centre, shadow</text><text x="660" y="53">1200 x 1200 WebP</text></g>
+  <g class="no"><rect x="570" y="105" width="180" height="50" rx="6"/><text x="660" y="127">review.csv</text><text x="660" y="143">file, reasons, numbers</text></g>
+  <path d="M120 85H170M320 85H370M520 85L545 85L545 40L570 40M545 85L545 130L570 130"/>
+</svg>

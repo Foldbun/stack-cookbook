@@ -57,12 +57,13 @@ def _rows(key):
         yield from csv.DictReader(f)
 
 
-def build_pool() -> Pool:
+def build_pool(profile: str = "default") -> Pool:
     """Eligible = validation image, CC BY 2.0 with an author, rotation 0, and none of: an excluded-class box
     (includes Person, Human face, ..., Vehicle registration plate, Flag, Car ...), a human-verified positive
     image-level label of an excluded class, a machine label of an excluded class with confidence >= 0.2,
     or a depiction box (drawings, toys, posters)."""
-    cache = CACHE / "oi_pool.pkl"
+    # profile "product" (use case 06) takes the product-like classes out of the exclusion set; "default" is 01 / 02 / 05
+    cache = CACHE / ("oi_pool.pkl" if profile == "default" else f"oi_pool_{profile}.pkl")
     if cache.exists():
         return pickle.load(open(cache, "rb"))
     download_meta()
@@ -78,6 +79,8 @@ def build_pool() -> Pool:
         if n not in name2mid:
             print("warning: exclusion name not in class table:", n, file=sys.stderr)
     excl |= {m for m, n in cls.items() if oi_exclusions.KEYWORDS.search(n)}
+    if profile == "product":
+        excl -= {name2mid[n] for n in oi_exclusions.PRODUCT_ALLOWED if n in name2mid}
 
     fun = collections.OrderedDict()
     imgs = {}
