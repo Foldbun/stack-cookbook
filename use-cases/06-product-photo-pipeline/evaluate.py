@@ -7,6 +7,8 @@ Needs Pillow and numpy (the harness environment has both). Prints one JSON objec
 * Review rate: the share of cut-outs the four quality rules stopped.
 * Confusion matrix of "stopped by the rules" against "IoU below 0.85" (the cut-out is wrong): the rules are useful when
   most wrong cut-outs are stopped (recall) and most stopped ones are wrong (precision).
+* By kind of photo: the share of the hard cases by design (cut off by the frame, several products) that the rules stopped,
+  and the share of the other photos (plain and thin-structured products) they stopped.
 * Cost per 1,000 photos at list price, from the ledger (1 credit per photo, no cache discount in the plan).
 No timing metric is reported: network time depends on the client's path and is not published.
 """
@@ -21,6 +23,7 @@ from PIL import Image
 
 WRONG_BELOW = 0.85
 ALPHA_FOREGROUND = 128
+HARD_KINDS = ("truncated", "multi")  # the photos the rules are meant to stop
 
 
 def iou(pred: np.ndarray, truth: np.ndarray) -> float:
@@ -59,6 +62,9 @@ def evaluate(result: dict, truth: dict, base: Path, truth_dir: Path) -> dict:
         k["photos"] += 1
         k["stopped"] += stopped
         k["wrong"] += wrong
+    hard = [k for kind, k in by_kind.items() if kind in HARD_KINDS]
+    rest = [k for kind, k in by_kind.items() if kind not in HARD_KINDS]
+    n_hard, n_rest = sum(k["photos"] for k in hard), sum(k["photos"] for k in rest)
     values = list(ious.values())
     ledger = result["ledger"]
     return {
@@ -71,6 +77,8 @@ def evaluate(result: dict, truth: dict, base: Path, truth_dir: Path) -> dict:
         "rules_precision": round(tp / (tp + fp), 4) if tp + fp else None,
         "rules_recall": round(tp / (tp + fn), 4) if tp + fn else None,
         "by_kind": by_kind,
+        "hard_cases_stopped_rate": round(sum(k["stopped"] for k in hard) / n_hard, 4) if n_hard else None,
+        "other_photos_stopped_rate": round(sum(k["stopped"] for k in rest) / n_rest, 4) if n_rest else None,
         "cost_per_1000_images_list": round(ledger["listTotal"] / n * 1000, 3) if n else None,
     }
 

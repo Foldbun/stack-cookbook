@@ -32,7 +32,7 @@ uv run python main.py --manifest ../assets/smoke/manifest.json --out out --concu
 
 ### Quality rules
 
-Every threshold is a named constant. They are provisional: the first recorded run on the full set shows how many of the 40 photos each rule stops, and the numbers are then fixed.
+Every threshold is a named constant. They were set on the 40 photos of the full set; the Results section shows how many of them the rules stop.
 
 - **Coverage** (`MIN_COVERAGE` 5 percent, `MAX_COVERAGE` 90 percent of the frame at alpha of at least 128): below means the model found nothing, above means it kept the background.
 - **Edge cut** (`EDGE_BAND` the outer 1 percent of the frame, `EDGE_TOUCH_MAX` 3 percent of a side): a product that touches the frame is cut off by the photo, and no cut-out can restore the rest.
@@ -43,8 +43,8 @@ Every threshold is a named constant. They are provisional: the first recorded ru
 <details><summary>Python (python/pipeline.py)</summary>
 
 ```python
-# Quality rules. Every number is a named constant so a catalogue team can tune it; they are provisional until the first
-# recorded run on the full set, which prints how many of the 40 photos each rule stops (expected/full-summary.json).
+# Quality rules. Every number is a named constant so a catalogue team can tune it. They were set on the 40 photos of the
+# full set; expected/full-summary.json records how many of them the rules stop.
 FOREGROUND_ALPHA = 128  # alpha at or above this is "the product" (half opaque)
 SEMI_LOW, SEMI_HIGH = 16, 240  # alpha strictly between these is "semi-transparent" (neither background nor solid)
 MIN_COVERAGE, MAX_COVERAGE = 0.05, 0.90  # share of the frame the product fills: outside means a missed or a swallowed subject
@@ -198,15 +198,51 @@ def encode_webp(page: Image.Image) -> bytes:
 `evaluate.py` scores a run on the 40 photos against the Open Images instance masks: the IoU of the cut-out alpha (at 128) with the ground truth (mean and 10th percentile), the share of photos the rules stop, and a confusion matrix of "stopped" against "IoU below 0.85", which says whether the rules catch the cut-outs that are wrong. A run records no timing: the numbers would depend on the network path, so none is published.
 
 <!-- metrics: expected/full-summary.json -->
-Not measured yet.
+| Metric | Value |
+|---|---|
+| `photos` | 40 |
+| `iou_mean` | 0.8812 |
+| `iou_p10` | 0.6377 |
+| `review_rate` | 0.25 |
+| `wrong_cutouts` | 9 |
+| `confusion.stopped_wrong` | 4 |
+| `confusion.stopped_fine` | 6 |
+| `confusion.passed_wrong` | 5 |
+| `confusion.passed_fine` | 25 |
+| `rules_precision` | 0.4 |
+| `rules_recall` | 0.4444 |
+| `by_kind.normal.photos` | 28 |
+| `by_kind.normal.stopped` | 2 |
+| `by_kind.normal.wrong` | 6 |
+| `by_kind.truncated.photos` | 4 |
+| `by_kind.truncated.stopped` | 4 |
+| `by_kind.truncated.wrong` | 2 |
+| `by_kind.multi.photos` | 4 |
+| `by_kind.multi.stopped` | 4 |
+| `by_kind.multi.wrong` | 1 |
+| `by_kind.thin.photos` | 4 |
+| `by_kind.thin.stopped` | 0 |
+| `by_kind.thin.wrong` | 0 |
+| `hard_cases_stopped_rate` | 1 |
+| `other_photos_stopped_rate` | 0.0625 |
+| `cost_per_1000_images_list` | 1,000 |
 <!-- /metrics -->
+
+How to read the recorded run:
+
+- The rules stopped all 8 hard cases by design (4 cut off by the frame, 4 with several products) and 2 of the other 32 photos. None of the 4 products with thin structures was stopped, and none of those cut-outs was wrong.
+- The confusion matrix is harsher than the catalogue would be. An Open Images mask covers the labelled object only, so a cut-out that keeps the saucer under a cup, or both of two stacked toys, has a low IoU although it is what a catalogue wants; 3 of the 5 "passed but wrong" cut-outs are of this kind. The other 2 are real misses: a cut-out that kept a strip of background, and one broken up by a reflection. The rules do not see either; a low IoU needs ground truth, which a production run does not have.
+- 6 of the 10 stopped cut-outs have a good IoU. 4 of them are the photos with several products, where the cut-out is right and the photo is not a catalogue image; that is what the `multiple_pieces` rule is for.
 
 ## Cost <!-- #cost -->
 
 One credit per image (US$0.001 at 1,000 credits per US$1), so 1,000 photos cost 1,000 credits. The cache does not discount this endpoint, and the quality rules and the composition run locally for free. A rerun pays again unless you use `--resume`.
 
 <!-- cost -->
-Not measured yet.
+| Run | Calls | List price (credits) | Charged (credits) |
+|---|---|---|---|
+| smoke | 3 | 3 | 3 |
+| full | 40 | 40 | 40 |
 <!-- /cost -->
 
 ## Limits and when not to use this <!-- #limits -->
@@ -215,7 +251,7 @@ Not measured yet.
 - Transparent and reflective products (glass, polished metal) get unstable edges. Expect them in `review.csv`.
 - A product cut off by the frame cannot be repaired. The rule only detects it.
 - One credit per photo, with no cache discount: a large backlog is a real bill.
-- The thresholds are provisional and tuned on 40 photos of household objects; check them against your own catalogue.
+- The thresholds were set on 40 photos of household objects; check them against your own catalogue.
 
 ## Data <!-- #data -->
 

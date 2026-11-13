@@ -5,6 +5,7 @@ Runs over every file git tracks or would track (ignored files are skipped) and o
 Exceptions are listed in ALLOW with a reason; keep that list short.
 """
 
+import base64
 import fnmatch
 import json
 import os
@@ -45,6 +46,8 @@ CALL_ID = re.compile(r"call_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9
 FAKE_CALL_ID = re.compile(r"call_00000000-0000-7000-8000-[0-9]{12}")
 IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp"}
 METADATA = [b"Exif\x00\x00", b"EXIF", b"eXIf", b"XMP ", b"http://ns.adobe.com/xap/", b"<x:xmpmeta"]
+BASE64_STRING = re.compile(r'"([A-Za-z0-9+/]{512,}={0,2})"')
+IMAGE_MAGIC = (b"\x89PNG\r\n\x1a\n", b"\xff\xd8\xff", b"RIFF")
 PUBLIC_REGISTRIES = re.compile(r"https://(pypi\.org|files\.pythonhosted\.org|registry\.npmjs\.org|proxy\.golang\.org)/")
 
 
@@ -101,6 +104,24 @@ def scan_image(path, data):
     return [f"{path}: image carries metadata ({tag.decode(errors='replace').strip()})" for tag in METADATA if tag in data[:65536] or tag in data[-65536:]][:1]
 
 
+def split_embedded_images(path, text):
+    """A recorded answer carries images as base64 strings. One that decodes to an image is checked as an image (metadata)
+    and taken out of the text, where any three letters of image data can spell a word of the list. Anything else stays."""
+    problems = []
+
+    def check(m):
+        try:
+            data = base64.b64decode(m.group(1), validate=True)
+        except ValueError:
+            return m.group(0)
+        if not data.startswith(IMAGE_MAGIC):
+            return m.group(0)
+        problems.extend(scan_image(path, data))
+        return '"(image)"'
+
+    return BASE64_STRING.sub(check, text), problems
+
+
 def scan_lockfile(path, text):
     urls = re.findall(r"https?://[^\s\"',)]+", text)
     return [f"{path}: non-public registry {u}" for u in urls if not PUBLIC_REGISTRIES.match(u) and ("registry" in u or "/simple" in u or "tarball" in u)]
@@ -117,6 +138,9 @@ def run():
         if b"\0" in data[:8192]:
             continue
         text = data.decode("utf-8", errors="replace")
+        if recorded(path):
+            text, found = split_embedded_images(path, text)
+            problems += found
         problems += scan_text(path, text)
         if recorded(path):
             problems += scan_recorded(path, text)

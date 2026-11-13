@@ -8,7 +8,8 @@ All notable changes to this repository. Versions follow [Semantic Versioning](ht
 - `08-cost-and-latency-monitoring` (Python): `monitoring.py` wraps the client file and exports Prometheus metrics from the billing, cache and timing of every answer and from each batch `item` event, with a sliding-hour spend guard (alert or refuse); a 21-call replay, `evaluate.py` (books agree, cache hits, guard trigger, middleware overhead), an alert-rules file and a Grafana dashboard.
 - The vendored API description `harness/vendor/openapi.yaml` is now 1.1.0 (adds `GET /v1/whoami`, `account_disabled`, `forbidden` and `moved` error codes, upload limits, batch result cap; one phrase naming a retired host is generalised). The fake API serves `GET /v1/whoami`.
 - Root test dependencies: `prometheus-client` (tests of use case 08).
-- `06-product-photo-pipeline`: marketplace photos to catalogue images with `birefnet` and four local quality rules (Python; the dataset of 40 Open Images photos with mask truth is in `datasets/`). The quality bounds are set after the first recorded full run.
+- `harness scan` checks an image embedded in a recorded answer as an image (metadata) instead of matching the word list against its base64 text.
+- `06-product-photo-pipeline`: marketplace photos to catalogue images with `birefnet` and four local quality rules (Python; the dataset of 40 Open Images photos with mask truth is in `datasets/`). `evaluate.py` reports the IoU against the masks, the share of photos the rules stop, by kind of photo, and cost per 1,000 photos; no latency.
 
 ## 0.1.0 - 2026-11-12
 

@@ -52,7 +52,11 @@ budget_credits = 40.0
 "items[].output.catalogue.height" = { ignore = true }
 
 [quality]
-# Floors for the metrics `evaluate.py` prints on the full set. Only the bill is bounded for now: the cut-out quality and the
-# agreement of the rules with the ground truth are set after the first recorded full run (expected/full-summary.json), with a
-# margin around what it measured. No timing metric is published.
+# Floors for the metrics `evaluate.py` prints on the full set (40 photos: 28 plain, 12 hard cases), set with a margin around
+# the first recorded run (expected/full-summary.json). No timing metric is published.
+iou_mean = { min = 0.84 }
+iou_p10 = { min = 0.55 }
+review_rate = { min = 0.15, max = 0.40 }
+hard_cases_stopped_rate = { min = 0.75 }
+other_photos_stopped_rate = { max = 0.15 }
 cost_per_1000_images_list = { max = 1000 }

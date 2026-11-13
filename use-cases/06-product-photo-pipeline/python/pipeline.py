@@ -12,8 +12,8 @@ from dataclasses import asdict, dataclass, field
 from PIL import Image, ImageFilter
 
 # region thresholds
-# Quality rules. Every number is a named constant so a catalogue team can tune it; they are provisional until the first
-# recorded run on the full set, which prints how many of the 40 photos each rule stops (expected/full-summary.json).
+# Quality rules. Every number is a named constant so a catalogue team can tune it. They were set on the 40 photos of the
+# full set; expected/full-summary.json records how many of them the rules stop.
 FOREGROUND_ALPHA = 128  # alpha at or above this is "the product" (half opaque)
 SEMI_LOW, SEMI_HIGH = 16, 240  # alpha strictly between these is "semi-transparent" (neither background nor solid)
 MIN_COVERAGE, MAX_COVERAGE = 0.05, 0.90  # share of the frame the product fills: outside means a missed or a swallowed subject

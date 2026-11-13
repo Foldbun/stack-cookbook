@@ -1,4 +1,4 @@
-<!-- en-sha: 7ebf7a62a81a -->
+<!-- en-sha: 351a3a803548 -->
 # 把商家照片变成统一的商品目录图
 
 [English](README.md) | 简体中文
@@ -33,7 +33,7 @@ uv run python main.py --manifest ../assets/smoke/manifest.json --out out --concu
 
 ### 质检规则
 
-每个阈值都是具名常量。它们目前只是暂定值：在完整集上第一次录制运行会显示每条规则拦下了 40 张里的几张，之后再定死。
+每个阈值都是具名常量，在完整集的 40 张照片上定下；规则拦下了其中多少张见「实测」一节。
 
 - **覆盖率**（`MIN_COVERAGE` 5%、`MAX_COVERAGE` 90%，按 alpha 不低于 128 的像素占画面的比例）：过低说明模型什么都没找到，过高说明把背景也留下了。
 - **贴边**（`EDGE_BAND` 取画面外缘 1%，`EDGE_TOUCH_MAX` 为一条边的 3%）：商品碰到画面边缘就是被照片截断了，抠图无法恢复缺掉的部分。
@@ -44,8 +44,8 @@ uv run python main.py --manifest ../assets/smoke/manifest.json --out out --concu
 <details><summary>Python (python/pipeline.py)</summary>
 
 ```python
-# Quality rules. Every number is a named constant so a catalogue team can tune it; they are provisional until the first
-# recorded run on the full set, which prints how many of the 40 photos each rule stops (expected/full-summary.json).
+# Quality rules. Every number is a named constant so a catalogue team can tune it. They were set on the 40 photos of the
+# full set; expected/full-summary.json records how many of them the rules stop.
 FOREGROUND_ALPHA = 128  # alpha at or above this is "the product" (half opaque)
 SEMI_LOW, SEMI_HIGH = 16, 240  # alpha strictly between these is "semi-transparent" (neither background nor solid)
 MIN_COVERAGE, MAX_COVERAGE = 0.05, 0.90  # share of the frame the product fills: outside means a missed or a swallowed subject
@@ -199,15 +199,51 @@ def encode_webp(page: Image.Image) -> bytes:
 `evaluate.py` 在 40 张照片上对照 Open Images 的实例掩码打分：抠图 alpha（按 128 二值化）与真值的 IoU（均值和 P10）、质检拦下的比例，以及「被拦截」对「IoU 低于 0.85」的混淆矩阵，用来说明规则能否抓住真正有问题的抠图。运行不记录耗时：数字取决于客户端的网络路径，所以不发布。
 
 <!-- metrics: expected/full-summary.json -->
-尚未实测。
+| 指标 | 数值 |
+|---|---|
+| `photos` | 40 |
+| `iou_mean` | 0.8812 |
+| `iou_p10` | 0.6377 |
+| `review_rate` | 0.25 |
+| `wrong_cutouts` | 9 |
+| `confusion.stopped_wrong` | 4 |
+| `confusion.stopped_fine` | 6 |
+| `confusion.passed_wrong` | 5 |
+| `confusion.passed_fine` | 25 |
+| `rules_precision` | 0.4 |
+| `rules_recall` | 0.4444 |
+| `by_kind.normal.photos` | 28 |
+| `by_kind.normal.stopped` | 2 |
+| `by_kind.normal.wrong` | 6 |
+| `by_kind.truncated.photos` | 4 |
+| `by_kind.truncated.stopped` | 4 |
+| `by_kind.truncated.wrong` | 2 |
+| `by_kind.multi.photos` | 4 |
+| `by_kind.multi.stopped` | 4 |
+| `by_kind.multi.wrong` | 1 |
+| `by_kind.thin.photos` | 4 |
+| `by_kind.thin.stopped` | 0 |
+| `by_kind.thin.wrong` | 0 |
+| `hard_cases_stopped_rate` | 1 |
+| `other_photos_stopped_rate` | 0.0625 |
+| `cost_per_1000_images_list` | 1,000 |
 <!-- /metrics -->
+
+怎么读这次录制的结果：
+
+- 8 张按设计属于难例的照片（4 张被画面截断、4 张含多件商品）全部被规则拦下；其余 32 张里拦下 2 张。4 张带细长结构的商品一张也没被拦，抠图也都没有问题。
+- 混淆矩阵比实际的目录要求更严。Open Images 的掩码只覆盖被标注的那个物体，所以把杯子下面的碟子一起留下、或把叠在一起的两个玩具都留下的抠图 IoU 偏低，但这正是目录想要的结果；5 张「放行但有问题」里有 3 张属于这种情况。另外 2 张是真的漏检：一张带进了一条背景，一张被反光切碎。这两种规则都看不出来；IoU 低要有真值才能知道，而生产运行没有真值。
+- 被拦下的 10 张里有 6 张 IoU 是好的。其中 4 张是含多件商品的照片：抠图没错，但照片本身不是一张目录图，`multiple_pieces` 规则就是为此而设。
 
 ## 成本 <!-- #cost -->
 
 每张 1 credit（1,000 credits 折合 1 美元，即每张 0.001 美元），1,000 张是 1,000 credits。这个端点缓存不打折；质检和合成都在本地运行，不花钱。重跑会再次付费，除非用 `--resume`。
 
 <!-- cost -->
-尚未实测。
+| 运行 | 调用次数 | 标价（credits） | 实扣（credits） |
+|---|---|---|---|
+| smoke | 3 | 3 | 3 |
+| full | 40 | 40 | 40 |
 <!-- /cost -->
 
 ## 局限与不适用的场景 <!-- #limits -->
@@ -216,7 +252,7 @@ def encode_webp(page: Image.Image) -> bytes:
 - 透明和反光的商品（玻璃、抛光金属）边缘不稳定，预期会出现在 `review.csv` 里。
 - 被画面截断的商品无法修复，规则只负责发现。
 - 每张 1 credit，缓存不打折：积压量大时是一笔实打实的费用。
-- 阈值是暂定的，只在 40 张家居物品照片上调过；用你自己的目录再核对一遍。
+- 阈值只在 40 张家居物品照片上定过；用你自己的目录再核对一遍。
 
 ## 数据 <!-- #data -->
 

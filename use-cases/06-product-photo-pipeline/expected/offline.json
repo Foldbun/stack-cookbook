@@ -2,8 +2,8 @@
   "usecase": "06-product-photo-pipeline",
   "language": "python",
   "client": "stack_client 1.0.0",
-  "startedAt": "2026-11-13T10:04:25Z",
-  "elapsedMs": 576,
+  "startedAt": "2026-11-13T13:36:35Z",
+  "elapsedMs": 531,
   "items": [
     {
       "id": "93efde7b40f6e375",
@@ -14,8 +14,8 @@
           "list": 1.0,
           "charged": 1.0,
           "cache": null,
-          "queueMs": 4,
-          "processingMs": 900,
+          "queueMs": 456,
+          "processingMs": 457,
           "replayed": false
         }
       ],
@@ -24,12 +24,12 @@
           "format": "webp",
           "width": 1024,
           "height": 768,
-          "bytes": 53508
+          "bytes": 86006
         },
         "quality": {
-          "coverage": 0.3276,
+          "coverage": 0.5087,
           "edge_touch": 0.0,
-          "semi_transparent": 0.0255,
+          "semi_transparent": 0.0089,
           "pieces": 1,
           "reasons": [],
           "passed": true
@@ -38,7 +38,7 @@
           "file": "catalogue/93efde7b40f6e375.webp",
           "width": 1200,
           "height": 1200,
-          "bytes": 52842
+          "bytes": 67226
         }
       },
       "status": "ok"
@@ -52,8 +52,8 @@
           "list": 1.0,
           "charged": 1.0,
           "cache": null,
-          "queueMs": 4,
-          "processingMs": 900,
+          "queueMs": 0,
+          "processingMs": 544,
           "replayed": false
         }
       ],
@@ -62,12 +62,12 @@
           "format": "webp",
           "width": 768,
           "height": 1024,
-          "bytes": 45514
+          "bytes": 62474
         },
         "quality": {
-          "coverage": 0.2854,
+          "coverage": 0.2848,
           "edge_touch": 0.0,
-          "semi_transparent": 0.0366,
+          "semi_transparent": 0.0237,
           "pieces": 1,
           "reasons": [],
           "passed": true
@@ -76,7 +76,7 @@
           "file": "catalogue/efd4cbed58c62a88.webp",
           "width": 1200,
           "height": 1200,
-          "bytes": 32246
+          "bytes": 33970
         }
       },
       "status": "ok"
@@ -90,8 +90,8 @@
           "list": 1.0,
           "charged": 1.0,
           "cache": null,
-          "queueMs": 4,
-          "processingMs": 900,
+          "queueMs": 0,
+          "processingMs": 1482,
           "replayed": false
         }
       ],
@@ -100,15 +100,15 @@
           "format": "webp",
           "width": 1024,
           "height": 683,
-          "bytes": 72906
+          "bytes": 98012
         },
         "quality": {
-          "coverage": 0.7587,
-          "edge_touch": 0.9541,
-          "semi_transparent": 0.0143,
-          "pieces": 1,
+          "coverage": 0.1287,
+          "edge_touch": 0.0293,
+          "semi_transparent": 0.045,
+          "pieces": 2,
           "reasons": [
-            "edge_cut"
+            "multiple_pieces"
           ],
           "passed": false
         },

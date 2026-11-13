@@ -1,0 +1,1504 @@
+{
+  "usecase": "06-product-photo-pipeline",
+  "language": "python",
+  "client": "stack_client 1.0.0",
+  "startedAt": "2026-11-13T13:33:39Z",
+  "elapsedMs": 11177,
+  "items": [
+    {
+      "id": "93efde7b40f6e375",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 536,
+          "processingMs": 352,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 768,
+          "bytes": 86006
+        },
+        "quality": {
+          "coverage": 0.5087,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0089,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/93efde7b40f6e375.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 67226
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "6810d6355c7fa115",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 811,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 765,
+          "bytes": 86466
+        },
+        "quality": {
+          "coverage": 0.4745,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0109,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/6810d6355c7fa115.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 67990
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "d08688e8f8baf578",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 362,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 576,
+          "bytes": 67054
+        },
+        "quality": {
+          "coverage": 0.4382,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0218,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/d08688e8f8baf578.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 48566
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "8fa6dae079de51d8",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 270,
+          "processingMs": 347,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 683,
+          "bytes": 77740
+        },
+        "quality": {
+          "coverage": 0.3795,
+          "edge_touch": 0.4678,
+          "semi_transparent": 0.0186,
+          "pieces": 1,
+          "reasons": [
+            "edge_cut"
+          ],
+          "passed": false
+        },
+        "catalogue": null
+      },
+      "status": "ok"
+    },
+    {
+      "id": "6bfb528ba0c5148e",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 750,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 768,
+          "bytes": 115312
+        },
+        "quality": {
+          "coverage": 0.5121,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0099,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/6bfb528ba0c5148e.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 75438
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "bcb19dc50d80a2c9",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 731,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 683,
+          "bytes": 115438
+        },
+        "quality": {
+          "coverage": 0.3425,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0134,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/bcb19dc50d80a2c9.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 86140
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "9f26942709846de3",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 324,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 576,
+          "bytes": 59498
+        },
+        "quality": {
+          "coverage": 0.3275,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0161,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/9f26942709846de3.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 57958
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "efd4cbed58c62a88",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 785,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 768,
+          "height": 1024,
+          "bytes": 62474
+        },
+        "quality": {
+          "coverage": 0.2848,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0237,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/efd4cbed58c62a88.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 33970
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "9bd3e32a2337f9bc",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 658,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "bytes": 71490
+        },
+        "quality": {
+          "coverage": 0.3391,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0236,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/9bd3e32a2337f9bc.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 34898
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "202487fc0ba87722",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 660,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 768,
+          "bytes": 76218
+        },
+        "quality": {
+          "coverage": 0.1969,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0243,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/202487fc0ba87722.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 59528
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "b571c3cfd3afd9e3",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 623,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 683,
+          "bytes": 107298
+        },
+        "quality": {
+          "coverage": 0.2856,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.013,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/b571c3cfd3afd9e3.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 126780
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "fc446fa0a49e1ae1",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 478,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 710,
+          "bytes": 96888
+        },
+        "quality": {
+          "coverage": 0.5837,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0154,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/fc446fa0a49e1ae1.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 52448
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "1fc9826e638207d3",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 275,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 665,
+          "bytes": 80020
+        },
+        "quality": {
+          "coverage": 0.4665,
+          "edge_touch": 0.215,
+          "semi_transparent": 0.0171,
+          "pieces": 1,
+          "reasons": [
+            "edge_cut"
+          ],
+          "passed": false
+        },
+        "catalogue": null
+      },
+      "status": "ok"
+    },
+    {
+      "id": "300eeee9e00aface",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 456,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 685,
+          "bytes": 70808
+        },
+        "quality": {
+          "coverage": 0.2782,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.028,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/300eeee9e00aface.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 54790
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "3b8cfe4f330ce356",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 619,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 686,
+          "bytes": 119238
+        },
+        "quality": {
+          "coverage": 0.2699,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0267,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/3b8cfe4f330ce356.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 75174
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "cdfd56443a589a37",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 277,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 680,
+          "height": 1024,
+          "bytes": 76302
+        },
+        "quality": {
+          "coverage": 0.51,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0185,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/cdfd56443a589a37.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 49198
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "f0f117684f9dd57e",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 343,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 768,
+          "bytes": 142504
+        },
+        "quality": {
+          "coverage": 0.1923,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0311,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/f0f117684f9dd57e.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 45038
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "917be97d4553b0b9",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 237,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 390,
+          "height": 1024,
+          "bytes": 47216
+        },
+        "quality": {
+          "coverage": 0.4187,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0299,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/917be97d4553b0b9.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 26700
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "fdd6b016045ea8bf",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 284,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 859,
+          "bytes": 93240
+        },
+        "quality": {
+          "coverage": 0.6821,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0127,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/fdd6b016045ea8bf.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 61074
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "06df78346e1d333e",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 433,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 683,
+          "bytes": 62018
+        },
+        "quality": {
+          "coverage": 0.287,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0152,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/06df78346e1d333e.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 58970
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "c4837e76d6ce7946",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 244,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 683,
+          "bytes": 79666
+        },
+        "quality": {
+          "coverage": 0.3312,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0148,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/c4837e76d6ce7946.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 59902
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "2beacefc4b7902bb",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 305,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 768,
+          "height": 1024,
+          "bytes": 125412
+        },
+        "quality": {
+          "coverage": 0.4017,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0253,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/2beacefc4b7902bb.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 80760
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "4babec5c7441cf9a",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 521,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 730,
+          "height": 1024,
+          "bytes": 81642
+        },
+        "quality": {
+          "coverage": 0.2964,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0242,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/4babec5c7441cf9a.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 39920
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "ce10b909451393b7",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 474,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 768,
+          "bytes": 95544
+        },
+        "quality": {
+          "coverage": 0.4727,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0165,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/ce10b909451393b7.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 59310
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "63f17327065b052c",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 474,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 557,
+          "bytes": 69460
+        },
+        "quality": {
+          "coverage": 0.5395,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0168,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/63f17327065b052c.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 42804
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "ed5344bed8018a43",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 312,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 768,
+          "bytes": 128164
+        },
+        "quality": {
+          "coverage": 0.5584,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0111,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/ed5344bed8018a43.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 93358
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "a0f881141625f648",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 440,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 768,
+          "height": 1024,
+          "bytes": 95978
+        },
+        "quality": {
+          "coverage": 0.5018,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0112,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/a0f881141625f648.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 63600
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "33ac3bd2015c44b2",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 490,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "bytes": 100134
+        },
+        "quality": {
+          "coverage": 0.5708,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0129,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/33ac3bd2015c44b2.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 56712
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "daded832e3ae26b5",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 473,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 683,
+          "bytes": 98012
+        },
+        "quality": {
+          "coverage": 0.1287,
+          "edge_touch": 0.0293,
+          "semi_transparent": 0.045,
+          "pieces": 2,
+          "reasons": [
+            "multiple_pieces"
+          ],
+          "passed": false
+        },
+        "catalogue": null
+      },
+      "status": "ok"
+    },
+    {
+      "id": "0774d2f6414c4b10",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 143,
+          "processingMs": 331,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 768,
+          "height": 1024,
+          "bytes": 87040
+        },
+        "quality": {
+          "coverage": 0.6133,
+          "edge_touch": 0.2487,
+          "semi_transparent": 0.0128,
+          "pieces": 1,
+          "reasons": [
+            "edge_cut"
+          ],
+          "passed": false
+        },
+        "catalogue": null
+      },
+      "status": "ok"
+    },
+    {
+      "id": "1888aa8f2a6fc780",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 217,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 770,
+          "height": 1024,
+          "bytes": 52732
+        },
+        "quality": {
+          "coverage": 0.1865,
+          "edge_touch": 0.1545,
+          "semi_transparent": 0.042,
+          "pieces": 1,
+          "reasons": [
+            "edge_cut"
+          ],
+          "passed": false
+        },
+        "catalogue": null
+      },
+      "status": "ok"
+    },
+    {
+      "id": "e3a41aa21875053e",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 366,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "bytes": 165940
+        },
+        "quality": {
+          "coverage": 0.5857,
+          "edge_touch": 0.5488,
+          "semi_transparent": 0.032,
+          "pieces": 1,
+          "reasons": [
+            "edge_cut"
+          ],
+          "passed": false
+        },
+        "catalogue": null
+      },
+      "status": "ok"
+    },
+    {
+      "id": "67bad60ec0f7af00",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 519,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 768,
+          "bytes": 95686
+        },
+        "quality": {
+          "coverage": 0.2985,
+          "edge_touch": 0.5137,
+          "semi_transparent": 0.0405,
+          "pieces": 1,
+          "reasons": [
+            "edge_cut"
+          ],
+          "passed": false
+        },
+        "catalogue": null
+      },
+      "status": "ok"
+    },
+    {
+      "id": "ce7aae56d7607c50",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 250,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 768,
+          "height": 1024,
+          "bytes": 109472
+        },
+        "quality": {
+          "coverage": 0.5021,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0178,
+          "pieces": 2,
+          "reasons": [
+            "multiple_pieces"
+          ],
+          "passed": false
+        },
+        "catalogue": null
+      },
+      "status": "ok"
+    },
+    {
+      "id": "b426e52fccedea01",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 271,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 1001,
+          "bytes": 103986
+        },
+        "quality": {
+          "coverage": 0.2788,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0264,
+          "pieces": 2,
+          "reasons": [
+            "multiple_pieces"
+          ],
+          "passed": false
+        },
+        "catalogue": null
+      },
+      "status": "ok"
+    },
+    {
+      "id": "6330b50e38316f83",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 511,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 683,
+          "bytes": 74906
+        },
+        "quality": {
+          "coverage": 0.3401,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.02,
+          "pieces": 2,
+          "reasons": [
+            "multiple_pieces"
+          ],
+          "passed": false
+        },
+        "catalogue": null
+      },
+      "status": "ok"
+    },
+    {
+      "id": "862c11c609cae816",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 203,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 768,
+          "height": 768,
+          "bytes": 44992
+        },
+        "quality": {
+          "coverage": 0.13,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0417,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/862c11c609cae816.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 31518
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "f4cf60464cc44394",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 723,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1022,
+          "height": 1024,
+          "bytes": 58482
+        },
+        "quality": {
+          "coverage": 0.1088,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0483,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/f4cf60464cc44394.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 28018
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "38fcb183f7662e5a",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 297,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "bytes": 123830
+        },
+        "quality": {
+          "coverage": 0.1739,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0552,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/38fcb183f7662e5a.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 39158
+        }
+      },
+      "status": "ok"
+    },
+    {
+      "id": "4b2fab847a85915c",
+      "calls": [
+        {
+          "endpoint": "/v1/remove-background",
+          "model": "birefnet",
+          "list": 1,
+          "charged": 1,
+          "cache": null,
+          "queueMs": 0,
+          "processingMs": 233,
+          "replayed": false
+        }
+      ],
+      "output": {
+        "cutout": {
+          "format": "webp",
+          "width": 1024,
+          "height": 609,
+          "bytes": 89886
+        },
+        "quality": {
+          "coverage": 0.3038,
+          "edge_touch": 0.0,
+          "semi_transparent": 0.0333,
+          "pieces": 1,
+          "reasons": [],
+          "passed": true
+        },
+        "catalogue": {
+          "file": "catalogue/4b2fab847a85915c.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 37266
+        }
+      },
+      "status": "ok"
+    }
+  ],
+  "ledger": {
+    "calls": 40,
+    "listTotal": 40.0,
+    "chargedTotal": 40.0
+  }
+}

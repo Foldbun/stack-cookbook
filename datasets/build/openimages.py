@@ -703,7 +703,7 @@ def build_06() -> None:
     # the harness looks for files under assets/, so the rows of this copy name them as smoke/images/... (like 02)
     write_attribution(dst / "smoke" / "ATTRIBUTION.csv", [{**a, "file": "smoke/" + a["file"]} for a in attr if a["file"] in set(smoke_files)])
     (dst / ".gitignore").write_text("# Extracted from 06-product-photo-pipeline-full.tar.gz (see full.json); not committed.\n"
-                                    "images/\nmasks/\ntruth.json\nmanifest.json\nATTRIBUTION.csv\n")
+                                    "/images/\n/masks/\n/truth.json\n/manifest.json\n/ATTRIBUTION.csv\n")
     print(UC06, "images", len(items), dict(collections.Counter(t["family"] for t in truth_items.values())),
           dict(collections.Counter(t["kind"] for t in truth_items.values())))
 

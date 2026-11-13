@@ -1,0 +1,40 @@
+{
+  "photos": 40,
+  "iou_mean": 0.8812,
+  "iou_p10": 0.6377,
+  "review_rate": 0.25,
+  "wrong_cutouts": 9,
+  "confusion": {
+    "stopped_wrong": 4,
+    "stopped_fine": 6,
+    "passed_wrong": 5,
+    "passed_fine": 25
+  },
+  "rules_precision": 0.4,
+  "rules_recall": 0.4444,
+  "by_kind": {
+    "normal": {
+      "photos": 28,
+      "stopped": 2,
+      "wrong": 6
+    },
+    "truncated": {
+      "photos": 4,
+      "stopped": 4,
+      "wrong": 2
+    },
+    "multi": {
+      "photos": 4,
+      "stopped": 4,
+      "wrong": 1
+    },
+    "thin": {
+      "photos": 4,
+      "stopped": 0,
+      "wrong": 0
+    }
+  },
+  "hard_cases_stopped_rate": 1.0,
+  "other_photos_stopped_rate": 0.0625,
+  "cost_per_1000_images_list": 1000.0
+}
