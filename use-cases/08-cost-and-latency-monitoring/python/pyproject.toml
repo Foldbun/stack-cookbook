@@ -1,0 +1,9 @@
+[project]
+name = "stack-cookbook-cost-and-latency-monitoring"
+version = "1.0.0"
+description = "Foldbun Stack Cookbook: monitor the cost and latency of a production integration (Python)."
+requires-python = ">=3.12"
+dependencies = ["prometheus-client>=0.21"]  # the client file uses the standard library only
+
+[tool.uv]
+package = false

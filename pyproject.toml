@@ -11,6 +11,7 @@ dependencies = [
     "ruff>=0.8",
     "numpy>=2.1",
     "pillow>=11.0",
+    "prometheus-client>=0.21",  # tests of use case 08
 ]
 
 [tool.uv]

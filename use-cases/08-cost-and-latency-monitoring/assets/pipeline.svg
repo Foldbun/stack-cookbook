@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 270" role="img" aria-labelledby="t d" font-family="system-ui, sans-serif" font-size="14">
+  <title id="t">Monitoring pipeline</title>
+  <desc id="d">Application code calls MonitoredClient, which wraps the unchanged client file and sends the call to the Stack API. Each answer's billing, cost, cache, timing and balance feed Prometheus counters, gauges and histograms served at /metrics, and a sliding-hour spend guard that alerts or refuses new calls. GET /v1/whoami refreshes balance and daily allowances.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#667"/></marker>
+  </defs>
+  <g fill="#f4f6fa" stroke="#667" stroke-width="1.5">
+    <rect x="10" y="30" width="130" height="60" rx="6"/>
+    <rect x="180" y="30" width="170" height="60" rx="6" fill="#e8eefc"/>
+    <rect x="390" y="30" width="130" height="60" rx="6"/>
+    <rect x="560" y="30" width="150" height="60" rx="6" fill="#e6f4ea"/>
+    <rect x="740" y="30" width="130" height="60" rx="6"/>
+    <rect x="180" y="170" width="170" height="60" rx="6"/>
+    <rect x="560" y="170" width="150" height="60" rx="6" fill="#fdeceb"/>
+    <rect x="740" y="170" width="130" height="60" rx="6"/>
+  </g>
+  <g fill="#223" text-anchor="middle">
+    <text x="75" y="55">Your code</text><text x="75" y="75" font-size="12">post(), batch()</text>
+    <text x="265" y="55">MonitoredClient</text><text x="265" y="75" font-size="12">times and reads each answer</text>
+    <text x="455" y="55">stack_client.py</text><text x="455" y="75" font-size="12">unchanged</text>
+    <text x="635" y="55">Metrics</text><text x="635" y="75" font-size="12">stack_* at /metrics</text>
+    <text x="805" y="55">Prometheus</text><text x="805" y="75" font-size="12">Grafana, alerts</text>
+    <text x="265" y="195">Stack API</text><text x="265" y="215" font-size="12">answers + GET /v1/whoami</text>
+    <text x="635" y="195">SpendGuard</text><text x="635" y="215" font-size="12">sliding hour</text>
+    <text x="805" y="195">alert / refuse</text><text x="805" y="215" font-size="12">on_alert, or no call</text>
+  </g>
+  <g stroke="#667" stroke-width="1.5" fill="none" marker-end="url(#a)">
+    <path d="M140 60H178"/><path d="M350 60H388"/><path d="M520 60H558"/><path d="M710 60H738"/>
+    <path d="M455 90V200H352"/>
+    <path d="M265 90V168"/>
+    <path d="M635 90V168"/><path d="M710 200H738"/>
+  </g>
+  <g fill="#445" font-size="12" text-anchor="middle">
+    <text x="372" y="190">call</text><text x="300" y="140">answer: cost, billing, timing, balance</text>
+    <text x="676" y="136">spend</text>
+  </g>
+</svg>

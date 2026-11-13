@@ -1,0 +1,141 @@
+# HELP stack_credits_total Credits of every priced line; charged=true was debited, false was covered by a daily allowance.
+# TYPE stack_credits_total counter
+stack_credits_total{charged="false",model="ppocr-v6",unit="image"} 1.5
+stack_credits_total{charged="false",model="sam-lite",unit="encode_image"} 0.2
+stack_credits_total{charged="false",model="sam-lite",unit="box"} 0.09999999999999999
+stack_credits_total{charged="true",model="sam3",unit="encode_image"} 0.5
+stack_credits_total{charged="true",model="sam3",unit="prompt"} 0.25
+# HELP stack_calls_total Calls by outcome: ok, replayed, error, expired or refused (never sent); code is the API error code.
+# TYPE stack_calls_total counter
+stack_calls_total{code="none",model="ppocr-v6",status="ok"} 6.0
+stack_calls_total{code="none",model="sam-lite",status="ok"} 10.0
+stack_calls_total{code="none",model="sam3",status="ok"} 5.0
+# HELP stack_cache_hits_total SAM calls whose image encoding was already cached (encode_image fee waived).
+# TYPE stack_cache_hits_total counter
+stack_cache_hits_total{model="sam-lite"} 9.0
+stack_cache_hits_total{model="sam3"} 4.0
+# HELP stack_cache_misses_total SAM calls that paid for encoding the image.
+# TYPE stack_cache_misses_total counter
+stack_cache_misses_total{model="sam-lite"} 1.0
+stack_cache_misses_total{model="sam3"} 1.0
+# HELP stack_cache_saved_credits_total List price of the encoding fees waived by cache hits.
+# TYPE stack_cache_saved_credits_total counter
+stack_cache_saved_credits_total{model="sam-lite"} 1.7999999999999998
+stack_cache_saved_credits_total{model="sam3"} 2.0
+# TYPE stack_latency_ms histogram
+stack_latency_ms_bucket{le="5.0",model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_bucket{le="10.0",model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_bucket{le="25.0",model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_bucket{le="50.0",model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_bucket{le="100.0",model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_bucket{le="250.0",model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_bucket{le="500.0",model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_bucket{le="1000.0",model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_bucket{le="2500.0",model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_bucket{le="5000.0",model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_bucket{le="10000.0",model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_bucket{le="30000.0",model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_bucket{le="90000.0",model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_bucket{le="+Inf",model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_count{model="ppocr-v6",phase="queue"} 6.0
+stack_latency_ms_sum{model="ppocr-v6",phase="queue"} 0.0
+stack_latency_ms_bucket{le="5.0",model="ppocr-v6",phase="processing"} 0.0
+stack_latency_ms_bucket{le="10.0",model="ppocr-v6",phase="processing"} 0.0
+stack_latency_ms_bucket{le="25.0",model="ppocr-v6",phase="processing"} 0.0
+stack_latency_ms_bucket{le="50.0",model="ppocr-v6",phase="processing"} 0.0
+stack_latency_ms_bucket{le="100.0",model="ppocr-v6",phase="processing"} 0.0
+stack_latency_ms_bucket{le="250.0",model="ppocr-v6",phase="processing"} 0.0
+stack_latency_ms_bucket{le="500.0",model="ppocr-v6",phase="processing"} 0.0
+stack_latency_ms_bucket{le="1000.0",model="ppocr-v6",phase="processing"} 6.0
+stack_latency_ms_bucket{le="2500.0",model="ppocr-v6",phase="processing"} 6.0
+stack_latency_ms_bucket{le="5000.0",model="ppocr-v6",phase="processing"} 6.0
+stack_latency_ms_bucket{le="10000.0",model="ppocr-v6",phase="processing"} 6.0
+stack_latency_ms_bucket{le="30000.0",model="ppocr-v6",phase="processing"} 6.0
+stack_latency_ms_bucket{le="90000.0",model="ppocr-v6",phase="processing"} 6.0
+stack_latency_ms_bucket{le="+Inf",model="ppocr-v6",phase="processing"} 6.0
+stack_latency_ms_count{model="ppocr-v6",phase="processing"} 6.0
+stack_latency_ms_sum{model="ppocr-v6",phase="processing"} 4518.0
+stack_latency_ms_bucket{le="5.0",model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_bucket{le="10.0",model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_bucket{le="25.0",model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_bucket{le="50.0",model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_bucket{le="100.0",model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_bucket{le="250.0",model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_bucket{le="500.0",model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_bucket{le="1000.0",model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_bucket{le="2500.0",model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_bucket{le="5000.0",model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_bucket{le="10000.0",model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_bucket{le="30000.0",model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_bucket{le="90000.0",model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_bucket{le="+Inf",model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_count{model="sam-lite",phase="queue"} 10.0
+stack_latency_ms_sum{model="sam-lite",phase="queue"} 40.0
+stack_latency_ms_bucket{le="5.0",model="sam-lite",phase="processing"} 0.0
+stack_latency_ms_bucket{le="10.0",model="sam-lite",phase="processing"} 0.0
+stack_latency_ms_bucket{le="25.0",model="sam-lite",phase="processing"} 0.0
+stack_latency_ms_bucket{le="50.0",model="sam-lite",phase="processing"} 0.0
+stack_latency_ms_bucket{le="100.0",model="sam-lite",phase="processing"} 0.0
+stack_latency_ms_bucket{le="250.0",model="sam-lite",phase="processing"} 0.0
+stack_latency_ms_bucket{le="500.0",model="sam-lite",phase="processing"} 0.0
+stack_latency_ms_bucket{le="1000.0",model="sam-lite",phase="processing"} 10.0
+stack_latency_ms_bucket{le="2500.0",model="sam-lite",phase="processing"} 10.0
+stack_latency_ms_bucket{le="5000.0",model="sam-lite",phase="processing"} 10.0
+stack_latency_ms_bucket{le="10000.0",model="sam-lite",phase="processing"} 10.0
+stack_latency_ms_bucket{le="30000.0",model="sam-lite",phase="processing"} 10.0
+stack_latency_ms_bucket{le="90000.0",model="sam-lite",phase="processing"} 10.0
+stack_latency_ms_bucket{le="+Inf",model="sam-lite",phase="processing"} 10.0
+stack_latency_ms_count{model="sam-lite",phase="processing"} 10.0
+stack_latency_ms_sum{model="sam-lite",phase="processing"} 6000.0
+stack_latency_ms_bucket{le="5.0",model="sam3",phase="queue"} 5.0
+stack_latency_ms_bucket{le="10.0",model="sam3",phase="queue"} 5.0
+stack_latency_ms_bucket{le="25.0",model="sam3",phase="queue"} 5.0
+stack_latency_ms_bucket{le="50.0",model="sam3",phase="queue"} 5.0
+stack_latency_ms_bucket{le="100.0",model="sam3",phase="queue"} 5.0
+stack_latency_ms_bucket{le="250.0",model="sam3",phase="queue"} 5.0
+stack_latency_ms_bucket{le="500.0",model="sam3",phase="queue"} 5.0
+stack_latency_ms_bucket{le="1000.0",model="sam3",phase="queue"} 5.0
+stack_latency_ms_bucket{le="2500.0",model="sam3",phase="queue"} 5.0
+stack_latency_ms_bucket{le="5000.0",model="sam3",phase="queue"} 5.0
+stack_latency_ms_bucket{le="10000.0",model="sam3",phase="queue"} 5.0
+stack_latency_ms_bucket{le="30000.0",model="sam3",phase="queue"} 5.0
+stack_latency_ms_bucket{le="90000.0",model="sam3",phase="queue"} 5.0
+stack_latency_ms_bucket{le="+Inf",model="sam3",phase="queue"} 5.0
+stack_latency_ms_count{model="sam3",phase="queue"} 5.0
+stack_latency_ms_sum{model="sam3",phase="queue"} 20.0
+stack_latency_ms_bucket{le="5.0",model="sam3",phase="processing"} 0.0
+stack_latency_ms_bucket{le="10.0",model="sam3",phase="processing"} 0.0
+stack_latency_ms_bucket{le="25.0",model="sam3",phase="processing"} 0.0
+stack_latency_ms_bucket{le="50.0",model="sam3",phase="processing"} 0.0
+stack_latency_ms_bucket{le="100.0",model="sam3",phase="processing"} 0.0
+stack_latency_ms_bucket{le="250.0",model="sam3",phase="processing"} 0.0
+stack_latency_ms_bucket{le="500.0",model="sam3",phase="processing"} 0.0
+stack_latency_ms_bucket{le="1000.0",model="sam3",phase="processing"} 5.0
+stack_latency_ms_bucket{le="2500.0",model="sam3",phase="processing"} 5.0
+stack_latency_ms_bucket{le="5000.0",model="sam3",phase="processing"} 5.0
+stack_latency_ms_bucket{le="10000.0",model="sam3",phase="processing"} 5.0
+stack_latency_ms_bucket{le="30000.0",model="sam3",phase="processing"} 5.0
+stack_latency_ms_bucket{le="90000.0",model="sam3",phase="processing"} 5.0
+stack_latency_ms_bucket{le="+Inf",model="sam3",phase="processing"} 5.0
+stack_latency_ms_count{model="sam3",phase="processing"} 5.0
+stack_latency_ms_sum{model="sam3",phase="processing"} 3000.0
+# HELP stack_balance_credits Account balance after the last answer or whoami refresh.
+# TYPE stack_balance_credits gauge
+stack_balance_credits 999.25
+# HELP stack_balance_updated_timestamp_seconds When stack_balance_credits was last set.
+# TYPE stack_balance_updated_timestamp_seconds gauge
+stack_balance_updated_timestamp_seconds 1.7945633875930517e+09
+# HELP stack_daily_allowance_used Included daily calls used today (UTC) per pool.
+# TYPE stack_daily_allowance_used gauge
+stack_daily_allowance_used{pool="public"} 0.0
+stack_daily_allowance_used{pool="free"} 16.0
+# HELP stack_daily_allowance_limit Included daily calls per pool.
+# TYPE stack_daily_allowance_limit gauge
+stack_daily_allowance_limit{pool="public"} 100.0
+stack_daily_allowance_limit{pool="free"} 1000.0
+# HELP stack_spend_window_credits Spend inside the guard's window (what the guard compares with its limit).
+# TYPE stack_spend_window_credits gauge
+stack_spend_window_credits 0.75
+# HELP stack_spend_guard_tripped 1 while the spend of the window is over the guard's limit.
+# TYPE stack_spend_guard_tripped gauge
+stack_spend_guard_tripped 1.0

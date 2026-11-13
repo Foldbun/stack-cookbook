@@ -33,6 +33,7 @@ The examples call the API with a key created in the Foldbun Stack console. API k
 | [02 Click-to-segment component with a key-holding backend](use-cases/02-click-to-segment/README.md) | Funded |  | ✓ | ✓ | ✓ |
 | [03 Receipts and invoices to validated JSON](use-cases/03-receipts-to-json/README.md) | Billed |  | ✓ | ✓ | ✓ |
 | [05 Search an image library by image, by text, and for near-duplicates](use-cases/05-image-library-search/README.md) | Public pool |  | ✓ |  | ✓ |
+| [08 Monitor cost and latency of a production integration](use-cases/08-cost-and-latency-monitoring/README.md) | Funded |  | ✓ |  |  |
 <!-- /usecases -->
 
 Public pool: runs on a new account. Funded: needs a topped-up account; calls inside the free pool are not charged. Billed: charged from the balance at the [list prices](https://stack.foldbun.com/docs/billing/).

@@ -206,6 +206,17 @@ class Fake:
             info.update(available=True, pool="free", freeDailyCalls=1000, perMinute=60, unlockedBy=None)
         return info
 
+    def whoami(self, key):
+        """GET /v1/whoami: the key's account, its balance and today's use of the included daily calls of each pool."""
+        tier = self.tier(key)
+        pools = [("public", 100)] if tier == "public" else [("public", 100), ("free", 1000)]
+        with self.lock:
+            allowances = [{"pool": p, "used": self.daily.get((key, p), 0), "limit": n, "resetsAt": "2099-01-01T00:00:00Z"} for p, n in pools]
+            balance = self.balance[tier]
+        d = hashlib.sha256(key.encode()).hexdigest()
+        account = f"{d[:8]}-{d[8:12]}-7{d[13:16]}-8{d[17:20]}-{d[20:32]}"
+        return {"keyId": f"key_{account}", "accountId": account, "scopes": [], "balance": balance, "dailyAllowances": allowances}
+
     def price_lines(self, path, body, mid, cache_hit):
         prices, units = MODEL[mid][5], []
         if path in ("/v1/segment", "/v1/refine"):
@@ -537,6 +548,10 @@ class Handler(BaseHTTPRequestHandler):
                 if rule and rule.get("error"):
                     raise ApiError(rule["error"]["code"], "scripted", rule["error"].get("retryAfterMs", 0))
                 body = {"data": [self.fake.model_info(m[0], Fake.tier(key)) for m in MODELS]}
+                self.check_response(200, body)
+                return self.send_json(200, body)
+            if method == "GET" and path == "/v1/whoami":
+                body = self.fake.whoami(key)
                 self.check_response(200, body)
                 return self.send_json(200, body)
             if method == "POST" and path == "/v1/images":

@@ -1,0 +1,58 @@
+# Prometheus alerting rules for the metrics of monitoring.py. Thresholds are examples: set them from your own traffic.
+# Load with `rule_files: [alerts.rules.yml]` in prometheus.yml; check the file with `promtool check rules alerts.rules.yml`.
+groups:
+  - name: foldbun-stack
+    rules:
+      - alert: StackSpendRateHigh
+        # Credits debited in the last hour. monitoring.py's SpendGuard checks the same sliding window inside the process.
+        expr: sum(increase(stack_credits_total{charged="true"}[1h])) > 50
+        labels: { severity: warning }
+        annotations:
+          summary: "More than 50 credits debited in the last hour"
+          description: "By model and unit: sum by (model, unit) (increase(stack_credits_total{charged=\"true\"}[1h]))."
+
+      - alert: StackBalanceLow
+        # The gauge moves with every answer and every whoami refresh; see StackBalanceStale for a process that stopped calling.
+        expr: stack_balance_credits < 20
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "Account balance is {{ $value }} credits"
+
+      - alert: StackBalanceStale
+        # Nothing refreshed the balance for an hour: the number above is old, not wrong.
+        expr: time() - stack_balance_updated_timestamp_seconds > 3600
+        labels: { severity: info }
+        annotations:
+          summary: "stack_balance_credits was last updated more than an hour ago"
+
+      - alert: StackCacheHitRateLow
+        # Encoding cache: calls on an image the node has already encoded do not pay the encoding fee again.
+        expr: |
+          sum(increase(stack_cache_hits_total[1h]))
+            / clamp_min(sum(increase(stack_cache_hits_total[1h])) + sum(increase(stack_cache_misses_total[1h])), 1) < 0.3
+          and sum(increase(stack_cache_misses_total[1h])) > 20
+        for: 30m
+        labels: { severity: info }
+        annotations:
+          summary: "SAM calls rarely reuse an encoded image: upload once and send several prompts per image"
+
+      - alert: StackQueueTimeHigh
+        # Server-side queue time (timing.queueMs), not network time.
+        expr: histogram_quantile(0.95, sum by (le, model) (rate(stack_latency_ms_bucket{phase="queue"}[10m]))) > 2000
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "p95 queue time of {{ $labels.model }} is above 2 s"
+
+      - alert: StackCallErrors
+        expr: sum by (model, code) (increase(stack_calls_total{status="error"}[10m])) > 5
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $value }} calls of {{ $labels.model }} failed with {{ $labels.code }} in 10 minutes"
+
+      - alert: StackAllowanceNearlyUsed
+        expr: stack_daily_allowance_used / stack_daily_allowance_limit > 0.9
+        labels: { severity: info }
+        annotations:
+          summary: "The {{ $labels.pool }} pool's included daily calls are 90 % used; calls beyond it are billed or refused"

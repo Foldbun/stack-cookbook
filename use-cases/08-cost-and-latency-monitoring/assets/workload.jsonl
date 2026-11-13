@@ -1,0 +1,21 @@
+{"id": "c01", "endpoint": "/v1/ocr", "model": "ppocr-v6", "image": "settings", "request": {}}
+{"id": "c02", "endpoint": "/v1/segment", "model": "sam-lite", "image": "dog", "request": {"prompts": [{"box": [443, 591, 603, 984]}]}}
+{"id": "c03", "endpoint": "/v1/segment", "model": "sam-lite", "image": "dog", "request": {"prompts": [{"box": [485, 32, 557, 216]}]}}
+{"id": "c04", "endpoint": "/v1/segment", "model": "sam-lite", "image": "dog", "request": {"prompts": [{"box": [400, 560, 640, 1000]}]}}
+{"id": "c05", "endpoint": "/v1/ocr", "model": "ppocr-v6", "image": "settings", "request": {}}
+{"id": "c06", "endpoint": "/v1/segment", "model": "sam-lite", "image": "dog", "request": {"prompts": [{"box": [420, 580, 620, 990]}]}}
+{"id": "c07", "endpoint": "/v1/segment", "model": "sam-lite", "image": "dog", "request": {"prompts": [{"box": [460, 20, 580, 230]}]}}
+{"id": "c08", "endpoint": "/v1/segment", "model": "sam3", "image": "bird", "request": {"prompts": [{"text": "bird"}]}}
+{"id": "c09", "endpoint": "/v1/segment", "model": "sam-lite", "image": "dog", "request": {"prompts": [{"box": [300, 500, 700, 1020]}]}}
+{"id": "c10", "endpoint": "/v1/segment", "model": "sam-lite", "image": "dog", "request": {"prompts": [{"box": [440, 600, 600, 980]}]}}
+{"id": "c11", "endpoint": "/v1/segment", "model": "sam3", "image": "bird", "request": {"prompts": [{"text": "beak"}]}}
+{"id": "c12", "endpoint": "/v1/segment", "model": "sam-lite", "image": "dog", "request": {"prompts": [{"box": [480, 40, 560, 210]}]}}
+{"id": "c13", "endpoint": "/v1/segment", "model": "sam3", "image": "bird", "request": {"prompts": [{"text": "wing"}]}}
+{"id": "c14", "endpoint": "/v1/segment", "model": "sam3", "image": "bird", "request": {"prompts": [{"text": "feather"}]}}
+{"id": "c15", "endpoint": "/v1/segment", "model": "sam-lite", "image": "dog", "request": {"prompts": [{"box": [380, 540, 660, 1010]}]}}
+{"id": "c16", "endpoint": "/v1/segment", "model": "sam3", "image": "bird", "request": {"prompts": [{"text": "bird"}]}}
+{"id": "c17", "endpoint": "/v1/segment", "model": "sam-lite", "image": "dog", "request": {"prompts": [{"box": [470, 25, 570, 225]}]}}
+{"id": "c18", "endpoint": "/v1/ocr", "model": "ppocr-v6", "image": "settings", "request": {}}
+{"id": "c19", "endpoint": "/v1/ocr", "model": "ppocr-v6", "image": "settings", "request": {}}
+{"id": "c20", "endpoint": "/v1/ocr", "model": "ppocr-v6", "image": "settings", "request": {}}
+{"id": "c21", "endpoint": "/v1/ocr", "model": "ppocr-v6", "image": "settings", "request": {}}

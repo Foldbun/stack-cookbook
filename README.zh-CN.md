@@ -34,6 +34,7 @@ curl：`bash ../curl/run.sh`。TypeScript：`cd ../typescript && pnpm install &&
 | [02 点击分割组件与持有密钥的后端](use-cases/02-click-to-segment/README.zh-CN.md) | 已充值 |  | ✓ | ✓ | ✓ |
 | [03 收据和发票转为经过校验的 JSON](use-cases/03-receipts-to-json/README.zh-CN.md) | 按量扣费 |  | ✓ | ✓ | ✓ |
 | [05 按图、按文字搜索图库，并找出近重复图片](use-cases/05-image-library-search/README.zh-CN.md) | 公共池 |  | ✓ |  | ✓ |
+| [08 监控线上集成的成本与时延](use-cases/08-cost-and-latency-monitoring/README.zh-CN.md) | 已充值 |  | ✓ |  |  |
 <!-- /usecases -->
 
 公共池：新账户即可运行。已充值：需要充值过的账户，免费池内的调用不扣费。按量扣费：按[价目表](https://stack.foldbun.com/docs/billing/)从余额扣费。

@@ -1,0 +1,23 @@
+{
+  "usecase": "08-cost-and-latency-monitoring",
+  "params": {
+    "workload": "workload.jsonl"
+  },
+  "items": [
+    {
+      "id": "settings",
+      "image": "../../00-quickstart/assets/smoke/settings.webp",
+      "sha256": "a95e70bff4d650f67fd5a993cf389578e9d0270d3f4ab2ef44f4155be6129194"
+    },
+    {
+      "id": "dog",
+      "image": "../../../datasets/smoke/01-dataset-prelabelling/images/746b596e2148b044.jpg",
+      "sha256": "cc838047ede6449a0d3cea126b4749a0f66069f199f26b6bb45f5a4159a15f19"
+    },
+    {
+      "id": "bird",
+      "image": "../../../datasets/smoke/01-dataset-prelabelling/images/16774edaeacc5aed.jpg",
+      "sha256": "456029fae38febb48426191e6683c8094f674949a8b182d4942a39e28a638a64"
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Foldbun/stack-cookbook/main/use-cases/08-cost-and-latency-monitoring/output.schema.json",
+  "title": "items[].output of use case 08",
+  "description": "One `call` item per workload line, then a last item with id `summary` that holds what the monitoring layer saw.",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "model", "endpoint", "cache", "listCredits", "chargedCredits", "waivedCredits"],
+      "properties": {
+        "kind": { "const": "call" },
+        "model": { "type": "string" },
+        "endpoint": { "type": "string" },
+        "cache": { "enum": ["hit", "miss", null], "description": "The encoding cache state the answer reports; null for models without an encoding step." },
+        "listCredits": { "type": "number", "minimum": 0, "description": "billing.total of the answer." },
+        "chargedCredits": { "type": "number", "minimum": 0, "description": "cost of the answer: what was debited." },
+        "waivedCredits": { "type": "number", "minimum": 0, "description": "List price of the encoding fee that a cache hit waived." }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "calls", "credits", "cache", "latency", "guard", "balanceSpent", "metrics"],
+      "properties": {
+        "kind": { "const": "summary" },
+        "calls": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["total", "ok", "failed", "byModel"],
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "ok": { "type": "integer", "minimum": 0 },
+            "failed": { "type": "integer", "minimum": 0 },
+            "byModel": { "type": "object", "additionalProperties": { "type": "integer" } }
+          }
+        },
+        "credits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["list", "charged", "byModelUnit"],
+          "properties": {
+            "list": { "type": "number" },
+            "charged": { "type": "number" },
+            "byModelUnit": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["model", "unit", "list", "charged"],
+                "properties": {
+                  "model": { "type": "string" },
+                  "unit": { "type": "string" },
+                  "list": { "type": "number" },
+                  "charged": { "type": "number" }
+                }
+              }
+            }
+          }
+        },
+        "cache": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["hits", "misses", "hitRate", "savedCredits", "byModel"],
+          "properties": {
+            "hits": { "type": "integer", "minimum": 0 },
+            "misses": { "type": "integer", "minimum": 0 },
+            "hitRate": { "type": "number", "minimum": 0, "maximum": 1 },
+            "savedCredits": { "type": "number", "minimum": 0 },
+            "byModel": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": ["hits", "misses"],
+                "properties": { "hits": { "type": "integer" }, "misses": { "type": "integer" } }
+              }
+            }
+          }
+        },
+        "latency": {
+          "type": "object",
+          "description": "Server-side queue and processing time per model (timing of the answers), nearest-rank percentiles. Network time between client and API is never in here.",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["count", "queueMs", "processingMs"],
+            "properties": {
+              "count": { "type": "integer" },
+              "queueMs": { "$ref": "#/$defs/percentiles" },
+              "processingMs": { "$ref": "#/$defs/percentiles" }
+            }
+          }
+        },
+        "guard": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["maxPerHour", "mode", "basis", "triggered", "triggeredAtCall", "alerts"],
+          "properties": {
+            "maxPerHour": { "type": "number" },
+            "mode": { "enum": ["alert", "reject"] },
+            "basis": { "enum": ["charged", "list"] },
+            "triggered": { "type": "boolean" },
+            "triggeredAtCall": { "type": ["integer", "null"], "description": "Number of calls finished (this one included) when the guard first tripped." },
+            "alerts": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "balanceSpent": { "type": ["number", "null"], "description": "Balance before minus balance after, from GET /v1/whoami; null when the API has no such endpoint. The balance itself is never recorded." },
+        "metrics": { "type": "object", "description": "Snapshot of the stack_* counters and gauges at the end of the run (no histogram buckets, no client-side timing, no balance).", "additionalProperties": { "type": "number" } }
+      }
+    }
+  ],
+  "$defs": {
+    "percentiles": {
+      "type": "object",
+      "required": ["p50", "p95"],
+      "properties": { "p50": { "type": ["number", "null"] }, "p95": { "type": ["number", "null"] } }
+    }
+  }
+}

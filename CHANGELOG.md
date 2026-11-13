@@ -2,6 +2,12 @@
 
 All notable changes to this repository. Versions follow [Semantic Versioning](https://semver.org/); the client files carry their own version (`VERSION` in each file).
 
+## Unreleased
+
+- `08-cost-and-latency-monitoring` (Python): `monitoring.py` wraps the client file and exports Prometheus metrics from the billing, cache and timing of every answer and from each batch `item` event, with a sliding-hour spend guard (alert or refuse); a 21-call replay, `evaluate.py` (books agree, cache hits, guard trigger, middleware overhead), an alert-rules file and a Grafana dashboard.
+- The vendored API description `harness/vendor/openapi.yaml` is now 1.1.0 (adds `GET /v1/whoami`, `account_disabled`, `forbidden` and `moved` error codes, upload limits, batch result cap; one phrase naming a retired host is generalised). The fake API serves `GET /v1/whoami`.
+- Root test dependencies: `prometheus-client` (tests of use case 08).
+
 ## 0.1.0 - 2026-11-12
 
 First public release.

@@ -51,6 +51,7 @@ def schema(name):
 
 
 MODELS_RESPONSE = "#/paths/~1v1~1models/get/responses/200/content/application~1json/schema"
+WHOAMI_RESPONSE = "#/paths/~1v1~1whoami/get/responses/200/content/application~1json/schema"
 
 
 def request_errors(path, body):
@@ -88,6 +89,8 @@ def _response_errors(path, status, body):
         return errors(schema("Error"), body)
     if path == "/v1/models":
         return errors(MODELS_RESPONSE, body)
+    if path == "/v1/whoami":
+        return errors(WHOAMI_RESPONSE, body)
     name = RESPONSE_SCHEMAS.get(path)
     if path.startswith("/v1/batch/"):
         return errors(schema("BatchResponse"), body)

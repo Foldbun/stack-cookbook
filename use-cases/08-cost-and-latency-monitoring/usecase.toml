@@ -1,0 +1,67 @@
+id = "08-cost-and-latency-monitoring"
+order = 8
+title = { en = "Monitor cost and latency of a production integration", zh = "监控线上集成的成本与时延" }
+summary = { en = "Wrap the client to export Prometheus metrics from the billing and timing of every answer (credits by model and unit, cache hits and what they saved, queue and processing time, balance), and trip a spend guard before the budget is gone.", zh = "包住客户端，用每次应答里的计费和耗时导出 Prometheus 指标（按模型和单位的 credits、缓存命中及省下的费用、排队和处理耗时、余额），并在预算花完之前触发花费守卫。" }
+models = ["ppocr-v6", "sam-lite", "sam3"]
+tier = "funded"
+languages = ["python"]
+reference = "python"
+docs = ["/docs/billing/", "/docs/rate-limits/", "/docs/use-cases/concept-segmentation/"]
+playground = "/playground/?model=sam3"
+
+# The workload (assets/workload.jsonl) replays 6 ppocr-v6 reads, 10 sam-lite box calls on one image and 5 sam3 text calls on
+# one image: list price 2.55 with the encoding cache (1.5 + 0.30 + 0.75), 0.75 charged on a funded account whose daily
+# allowances cover ppocr-v6 and sam-lite. The cap counts every call at its worst case (encoding fee included) and the list price
+# of calls inside an allowance, so 2.75 is the smallest round figure that lets the whole replay through. Full = smoke.
+[sizes.smoke]
+manifest = "assets/manifest.json"
+budget_credits = 2.75
+
+[sizes.full]
+manifest = "assets/manifest.json"
+budget_credits = 2.75
+languages = ["python"]
+
+[compare]
+"items[].output.model" = { exact = true }
+"items[].output.cache" = { exact = true }
+"items[].output.listCredits" = { abs = 0.0001 }
+"items[].output.chargedCredits" = { abs = 0.0001 }
+"items[].output.waivedCredits" = { abs = 0.0001 }
+"items[].output.calls" = { exact = true }
+"items[].output.credits.list" = { abs = 0.0001 }
+"items[].output.credits.charged" = { abs = 0.0001 }
+"items[].output.credits.byModelUnit[].model" = { exact = true }
+"items[].output.credits.byModelUnit[].unit" = { exact = true }
+"items[].output.credits.byModelUnit[].list" = { abs = 0.0001 }
+"items[].output.credits.byModelUnit[].charged" = { abs = 0.0001 }
+"items[].output.guard" = { exact = true }
+"ledger.calls" = { exact = true }
+"ledger.listTotal" = { abs = 0.0001 }
+"ledger.chargedTotal" = { abs = 0.0001 }
+
+# The encoding cache is not part of the API's promise (the cache may be warm or cold when a replay starts), so against the
+# real API the cache counts and everything that follows from them, the guard included, may differ by what one image's
+# encoding costs. Money totals are checked against the floors of [quality] instead.
+[compare_live]
+"items[].output.cache" = { ignore = true }
+"items[].output.listCredits" = { ignore = true }
+"items[].output.chargedCredits" = { ignore = true }
+"items[].output.waivedCredits" = { ignore = true }
+"items[].output.credits.list" = { ignore = true }
+"items[].output.credits.charged" = { ignore = true }
+"items[].output.credits.byModelUnit[].list" = { ignore = true }
+"items[].output.credits.byModelUnit[].charged" = { ignore = true }
+"items[].output.guard" = { ignore = true }
+"ledger.listTotal" = { ignore = true }
+"ledger.chargedTotal" = { ignore = true }
+
+# Floors for the numbers evaluate.py prints: the books agree, the cache saves the encoding of the repeated images, and the
+# guard (0.2 credits per hour, counting what is charged) trips between the first and the last sam3 call.
+[quality]
+"ledger_consistent" = { min = 1 }
+"cache_hits.sam3" = { min = 4 }
+"cache_hits.sam-lite" = { min = 9 }
+"guard_triggered" = { min = 1 }
+"guard_trigger_call" = { min = 8, max = 16 }
+"calls_failed" = { max = 0 }
