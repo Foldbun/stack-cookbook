@@ -2,7 +2,9 @@
 
 All notable changes to this repository. Versions follow [Semantic Versioning](https://semver.org/); the client files carry their own version (`VERSION` in each file).
 
-## Unreleased
+## 0.2.0 - 2026-11-14
+
+Three more use cases, each measured on its own dataset.
 
 - `04-documents-to-rag-chunks`: scanned and photographed document pages to Markdown chunks for a search index with `paddleocr-vl` (Python): one `/v1/documents/parse` call per page, repeated headers and footers removed across pages, chunks that keep tables whole and carry page, box and heading path, `chunks.jsonl` and one Markdown file per document. An optional `--pdf` input renders pages with `pypdfium2`. Dataset: 30 synthetic pages (15 clean, 15 photographed) with block, table-cell and Markdown ground truth (CC0, public-domain text). `evaluate.py` reports text NED, table cell F1, reading-order tau, the clean/photographed gap, chunk statistics and cost per 1,000 pages; no latency.
 - `08-cost-and-latency-monitoring` (Python): `monitoring.py` wraps the client file and exports Prometheus metrics from the billing, cache and timing of every answer and from each batch `item` event, with a sliding-hour spend guard (alert or refuse); a 21-call replay, `evaluate.py` (books agree, cache hits, guard trigger, middleware overhead), an alert-rules file and a Grafana dashboard.
