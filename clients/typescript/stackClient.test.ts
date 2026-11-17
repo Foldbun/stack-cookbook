@@ -40,6 +40,9 @@ interface Entry {
   userAgent: string | null;
   idempotencyKey: string | null;
   accept: string | null;
+  project: string | null;
+  hasAuthorization: boolean;
+  t: number;
 }
 
 async function fakeLog(): Promise<{ log: Entry[]; violations: string[] }> {
@@ -57,7 +60,10 @@ async function calls(path: string): Promise<Entry[]> {
   return (await fakeLog()).log.filter((e) => e.path === path);
 }
 
+const PROJECT = "fbp_testProject0001";
 const client = (opts: sc.ClientOptions = {}) => new sc.StackClient({ apiKey: KEY, baseUrl: FAKE, ...opts });
+const free = (opts: sc.ClientOptions = {}) => new sc.StackClient({ apiKey: "", baseUrl: FAKE, project: PROJECT, ...opts });
+const OCR = () => ({ image: sc.imageBase64(png()) });
 
 async function rejects(p: Promise<unknown>, ctor: new (...a: never[]) => Error = sc.StackError): Promise<sc.StackError> {
   try {
@@ -73,14 +79,64 @@ describe("TypeScript client", () => {
   beforeEach(() => scenario({}));
   afterEach(async () => assert.deepEqual((await fakeLog()).violations, []));
 
-  it("refuses to start without a key", () => {
-    const saved = process.env.FOLDBUN_API_KEY;
+  it("means free tier with the cookbook project when there is no key", () => {
+    const saved = { ...process.env };
     delete process.env.FOLDBUN_API_KEY;
+    delete process.env.FOLDBUN_PROJECT_ID;
     try {
-      assert.throws(() => new sc.StackClient(), (e: unknown) => e instanceof sc.MissingApiKey && e.message === sc.MISSING_KEY);
+      let c = new sc.StackClient();
+      assert.ok(c.free && c.project === sc.COOKBOOK_PROJECT && sc.COOKBOOK_PROJECT === "fbp_2kIj7bWkULQkLAbceHhfLW4eY6O0");
+      process.env.FOLDBUN_PROJECT_ID = PROJECT;
+      process.env.FOLDBUN_API_KEY = KEY;
+      c = new sc.StackClient();
+      assert.ok(!c.free && c.project === PROJECT);
     } finally {
-      if (saved !== undefined) process.env.FOLDBUN_API_KEY = saved;
+      process.env = saved;
     }
+  });
+
+  it("sends only the project header on a free call", async () => {
+    const c = free();
+    const r = await c.post("/v1/ocr", OCR(), { tag: "a" });
+    assert.ok(r.cost === 0 && !("balance" in r));
+    assert.deepEqual(
+      [r.billing.tier, r.billing.project, r.billing.listPrice, r.billing.charged],
+      ["free", PROJECT, 0.25, false],
+    );
+    const [entry] = await calls("/v1/ocr");
+    assert.deepEqual([entry!.project, entry!.hasAuthorization, entry!.idempotencyKey, entry!.status], [PROJECT, false, null, 200]);
+    assert.deepEqual(c.calls("a"), [
+      { endpoint: "/v1/ocr", model: "ppocr-v6", list: 0.25, charged: 0, cache: null, queueMs: 4, processingMs: 700, replayed: false },
+    ]);
+    assert.deepEqual(c.summary(), { calls: 1, listTotal: 0.25, chargedTotal: 0 });
+    const who = await c.whoami();
+    assert.ok(who.tier === "free" && who.project.id === PROJECT);
+  });
+
+  it("charges a keyed call at list price and names the source project", async () => {
+    const c = client({ project: PROJECT });
+    const r = await c.post("/v1/ocr", OCR());
+    assert.ok(r.billing.charged === true && r.cost === 0.25 && r.balance === 999.75);
+    const [entry] = await calls("/v1/ocr");
+    assert.deepEqual([entry!.project, entry!.hasAuthorization], [PROJECT, true]);
+    assert.ok(entry!.idempotencyKey);
+  });
+
+  it("refuses locally what the free tier does not have", async () => {
+    const c = free();
+    const refusals: Array<() => Promise<unknown>> = [
+      () => c.upload(png(), "image/png"),
+      () => c.post("/v1/ocr", { image: sc.imageHandle("img_" + "0".repeat(64)) }),
+      async () => {
+        for await (const _ of c.batch("ocr", { items: [] })) void _;
+      },
+      () => c.models(),
+    ];
+    for (const fn of refusals) {
+      const e = await rejects(fn(), sc.MissingApiKey);
+      assert.ok(e.code === "missing_api_key" && e.message.startsWith("FOLDBUN_API_KEY is not set") && !e.message.includes("\n"));
+    }
+    assert.deepEqual((await fakeLog()).log, []);
   });
 
   it("reads its configuration from the environment", async () => {
@@ -105,12 +161,12 @@ describe("TypeScript client", () => {
     const r2 = await c.post("/v1/ocr", { image: sc.imageBase64(png()) }, { tag: "b" });
     assert.equal(r1.image.id, first.id);
     assert.equal(r2.image.id, first.id);
-    assert.equal(r1.billing.pool, "free");
-    assert.equal(r1.cost, 0);
+    assert.equal(r1.billing.pool, null);
+    assert.equal(r1.cost, 0.25);
     assert.deepEqual(c.calls("a"), [
-      { endpoint: "/v1/ocr", model: "ppocr-v6", list: 0.25, charged: 0, cache: null, queueMs: 4, processingMs: 700, replayed: false },
+      { endpoint: "/v1/ocr", model: "ppocr-v6", list: 0.25, charged: 0.25, cache: null, queueMs: 4, processingMs: 700, replayed: false },
     ]);
-    assert.deepEqual(c.summary(), { calls: 2, listTotal: 0.5, chargedTotal: 0 });
+    assert.deepEqual(c.summary(), { calls: 2, listTotal: 0.5, chargedTotal: 0.5 });
     const log = (await fakeLog()).log;
     assert.ok(log.every((e) => e.userAgent === sc.USER_AGENT));
     assert.deepEqual(log.filter((e) => e.path === "/v1/images").map((e) => e.status), [201, 200]);
@@ -194,6 +250,7 @@ describe("TypeScript client", () => {
     const e = await rejects(c.post("/v1/ocr", { image: sc.imageBase64(png()) }), sc.BudgetExceeded);
     assert.equal(e.message, "call refused: up to 0.25 credits would pass FOLDBUN_MAX_CREDITS=0.3 (spent 0.25)");
     assert.equal((await calls("/v1/ocr")).length, 1);
+    assert.equal((await free({ maxCredits: 0.01 }).post("/v1/ocr", OCR())).cost, 0); // nothing is charged: no guard
     const h = (await c.upload(png(), "image/png")).id;
     await rejects(c.post("/v1/segment", { model: "sam3", image: { id: h }, prompts: [{ text: "x" }] }), sc.BudgetExceeded);
   });
@@ -213,17 +270,31 @@ describe("TypeScript client", () => {
     assert.equal(sc.estimate(models, "/v1/documents/parse", {}, "paddleocr-vl"), 2);
   });
 
-  it("reports what a public account may not call", async () => {
-    const c = client({ apiKey: "fbs_fake_public" });
-    const models = await c.models();
-    assert.equal(models["sam3"].available, false);
-    assert.equal(models["ppocr-v6"].perMinute, 10);
-    const h = (await c.upload(png(), "image/png")).id;
-    const e = await rejects(c.post("/v1/segment", { model: "sam3", image: { id: h }, prompts: [{ text: "cat" }] }));
-    assert.deepEqual([e.status, e.code], [403, "model_locked"]);
-    const r = await c.post("/v1/ocr", { image: { id: h } });
-    assert.equal(r.billing.pool, "public");
-    assert.deepEqual(r.billing.allowance, { used: 1, limit: 100 });
+  it("retries free_busy and gives up on the final codes", async () => {
+    await scenario("free-busy");
+    const t = performance.now();
+    await free().post("/v1/ocr", OCR());
+    assert.ok(performance.now() - t >= 1200);
+    assert.deepEqual((await calls("/v1/ocr")).map((e) => e.status), [429, 200]);
+    for (const [name, code, status] of [
+      ["free-daily-limit", "daily_limit_reached", 429],
+      ["free-unavailable", "free_tier_unavailable", 403],
+    ] as const) {
+      await scenario(name);
+      const e = await rejects(free().post("/v1/ocr", OCR()));
+      assert.deepEqual([e.status, e.code, e.retryable], [status, code, false]);
+      assert.ok(e.message.includes("FOLDBUN_API_KEY"));
+      assert.equal((await calls("/v1/ocr")).length, 1);
+    }
+  });
+
+  it("holds the next call back when the remaining count is zero", async () => {
+    await scenario("free-remaining-zero");
+    const c = free();
+    await c.post("/v1/ocr", OCR());
+    await c.post("/v1/ocr", OCR());
+    const [first, second] = await calls("/v1/ocr");
+    assert.ok(second!.t - first!.t >= 1.0);
   });
 
   it("raises unauthorized for a wrong key", async () => {
@@ -272,15 +343,6 @@ describe("TypeScript client", () => {
     const c = client({ maxCredits: 1.0 });
     await rejects(collect(c.batch("segment", await batchBody(c, 2))), sc.BudgetExceeded);
     assert.equal((await calls("/v1/batch/segment")).length, 0);
-  });
-
-  it("paces calls with a token bucket", async () => {
-    const b = new sc.Bucket(60);
-    for (let i = 0; i < 60; i++) await b.take();
-    const t = performance.now();
-    await b.take();
-    const waited = performance.now() - t;
-    assert.ok(waited >= 800 && waited <= 1500, `waited ${waited} ms`);
   });
 
   it("formats numbers in refusals like the other clients", async () => {

@@ -19,6 +19,13 @@ def png(salt=0, w=64, h=48):
     return tiny_png(w + salt, h)
 
 
+@pytest.fixture(autouse=True)
+def clean_environment(monkeypatch):
+    """The developer's own key or project must not change what a test means."""
+    for name in ("FOLDBUN_API_KEY", "FOLDBUN_PROJECT_ID", "FOLDBUN_API_BASE", "FOLDBUN_MAX_CREDITS"):
+        monkeypatch.delenv(name, raising=False)
+
+
 @pytest.fixture
 def server():
     with FakeServer(validate=True) as srv:

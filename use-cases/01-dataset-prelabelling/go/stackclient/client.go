@@ -2,9 +2,18 @@
 
 // Package stackclient is a minimal client for the Foldbun Stack API (Go standard library only).
 //
-// Semantics shared with the Python and TypeScript client files: API key from FOLDBUN_API_KEY, base URL from
-// FOLDBUN_API_BASE, retries only for `retryable` errors, an idempotency key per call that is reused on retry,
-// a per-pool token bucket, a concurrency cap, a credit cap (FOLDBUN_MAX_CREDITS) and a ledger of every call.
+// Semantics shared with the Python and TypeScript client files:
+//
+//   - Free tier: without FOLDBUN_API_KEY a call carries only `X-Foldbun-Project` (FOLDBUN_PROJECT_ID, default: the
+//     Cookbook's shared project) and is not charged. The free tier takes inline base64 images and single calls only.
+//   - Paid: with FOLDBUN_API_KEY a call carries `Authorization` and the project header (the call's source project),
+//     is charged at list price and gets an idempotency key that is reused on retry.
+//   - Limits: a 429 (`Retry-After`, `retryAfterMs`) is retried a bounded number of times with jitter; when
+//     `X-RateLimit-Remaining` is 0 the next call waits `X-RateLimit-Reset` seconds. `daily_limit_reached` and
+//     `free_tier_unavailable` are final.
+//   - Also: base URL from FOLDBUN_API_BASE, a concurrency cap, a credit cap for keyed runs (FOLDBUN_MAX_CREDITS)
+//     and a ledger of every call.
+//
 // Requests are built from any JSON-encodable value; results are returned as json.RawMessage, to be decoded
 // into whatever struct the caller needs.
 package stackclient
@@ -20,6 +29,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	mrand "math/rand/v2"
 	"net"
 	"net/http"
 	"os"
@@ -31,10 +41,13 @@ import (
 )
 
 const (
-	Version     = "1.0.0"
+	Version     = "1.1.0"
 	DefaultBase = "https://api.stack.foldbun.com"
 	UserAgent   = "foldbun-stack-cookbook/" + Version + " (go; +https://github.com/Foldbun/stack-cookbook)"
-	MissingKey  = `FOLDBUN_API_KEY is not set. See "API keys" in the README; every use case page shows the output and cost of a real run, so it can be read without a key.`
+	// CookbookProject is the Cookbook's own project. A project ID is not a secret: it names who is calling and
+	// authorises nothing beyond the free tier, whose limits are shared by every reader of the Cookbook. To go
+	// beyond trying the recipes, create your own project in the console and set FOLDBUN_PROJECT_ID (or use an API key).
+	CookbookProject = "fbp_2kIj7bWkULQkLAbceHhfLW4eY6O0"
 
 	batchMax   = 600 * time.Second
 	maxRetries = 5
@@ -52,7 +65,21 @@ const (
 
 var defaultModel = map[string]string{"/v1/ocr": "ppocr-v6", "/v1/documents/parse": "paddleocr-vl", "/v1/remove-background": "birefnet", "/v1/refine": "sam3"}
 
-// Error is an API error (Status, Code, ...) or a local refusal (Status 0, Code "missing_api_key",
+// freeHint is appended to the message of the codes that end a free-tier run.
+var freeHint = map[string]string{
+	"daily_limit_reached": " The daily limit of the free tier is shared by everyone using this project and resets at 00:00 UTC;" +
+		" set FOLDBUN_API_KEY to continue now, or FOLDBUN_PROJECT_ID to use your own project.",
+	"free_tier_unavailable": " The free tier is not available here; set FOLDBUN_API_KEY to use an API key.",
+}
+
+// isFinal: codes that are never retried. isRetryCode: codes retried even when the error does not say `retryable`.
+func isFinal(code string) bool {
+	return code == "daily_limit_reached" || code == "free_tier_unavailable"
+}
+func isRetryCode(code string) bool { return code == "rate_limited" || code == "free_busy" }
+
+// Error is an API error (Status, Code, ...) or a local refusal (Status 0, Code "missing_api_key" when the free
+// tier cannot do what was asked,
 // "budget_exceeded", "network_error" or "batch_timeout"). Branch on Code only.
 type Error struct {
 	Status       int
@@ -88,13 +115,14 @@ func ImageBase64(data []byte) map[string]string {
 // ImageHandle is the uploaded image input: reuse one upload across calls and models; required in batches.
 func ImageHandle(handle string) map[string]string { return map[string]string{"id": handle} }
 
-// Config of a client. Zero values mean: key, base URL and cap from the environment, 4 requests in flight.
+// Config of a client. Zero values mean: key (optional: without one, the free tier), project, base URL and cap
+// from the environment, 4 requests in flight.
 type Config struct {
-	APIKey         string
+	APIKey         string // empty: FOLDBUN_API_KEY; still empty: free tier
+	Project        string // empty: FOLDBUN_PROJECT_ID, else CookbookProject
 	BaseURL        string
 	MaxConcurrency int
 	MaxCredits     *float64
-	NoThrottle     bool
 }
 
 // Opts of one call. The zero value is fine.
@@ -127,8 +155,6 @@ type Summary struct {
 type Model struct {
 	ID        string   `json:"id"`
 	Available bool     `json:"available"`
-	Pool      string   `json:"pool"`
-	PerMinute int      `json:"perMinute"`
 	Prices    []Price  `json:"prices"`
 	Endpoints []string `json:"endpoints"`
 }
@@ -162,16 +188,16 @@ type entry struct {
 }
 
 type Client struct {
-	apiKey, base string
-	maxCredits   *float64
-	throttle     bool
-	http         *http.Client
-	sem          chan struct{}
+	apiKey, project, base string
+	free                  bool
+	maxCredits            *float64
+	http                  *http.Client
+	sem                   chan struct{}
 
-	mu       sync.Mutex // ledger, uploads, buckets, spent, reserved
+	mu       sync.Mutex // ledger, uploads, gate, spent, reserved
 	ledger   []entry
 	uploads  map[string]upload
-	buckets  map[string]*bucket
+	gate     map[string]time.Time // per model: no call before this time (X-RateLimit-Remaining 0)
 	spent    float64
 	reserved float64
 
@@ -184,14 +210,18 @@ type upload struct {
 	contentType string
 }
 
-// New creates a client. It fails with Code "missing_api_key" when no key is configured.
+// New creates a client. Without a key (Config or FOLDBUN_API_KEY) it is a free-tier client: see Free.
 func New(cfg Config) (*Client, error) {
 	key := cfg.APIKey
 	if key == "" {
 		key = os.Getenv("FOLDBUN_API_KEY")
 	}
-	if key == "" {
-		return nil, &Error{Code: "missing_api_key", Message: MissingKey}
+	project := cfg.Project
+	if project == "" {
+		project = os.Getenv("FOLDBUN_PROJECT_ID")
+	}
+	if project == "" {
+		project = CookbookProject
 	}
 	base := cfg.BaseURL
 	if base == "" {
@@ -200,8 +230,8 @@ func New(cfg Config) (*Client, error) {
 	if base == "" {
 		base = DefaultBase
 	}
-	c := &Client{apiKey: key, base: strings.TrimRight(base, "/"), maxCredits: cfg.MaxCredits, throttle: !cfg.NoThrottle,
-		uploads: map[string]upload{}, buckets: map[string]*bucket{}}
+	c := &Client{apiKey: key, project: project, free: key == "", base: strings.TrimRight(base, "/"), maxCredits: cfg.MaxCredits,
+		uploads: map[string]upload{}, gate: map[string]time.Time{}}
 	if c.maxCredits == nil {
 		if s := os.Getenv("FOLDBUN_MAX_CREDITS"); s != "" {
 			v, err := strconv.ParseFloat(s, 64)
@@ -226,6 +256,21 @@ func New(cfg Config) (*Client, error) {
 // MaxCredits is the configured credit cap, or nil.
 func (c *Client) MaxCredits() *float64 { return c.maxCredits }
 
+// Free reports whether the client has no API key: calls are free and carry only the project header.
+func (c *Client) Free() bool { return c.free }
+
+// Project is the project ID sent in `X-Foldbun-Project`.
+func (c *Client) Project() string { return c.project }
+
+// RequireKey refuses a feature the free tier does not have (uploads, handles, batches, big runs): in free mode it
+// returns an *Error with Code "missing_api_key" and Status 0; with a key it returns nil.
+func (c *Client) RequireKey(reason string) error {
+	if c.free {
+		return &Error{Code: "missing_api_key", Message: "FOLDBUN_API_KEY is not set, and this needs a key: " + reason + "."}
+	}
+	return nil
+}
+
 // region http
 type reply struct {
 	status int
@@ -245,7 +290,10 @@ func (c *Client) request(method, path string, body []byte, headers map[string]st
 		cancel()
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	req.Header.Set("X-Foldbun-Project", c.project)
+	if !c.free {
+		req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	}
 	req.Header.Set("User-Agent", UserAgent)
 	req.Header.Set("Accept", "application/json")
 	for k, v := range headers {
@@ -268,9 +316,12 @@ func (c *Client) request(method, path string, body []byte, headers map[string]st
 	return &reply{status: resp.StatusCode, header: resp.Header, raw: raw}, nil
 }
 
-// send retries `retryable` API errors always and network errors only when retryNetwork.
-func (c *Client) send(method, path string, body []byte, headers map[string]string, read time.Duration, retryNetwork, stream bool) (*reply, error) {
+// send retries `retryable` API errors (and 429s) always and network errors only when retryNetwork. gate names the
+// rate-limit window of the call (the model, "" for none): when a response said `X-RateLimit-Remaining: 0`, the next
+// call of that window waits `X-RateLimit-Reset` seconds first.
+func (c *Client) send(method, path string, body []byte, headers map[string]string, read time.Duration, retryNetwork, stream bool, gate string) (*reply, error) {
 	for attempt := 0; ; attempt++ {
+		c.waitGate(gate)
 		rep, err := c.request(method, path, body, headers, read, stream)
 		if err != nil {
 			if !retryNetwork || attempt == maxRetries {
@@ -280,10 +331,11 @@ func (c *Client) send(method, path string, body []byte, headers map[string]strin
 			continue
 		}
 		if rep.status < 300 {
+			c.noteLimits(gate, rep.header)
 			return rep, nil
 		}
-		e := apiError(rep)
-		if !e.Retryable || attempt == maxRetries {
+		e := c.apiError(rep)
+		if isFinal(e.Code) || !(e.Retryable || isRetryCode(e.Code)) || attempt == maxRetries {
 			return nil, e
 		}
 		wait := time.Duration(e.RetryAfterMs) * time.Millisecond
@@ -292,11 +344,46 @@ func (c *Client) send(method, path string, body []byte, headers map[string]strin
 				wait = max(wait, time.Duration(secs)*time.Second)
 			}
 		}
-		time.Sleep(min(max(wait, time.Second), maxWait))
+		wait = max(wait, time.Second)
+		jitter := time.Duration(mrand.Float64() * float64(min(wait/4, 2*time.Second))) // on top, never shorter
+		time.Sleep(min(wait+jitter, maxWait))
 	}
 }
 
-func apiError(rep *reply) *Error {
+func (c *Client) waitGate(gate string) {
+	for gate != "" {
+		c.mu.Lock()
+		wait := time.Until(c.gate[gate])
+		c.mu.Unlock()
+		if wait <= 0 {
+			return
+		}
+		time.Sleep(wait)
+	}
+}
+
+// noteLimits: X-RateLimit-Remaining 0 holds the next call of this window for X-RateLimit-Reset seconds
+// (1 s when the header is missing or invalid, at most 60 s).
+func (c *Client) noteLimits(gate string, h http.Header) {
+	remaining := strings.TrimSpace(h.Get("X-RateLimit-Remaining"))
+	if gate == "" || remaining == "" || strings.Trim(remaining, "0") != "" {
+		return // no gate, no header, or not (only) zeros: more calls are left
+	}
+	seconds := 1.0
+	if reset := strings.TrimSpace(h.Get("X-RateLimit-Reset")); reset != "" {
+		if f, err := strconv.ParseFloat(reset, 64); err == nil && !math.IsNaN(f) {
+			seconds = min(max(f, 0), maxWait.Seconds())
+		}
+	}
+	until := time.Now().Add(time.Duration(seconds * float64(time.Second)))
+	c.mu.Lock()
+	if until.After(c.gate[gate]) {
+		c.gate[gate] = until
+	}
+	c.mu.Unlock()
+}
+
+func (c *Client) apiError(rep *reply) *Error {
 	rid := rep.header.Get("X-Request-Id")
 	var doc struct {
 		Error *struct {
@@ -307,8 +394,11 @@ func apiError(rep *reply) *Error {
 		} `json:"error"`
 	}
 	if json.Unmarshal(rep.raw, &doc) == nil && doc.Error != nil && doc.Error.Code != nil && doc.Error.Message != nil {
-		e := doc.Error
-		return &Error{rep.status, *e.Code, *e.Message, e.Retryable, int(e.RetryAfterMs), rid}
+		e, message := doc.Error, *doc.Error.Message
+		if c.free {
+			message += freeHint[*e.Code]
+		}
+		return &Error{rep.status, *e.Code, message, e.Retryable, int(e.RetryAfterMs), rid}
 	}
 	text := rep.raw
 	if len(text) > 200 {
@@ -321,15 +411,21 @@ func apiError(rep *reply) *Error {
 
 // Get returns the JSON body of GET path.
 func (c *Client) Get(path string) (json.RawMessage, error) {
-	rep, err := c.send("GET", path, nil, nil, readModels, true, false)
+	rep, err := c.send("GET", path, nil, nil, readModels, true, false, "")
 	if err != nil {
 		return nil, err
 	}
 	return rep.raw, nil
 }
 
-// Models is GET /v1/models, fetched once, keyed by model id. Free.
+// WhoAmI is GET /v1/whoami: the project (free) or the account (key) behind the credentials.
+func (c *Client) WhoAmI() (json.RawMessage, error) { return c.Get("/v1/whoami") }
+
+// Models is GET /v1/models, fetched once, keyed by model id. Needs a key; the free tier does not offer it.
 func (c *Client) Models() (map[string]Model, error) {
+	if err := c.RequireKey("listing models and prices is not part of the free tier"); err != nil {
+		return nil, err
+	}
 	c.modelsMu.Lock()
 	defer c.modelsMu.Unlock()
 	if c.models == nil {
@@ -353,13 +449,16 @@ func (c *Client) Models() (map[string]Model, error) {
 
 // region upload
 
-// Upload is POST /v1/images with the raw bytes. Free.
+// Upload is POST /v1/images with the raw bytes. Needs a key.
 func (c *Client) Upload(data []byte, contentType string) (ImageInfo, error) {
 	var info ImageInfo
+	if err := c.RequireKey("image uploads are not part of the free tier, which takes inline base64 images"); err != nil {
+		return info, err
+	}
 	if contentType == "" {
 		contentType = "image/jpeg"
 	}
-	rep, err := c.send("POST", "/v1/images", data, map[string]string{"Content-Type": contentType}, readUpload, true, false)
+	rep, err := c.send("POST", "/v1/images", data, map[string]string{"Content-Type": contentType}, readUpload, true, false, "")
 	if err != nil {
 		return info, err
 	}
@@ -405,11 +504,19 @@ func (c *Client) Post(path string, body any, o Opts) (json.RawMessage, error) {
 	if model == "" {
 		model = defaultModel[path]
 	}
-	models, err := c.Models()
-	if err != nil {
-		return nil, err
+	if v.Image.ID != "" {
+		if err := c.RequireKey("image handles come from uploads, which are not part of the free tier"); err != nil {
+			return nil, err
+		}
 	}
-	worst := estimate(models, path, v, model)
+	worst := 0.0
+	if !c.free {
+		models, err := c.Models()
+		if err != nil {
+			return nil, err
+		}
+		worst = estimate(models, path, v, model)
+	}
 	if err := c.reserve(worst); err != nil {
 		return nil, err
 	}
@@ -421,13 +528,15 @@ func (c *Client) Post(path string, body any, o Opts) (json.RawMessage, error) {
 	if o.ReadTimeout > 0 {
 		read = o.ReadTimeout
 	}
-	headers := map[string]string{"Content-Type": "application/json", "Idempotency-Key": key}
+	headers := map[string]string{"Content-Type": "application/json"}
+	if !c.free {
+		headers["Idempotency-Key"] = key
+	}
 	rep, err := func() (*reply, error) {
 		defer c.release(worst)
 		c.sem <- struct{}{}
 		defer func() { <-c.sem }()
-		c.take(models, model)
-		rep, err := c.send("POST", path, data, headers, read, true, false)
+		rep, err := c.send("POST", path, data, headers, read, true, false, model)
 		if Code(err) == "image_not_found" {
 			c.mu.Lock()
 			saved, ok := c.uploads[v.Image.ID]
@@ -439,7 +548,7 @@ func (c *Client) Post(path string, body any, o Opts) (json.RawMessage, error) {
 					return nil, err
 				}
 				headers["Idempotency-Key"] = newUUID()
-				rep, err = c.send("POST", path, data, headers, read, true, false)
+				rep, err = c.send("POST", path, data, headers, read, true, false, model)
 			}
 		}
 		return rep, err
@@ -458,8 +567,11 @@ func (c *Client) Post(path string, body any, o Opts) (json.RawMessage, error) {
 // region batch
 
 // Batch is POST /v1/batch/{endpoint} as Server-Sent Events. fn is called for every progress, item and
-// summary event; return ErrStop to end early. `ok` items are recorded in the ledger before fn sees them.
+// summary event; return ErrStop to end early. Needs a key. `ok` items are recorded in the ledger before fn sees them.
 func (c *Client) Batch(endpoint string, body any, o Opts, fn func(Event) error) error {
+	if err := c.RequireKey("batch requests are not part of the free tier"); err != nil {
+		return err
+	}
 	path, single := "/v1/batch/"+endpoint, "/v1/"+endpoint
 	data, v, err := encode(body)
 	if err != nil {
@@ -488,8 +600,7 @@ func (c *Client) Batch(endpoint string, body any, o Opts, fn func(Event) error) 
 	headers := map[string]string{"Content-Type": "application/json", "Accept": "text/event-stream", "Idempotency-Key": key}
 	c.sem <- struct{}{}
 	defer func() { <-c.sem }()
-	c.take(models, model)
-	rep, err := c.send("POST", path, data, headers, readBatch, true, true)
+	rep, err := c.send("POST", path, data, headers, readBatch, true, true, model)
 	if err != nil {
 		return err
 	}
@@ -553,7 +664,8 @@ func (c *Client) record(endpoint string, raw []byte, replayed bool, tag string) 
 		Cost    *float64 `json:"cost"`
 		Cache   *string  `json:"cache"`
 		Billing *struct {
-			Total *float64 `json:"total"`
+			Total     *float64 `json:"total"`
+			ListPrice *float64 `json:"listPrice"`
 		} `json:"billing"`
 		Timing struct {
 			QueueMs      float64 `json:"queueMs"`
@@ -570,8 +682,10 @@ func (c *Client) record(endpoint string, raw []byte, replayed bool, tag string) 
 	row := Row{Endpoint: endpoint, Model: r.Model, List: cost, Cache: r.Cache, QueueMs: int(r.Timing.QueueMs), ProcessingMs: int(r.Timing.ProcessingMs), Replayed: replayed}
 	if r.Billing != nil && r.Billing.Total != nil {
 		row.List = *r.Billing.Total
+	} else if r.Billing != nil && r.Billing.ListPrice != nil {
+		row.List = *r.Billing.ListPrice
 	}
-	if !replayed {
+	if !replayed && !c.free {
 		row.Charged = cost
 	}
 	c.mu.Lock()
@@ -627,54 +741,6 @@ func (c *Client) release(worst float64) {
 	c.mu.Lock()
 	c.reserved -= worst
 	c.mu.Unlock()
-}
-
-func (c *Client) take(models map[string]Model, model string) {
-	info := models[model]
-	if !c.throttle || info.PerMinute <= 0 {
-		return
-	}
-	pool := info.Pool
-	if pool == "" {
-		pool = model
-	}
-	c.mu.Lock()
-	b := c.buckets[pool]
-	if b == nil {
-		b = newBucket(info.PerMinute)
-		c.buckets[pool] = b
-	}
-	c.mu.Unlock()
-	b.take()
-}
-
-// bucket is a token bucket: a burst of perMinute, refilled at perMinute per minute.
-type bucket struct {
-	mu         sync.Mutex
-	rate, cap_ float64
-	tokens     float64
-	last       time.Time
-}
-
-func newBucket(perMinute int) *bucket {
-	return &bucket{rate: float64(perMinute) / 60, cap_: float64(perMinute), tokens: float64(perMinute), last: time.Now()}
-}
-
-func (b *bucket) take() {
-	for {
-		b.mu.Lock()
-		now := time.Now()
-		b.tokens = math.Min(b.cap_, b.tokens+now.Sub(b.last).Seconds()*b.rate)
-		b.last = now
-		if b.tokens >= 1 {
-			b.tokens--
-			b.mu.Unlock()
-			return
-		}
-		wait := (1 - b.tokens) / b.rate
-		b.mu.Unlock()
-		time.Sleep(time.Duration(wait * float64(time.Second)))
-	}
 }
 
 func round6(x float64) float64 { return math.Floor(x*1e6+0.5) / 1e6 }

@@ -2,17 +2,27 @@
 /**
  * Minimal client for the Foldbun Stack API (Node 22+ built-ins only: fetch, crypto).
  *
- * Semantics shared with the Python and Go client files: API key from FOLDBUN_API_KEY, base URL from
- * FOLDBUN_API_BASE, retries only for `retryable` errors, an idempotency key per call that is reused on retry,
- * a per-pool token bucket, a concurrency cap, a credit cap (FOLDBUN_MAX_CREDITS) and a ledger of every call.
+ * Semantics shared with the Python and Go client files:
+ *
+ * - Free tier: without FOLDBUN_API_KEY a call carries only `X-Foldbun-Project` (FOLDBUN_PROJECT_ID, default: the
+ *   Cookbook's shared project) and is not charged. The free tier takes inline base64 images and single calls only.
+ * - Paid: with FOLDBUN_API_KEY a call carries `Authorization` and the project header (the call's source project), is
+ *   charged at list price and gets an idempotency key that is reused on retry.
+ * - Limits: a 429 (`Retry-After`, `retryAfterMs`) is retried a bounded number of times with jitter; when
+ *   `X-RateLimit-Remaining` is 0 the next call waits `X-RateLimit-Reset` seconds. `daily_limit_reached` and
+ *   `free_tier_unavailable` are final.
+ * - Also: base URL from FOLDBUN_API_BASE, a concurrency cap, a credit cap for keyed runs (FOLDBUN_MAX_CREDITS) and a
+ *   ledger of every call.
  */
 import { randomUUID } from "node:crypto";
 
-export const VERSION = "1.0.0";
+export const VERSION = "1.1.0";
 export const DEFAULT_BASE = "https://api.stack.foldbun.com";
 export const USER_AGENT = `foldbun-stack-cookbook/${VERSION} (typescript; +https://github.com/Foldbun/stack-cookbook)`;
-export const MISSING_KEY =
-  'FOLDBUN_API_KEY is not set. See "API keys" in the README; every use case page shows the output and cost of a real run, so it can be read without a key.';
+// The Cookbook's own project. A project ID is not a secret: it names who is calling and authorises nothing beyond
+// the free tier, whose limits are shared by every reader of the Cookbook. To go beyond trying the recipes, create
+// your own project in the console and set FOLDBUN_PROJECT_ID (or use an API key).
+export const COOKBOOK_PROJECT = "fbp_2kIj7bWkULQkLAbceHhfLW4eY6O0";
 const DEFAULT_MODEL: Record<string, string> = {
   "/v1/ocr": "ppocr-v6",
   "/v1/documents/parse": "paddleocr-vl",
@@ -28,6 +38,15 @@ const T_BATCH: Timeout = [10, 45];
 const BATCH_MAX_S = 600;
 const MAX_RETRIES = 5;
 const MAX_WAIT_S = 60;
+// Codes that are retried even when the error does not say `retryable`, and codes that are never retried.
+const RETRY_CODES = new Set(["rate_limited", "free_busy"]);
+const FINAL_CODES = new Set(["daily_limit_reached", "free_tier_unavailable"]);
+const FREE_HINT: Record<string, string> = {
+  daily_limit_reached:
+    " The daily limit of the free tier is shared by everyone using this project and resets at 00:00 UTC;" +
+    " set FOLDBUN_API_KEY to continue now, or FOLDBUN_PROJECT_ID to use your own project.",
+  free_tier_unavailable: " The free tier is not available here; set FOLDBUN_API_KEY to use an API key.",
+};
 
 // API payloads are plain JSON; the client reads only the few fields it needs.
 export type Json = any; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -56,9 +75,10 @@ export class StackError extends Error {
   }
 }
 
+/** The run needs FOLDBUN_API_KEY because the free tier cannot do it; `reason` says what the free tier lacks. */
 export class MissingApiKey extends StackError {
-  constructor() {
-    super(0, "missing_api_key", MISSING_KEY);
+  constructor(reason: string) {
+    super(0, "missing_api_key", `FOLDBUN_API_KEY is not set, and this needs a key: ${reason}.`);
     this.name = "MissingApiKey";
   }
 }
@@ -75,7 +95,7 @@ export function imageBase64(data: Uint8Array): { base64: string } {
   return { base64: Buffer.from(data).toString("base64") };
 }
 
-/** Uploaded image input: reuse one upload across calls and models; required in batches. */
+/** Uploaded image input (needs a key): reuse one upload across calls and models; required in batches. */
 export function imageHandle(handle: string): { id: string } {
   return { id: handle };
 }
@@ -92,9 +112,9 @@ export interface CallOptions {
 export interface ClientOptions {
   apiKey?: string;
   baseUrl?: string;
+  project?: string;
   maxConcurrency?: number;
   maxCredits?: number;
-  throttle?: boolean;
 }
 
 export interface LedgerRow {
@@ -127,29 +147,6 @@ class Semaphore {
     const next = this.waiting.shift();
     if (next) next();
     else this.free++;
-  }
-}
-
-export class Bucket {
-  private readonly rate: number;
-  private readonly cap: number;
-  private tokens: number;
-  private t = performance.now();
-  constructor(perMinute: number) {
-    this.rate = perMinute / 60;
-    this.cap = this.tokens = perMinute;
-  }
-  async take(): Promise<void> {
-    for (;;) {
-      const now = performance.now();
-      this.tokens = Math.min(this.cap, this.tokens + ((now - this.t) / 1000) * this.rate);
-      this.t = now;
-      if (this.tokens >= 1) {
-        this.tokens -= 1;
-        return;
-      }
-      await sleep(((1 - this.tokens) / this.rate) * 1000);
-    }
   }
 }
 
@@ -211,33 +208,35 @@ interface Reply {
 }
 
 export class StackClient {
-  readonly apiKey: string;
+  readonly apiKey: string | null; // optional: without it, the free tier
+  readonly project: string;
+  readonly free: boolean;
   readonly maxCredits: number | null;
-  readonly throttle: boolean;
   readonly ledger: Array<[string | undefined, LedgerRow]> = []; // one row per successful inference call; see calls()
   private readonly base: string;
   private readonly sem: Semaphore;
   private modelsPromise: Promise<Record<string, Json>> | null = null;
-  private buckets = new Map<string, Bucket>();
   private uploads = new Map<string, { data: Uint8Array; contentType: string }>();
   private spent = 0;
   private reserved = 0;
+  private gate = new Map<string, number>(); // model -> performance.now() before which the next call waits
 
   constructor(opts: ClientOptions = {}) {
-    const key = opts.apiKey ?? process.env.FOLDBUN_API_KEY;
-    if (!key) throw new MissingApiKey();
-    this.apiKey = key;
+    this.apiKey = opts.apiKey || process.env.FOLDBUN_API_KEY || null;
+    this.project = opts.project || process.env.FOLDBUN_PROJECT_ID || COOKBOOK_PROJECT;
+    this.free = !this.apiKey;
     this.base = (opts.baseUrl || process.env.FOLDBUN_API_BASE || DEFAULT_BASE).replace(/\/+$/, "");
     const cap = opts.maxCredits ?? process.env.FOLDBUN_MAX_CREDITS;
     this.maxCredits = cap === undefined || cap === "" ? null : Number(cap);
-    this.throttle = opts.throttle ?? true;
     this.sem = new Semaphore(opts.maxConcurrency ?? 4);
   }
 
   // #region http
   private async request(method: string, path: string, body: Uint8Array | string | undefined, headers: Record<string, string>, timeout: Timeout, stream: boolean): Promise<Reply> {
     const ctl = new AbortController();
-    const h = { Authorization: `Bearer ${this.apiKey}`, "User-Agent": USER_AGENT, Accept: "application/json", ...headers };
+    const h: Record<string, string> = { "X-Foldbun-Project": this.project, "User-Agent": USER_AGENT, Accept: "application/json" };
+    if (this.apiKey) h.Authorization = `Bearer ${this.apiKey}`;
+    Object.assign(h, headers);
     // fetch has one signal for the whole exchange, so connect and read seconds add up. A stream gets its own
     // idle timer once the headers are in.
     const timer = setTimeout(() => ctl.abort(), (timeout[0] + timeout[1]) * 1000);
@@ -252,9 +251,15 @@ export class StackClient {
     }
   }
 
-  /** Send with retries: `retryable` API errors always, network errors only when retryNetwork. */
-  private async send(method: string, path: string, body?: Uint8Array | string, headers: Record<string, string> = {}, timeout: Timeout = T_CALL, retryNetwork = true, stream = false): Promise<Reply> {
+  /**
+   * Send with retries: `retryable` API errors (and 429s) always, network errors only when retryNetwork.
+   *
+   * `gate` names the rate-limit window of the call (the model): when a response said `X-RateLimit-Remaining: 0`,
+   * the next call of that window waits `X-RateLimit-Reset` seconds first.
+   */
+  private async send(method: string, path: string, body?: Uint8Array | string, headers: Record<string, string> = {}, timeout: Timeout = T_CALL, retryNetwork = true, stream = false, gate?: string): Promise<Reply> {
     for (let attempt = 0; ; attempt++) {
+      await this.waitGate(gate);
       let reply: Reply;
       try {
         reply = await this.request(method, path, body, headers, timeout, stream);
@@ -264,21 +269,43 @@ export class StackClient {
         await sleep(Math.min(2 ** attempt, MAX_WAIT_S) * 1000);
         continue;
       }
-      if (reply.status < 300) return reply;
-      const err = StackClient.error(reply);
-      if (!err.retryable || attempt === MAX_RETRIES) throw err;
+      if (reply.status < 300) {
+        this.noteLimits(gate, reply);
+        return reply;
+      }
+      const err = this.error(reply);
+      if (FINAL_CODES.has(err.code) || !(err.retryable || RETRY_CODES.has(err.code)) || attempt === MAX_RETRIES) throw err;
       const header = reply.headers.get("Retry-After");
-      const waitMs = Math.max(err.retryAfterMs, header && /^\d+$/.test(header) ? Number(header) * 1000 : 0, 1000);
-      await sleep(Math.min(waitMs / 1000, MAX_WAIT_S) * 1000);
+      const wait = Math.max(err.retryAfterMs / 1000, header && /^\d+$/.test(header) ? Number(header) : 0, 1);
+      await sleep(Math.min(wait + Math.random() * Math.min(wait * 0.25, 2), MAX_WAIT_S) * 1000); // jitter on top, never shorter
     }
   }
 
-  private static error(reply: Reply): StackError {
+  private async waitGate(gate: string | undefined): Promise<void> {
+    while (gate !== undefined) {
+      const wait = (this.gate.get(gate) ?? 0) - performance.now();
+      if (wait <= 0) return;
+      await sleep(wait);
+    }
+  }
+
+  /** X-RateLimit-Remaining 0: hold the next call of this window for X-RateLimit-Reset seconds. */
+  private noteLimits(gate: string | undefined, reply: Reply): void {
+    const remaining = reply.headers.get("X-RateLimit-Remaining");
+    const reset = reply.headers.get("X-RateLimit-Reset");
+    if (gate === undefined || remaining === null || !/^\d+$/.test(remaining.trim()) || Number(remaining) > 0) return;
+    const n = reset ? Number(reset) : NaN;
+    const seconds = reset && Number.isFinite(n) ? Math.min(Math.max(n, 0), MAX_WAIT_S) : 1;
+    this.gate.set(gate, Math.max(this.gate.get(gate) ?? 0, performance.now() + seconds * 1000));
+  }
+
+  private error(reply: Reply): StackError {
     const rid = reply.headers.get("X-Request-Id");
     const text = new TextDecoder().decode(reply.raw);
     try {
       const e = JSON.parse(text).error;
-      return new StackError(reply.status, e.code, e.message, e.retryable ?? false, e.retryAfterMs ?? 0, rid);
+      const message: string = e.message + (this.free ? (FREE_HINT[e.code] ?? "") : "");
+      return new StackError(reply.status, e.code, message, e.retryable ?? false, e.retryAfterMs ?? 0, rid);
     } catch {
       return new StackError(reply.status, "http_error", text.slice(0, 200), reply.status >= 500, 0, rid);
     }
@@ -290,8 +317,19 @@ export class StackClient {
     return JSON.parse(new TextDecoder().decode(raw));
   }
 
-  /** `GET /v1/models` once, keyed by model id. Free. */
-  models(): Promise<Record<string, Json>> {
+  /** Refuse a feature the free tier does not have (uploads, handles, batches, big runs): throws MissingApiKey. */
+  requireKey(reason: string): void {
+    if (this.free) throw new MissingApiKey(reason);
+  }
+
+  /** GET /v1/whoami: the project (free) or the account (key) behind the credentials. */
+  whoami(): Promise<Json> {
+    return this.get("/v1/whoami");
+  }
+
+  /** `GET /v1/models` once, keyed by model id. Needs a key; the free tier does not offer it. */
+  async models(): Promise<Record<string, Json>> {
+    this.requireKey("listing models and prices is not part of the free tier");
     if (!this.modelsPromise) {
       this.modelsPromise = this.get("/v1/models").then(
         (r) => Object.fromEntries((r.data as Json[]).map((m) => [m.id, m])),
@@ -305,8 +343,9 @@ export class StackClient {
   }
 
   // #region upload
-  /** POST /v1/images with the raw bytes. Free; returns {id, width, height, bytes, contentType}. */
+  /** POST /v1/images with the raw bytes. Needs a key; returns {id, width, height, bytes, contentType}. */
   async upload(data: Uint8Array, contentType = "image/jpeg"): Promise<Json> {
+    this.requireKey("image uploads are not part of the free tier, which takes inline base64 images");
     const { raw } = await this.send("POST", "/v1/images", data, { "Content-Type": contentType }, T_UPLOAD);
     const info = JSON.parse(new TextDecoder().decode(raw));
     this.uploads.set(info.id, { data, contentType });
@@ -318,18 +357,19 @@ export class StackClient {
   /** One inference call. The idempotency key is reused on every retry, so a retry never charges twice. */
   async post(path: string, body: Json, opts: CallOptions = {}): Promise<Json> {
     const model: string | undefined = body.model || DEFAULT_MODEL[path];
-    const worst = estimate(await this.models(), path, body, model);
+    if (body.image?.id !== undefined) this.requireKey("image handles come from uploads, which are not part of the free tier");
+    const worst = this.free ? 0 : estimate(await this.models(), path, body, model);
     this.reserve(worst);
-    const headers: Record<string, string> = { "Content-Type": "application/json", "Idempotency-Key": opts.idempotencyKey ?? randomUUID() };
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (!this.free) headers["Idempotency-Key"] = opts.idempotencyKey ?? randomUUID();
     const data = JSON.stringify(body);
     const timeout = opts.timeout ?? T_CALL;
     let reply: Reply;
     try {
       await this.sem.acquire();
       try {
-        await this.take(model);
         try {
-          reply = await this.send("POST", path, data, headers, timeout);
+          reply = await this.send("POST", path, data, headers, timeout, true, false, model);
         } catch (err) {
           const handle: string | undefined = body.image?.id;
           const saved = handle === undefined ? undefined : this.uploads.get(handle);
@@ -338,7 +378,7 @@ export class StackClient {
           // key and was not charged, so the repeat needs a new key.
           await this.upload(saved.data, saved.contentType);
           headers["Idempotency-Key"] = randomUUID();
-          reply = await this.send("POST", path, data, headers, timeout);
+          reply = await this.send("POST", path, data, headers, timeout, true, false, model);
         }
       } finally {
         this.sem.release();
@@ -353,8 +393,9 @@ export class StackClient {
   // #endregion
 
   // #region batch
-  /** POST /v1/batch/{endpoint} as Server-Sent Events. Yields [event, data] for progress, item and summary. */
+  /** POST /v1/batch/{endpoint} as Server-Sent Events. Yields [event, data] for progress, item and summary. Needs a key. */
   async *batch(endpoint: string, body: Json, opts: CallOptions = {}): AsyncGenerator<[string, Json]> {
+    this.requireKey("batch requests are not part of the free tier");
     const path = `/v1/batch/${endpoint}`;
     const single = `/v1/${endpoint}`;
     const model: string | undefined = body.model || DEFAULT_MODEL[single];
@@ -365,8 +406,7 @@ export class StackClient {
     try {
       await this.sem.acquire();
       try {
-        await this.take(model);
-        const { stream } = await this.send("POST", path, JSON.stringify(body), headers, T_BATCH, true, true);
+        const { stream } = await this.send("POST", path, JSON.stringify(body), headers, T_BATCH, true, true, model);
         let event: string | null = null;
         try {
           for await (const line of stream!.lines()) {
@@ -400,8 +440,8 @@ export class StackClient {
     const row: LedgerRow = {
       endpoint,
       model: result.model ?? null,
-      list: billing.total ?? result.cost ?? 0,
-      charged: replayed ? 0 : (result.cost ?? 0),
+      list: billing.total ?? billing.listPrice ?? result.cost ?? 0,
+      charged: replayed || this.free ? 0 : (result.cost ?? 0),
       cache: result.cache ?? null,
       queueMs: result.timing?.queueMs ?? 0,
       processingMs: result.timing?.processingMs ?? 0,
@@ -435,16 +475,6 @@ export class StackClient {
 
   private release(worst: number): void {
     this.reserved -= worst;
-  }
-
-  private async take(model: string | undefined): Promise<void> {
-    const info = (await this.models())[model ?? ""] ?? {};
-    const perMinute: number | undefined = info.perMinute;
-    if (!this.throttle || !perMinute) return;
-    const pool: string = info.pool || model;
-    let bucket = this.buckets.get(pool);
-    if (!bucket) this.buckets.set(pool, (bucket = new Bucket(perMinute)));
-    await bucket.take();
   }
 }
 

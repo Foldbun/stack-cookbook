@@ -16,7 +16,10 @@ import (
 	"time"
 )
 
-const key = "fbs_fake"
+const (
+	key     = "fbs_fake"
+	project = "fbp_testProject0001"
+)
 
 var scenarios map[string]json.RawMessage
 
@@ -60,11 +63,14 @@ func scenario(t *testing.T, name string) string {
 }
 
 type logEntry struct {
-	Path           string  `json:"path"`
-	Status         int     `json:"status"`
-	UserAgent      string  `json:"userAgent"`
-	IdempotencyKey string  `json:"idempotencyKey"`
-	Accept         *string `json:"accept"`
+	Path             string  `json:"path"`
+	Status           int     `json:"status"`
+	UserAgent        string  `json:"userAgent"`
+	IdempotencyKey   string  `json:"idempotencyKey"`
+	Accept           *string `json:"accept"`
+	Project          string  `json:"project"`
+	HasAuthorization bool    `json:"hasAuthorization"`
+	T                float64 `json:"t"` // seconds, when the request arrived
 }
 
 type fakeLogDoc struct {
@@ -128,6 +134,18 @@ func newClient(t *testing.T, base string, cfg Config) *Client {
 	return c
 }
 
+// freeClient has no key (and no key in the environment): the free tier, with its own project.
+func freeClient(t *testing.T, base string, cfg Config) *Client {
+	t.Helper()
+	t.Setenv("FOLDBUN_API_KEY", "")
+	cfg.BaseURL, cfg.APIKey, cfg.Project = base, "", project
+	c, err := New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return c
+}
+
 func uploadPNG(t *testing.T, c *Client, salt int) string {
 	t.Helper()
 	info, err := c.Upload(pngOf(salt), "image/png")
@@ -152,11 +170,109 @@ func wantCode(t *testing.T, err error, code string) *Error {
 
 func ocr(image any) map[string]any { return map[string]any{"image": image} }
 
-func TestMissingKey(t *testing.T) {
+func TestNoKeyMeansFreeTierWithTheCookbookProject(t *testing.T) {
 	t.Setenv("FOLDBUN_API_KEY", "")
-	_, err := New(Config{})
-	if e := wantCode(t, err, "missing_api_key"); e.Message != MissingKey {
+	t.Setenv("FOLDBUN_PROJECT_ID", "")
+	c, err := New(Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !c.Free() || c.Project() != CookbookProject || CookbookProject != "fbp_2kIj7bWkULQkLAbceHhfLW4eY6O0" {
+		t.Errorf("free %v project %q", c.Free(), c.Project())
+	}
+	t.Setenv("FOLDBUN_PROJECT_ID", project)
+	t.Setenv("FOLDBUN_API_KEY", key)
+	if c, err = New(Config{}); err != nil || c.Free() || c.Project() != project {
+		t.Errorf("err %v free %v project %q", err, c.Free(), c.Project())
+	}
+}
+
+func TestFreeCallSendsOnlyTheProjectHeader(t *testing.T) {
+	c := freeClient(t, scenario(t, ""), Config{})
+	raw, err := c.Post("/v1/ocr", ocr(ImageBase64(pngOf(0))), Opts{Tag: "a"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var r struct {
+		Cost    float64
+		Balance *float64
+		Billing struct {
+			Tier, Project string
+			ListPrice     float64
+			Charged       bool
+		}
+	}
+	_ = json.Unmarshal(raw, &r)
+	if r.Cost != 0 || r.Balance != nil || r.Billing.Tier != "free" || r.Billing.Project != project || r.Billing.ListPrice != 0.25 || r.Billing.Charged {
+		t.Errorf("result %s", raw)
+	}
+	es := calls(t, "/v1/ocr")
+	if len(es) != 1 || es[0].Project != project || es[0].HasAuthorization || es[0].IdempotencyKey != "" || es[0].Status != 200 {
+		t.Errorf("log %+v", es)
+	}
+	model := "ppocr-v6"
+	want := []Row{{Endpoint: "/v1/ocr", Model: &model, List: 0.25, Charged: 0, Cache: nil, QueueMs: 4, ProcessingMs: 700, Replayed: false}}
+	if got := c.Calls("a"); !reflect.DeepEqual(got, want) {
+		t.Errorf("rows %+v", got)
+	}
+	if got := c.Summary(); got != (Summary{Calls: 1, ListTotal: 0.25, ChargedTotal: 0}) {
+		t.Errorf("summary %+v", got)
+	}
+	who, err := c.WhoAmI()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var w struct {
+		Tier    string
+		Project struct{ ID string }
+	}
+	_ = json.Unmarshal(who, &w)
+	if w.Tier != "free" || w.Project.ID != project {
+		t.Errorf("whoami %s", who)
+	}
+}
+
+func TestKeyedCallIsPaidAndNamesTheSourceProject(t *testing.T) {
+	c := newClient(t, scenario(t, ""), Config{Project: project})
+	raw, err := c.Post("/v1/ocr", ocr(ImageBase64(pngOf(0))), Opts{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var r struct {
+		Cost, Balance float64
+		Billing       struct{ Charged bool }
+	}
+	_ = json.Unmarshal(raw, &r)
+	if !r.Billing.Charged || r.Cost != 0.25 || r.Balance != 999.75 {
+		t.Errorf("result %s", raw)
+	}
+	es := calls(t, "/v1/ocr")
+	if len(es) != 1 || es[0].Project != project || !es[0].HasAuthorization || es[0].IdempotencyKey == "" {
+		t.Errorf("log %+v", es)
+	}
+}
+
+func TestFreeTierRefusesLocallyWhatItDoesNotHave(t *testing.T) {
+	c := freeClient(t, scenario(t, ""), Config{})
+	_, upErr := c.Upload(pngOf(0), "image/png")
+	_, handleErr := c.Post("/v1/ocr", ocr(ImageHandle("img_"+strings.Repeat("0", 64))), Opts{})
+	batchErr := c.Batch("ocr", map[string]any{"items": []any{}}, Opts{}, func(Event) error { return nil })
+	_, modelsErr := c.Models()
+	reqErr := c.RequireKey("anything")
+	for _, err := range []error{upErr, handleErr, batchErr, modelsErr, reqErr} {
+		e := wantCode(t, err, "missing_api_key")
+		if e.Status != 0 || !strings.HasPrefix(e.Message, "FOLDBUN_API_KEY is not set, and this needs a key: ") || !strings.HasSuffix(e.Message, ".") || strings.Contains(e.Message, "\n") {
+			t.Errorf("error %+v", e)
+		}
+	}
+	if e := upErr.(*Error); e.Message != "FOLDBUN_API_KEY is not set, and this needs a key: image uploads are not part of the free tier, which takes inline base64 images." {
 		t.Errorf("message %q", e.Message)
+	}
+	if n := len(fakeLog(t).Log); n != 0 {
+		t.Errorf("%d requests sent", n)
+	}
+	if err := newClient(t, scenario(t, ""), Config{}).RequireKey("x"); err != nil {
+		t.Errorf("keyed client refused: %v", err)
 	}
 }
 
@@ -203,15 +319,15 @@ func TestUploadOCRAndLedger(t *testing.T) {
 	}
 	_ = json.Unmarshal(raw1, &r1)
 	_ = json.Unmarshal(raw2, &r2)
-	if r1.Image.ID != first.ID || r2.Image.ID != first.ID || r1.Billing.Pool != "free" || r1.Cost != 0 {
+	if r1.Image.ID != first.ID || r2.Image.ID != first.ID || r1.Billing.Pool != "" || r1.Cost != 0.25 {
 		t.Errorf("results %+v %+v", r1, r2)
 	}
 	model := "ppocr-v6"
-	want := []Row{{Endpoint: "/v1/ocr", Model: &model, List: 0.25, Charged: 0, Cache: nil, QueueMs: 4, ProcessingMs: 700, Replayed: false}}
+	want := []Row{{Endpoint: "/v1/ocr", Model: &model, List: 0.25, Charged: 0.25, Cache: nil, QueueMs: 4, ProcessingMs: 700, Replayed: false}}
 	if got := c.Calls("a"); !reflect.DeepEqual(got, want) {
 		t.Errorf("rows %+v", got)
 	}
-	if got := c.Summary(); got != (Summary{Calls: 2, ListTotal: 0.5, ChargedTotal: 0}) {
+	if got := c.Summary(); got != (Summary{Calls: 2, ListTotal: 0.5, ChargedTotal: 0.5}) {
 		t.Errorf("summary %+v", got)
 	}
 	var images, keys []logEntry
@@ -340,6 +456,11 @@ func TestBudgetRefusesBeforeSending(t *testing.T) {
 	if e.Message != "call refused: up to 0.25 credits would pass FOLDBUN_MAX_CREDITS=0.3 (spent 0.25)" || len(calls(t, "/v1/ocr")) != 1 {
 		t.Errorf("message %q", e.Message)
 	}
+	// nothing is charged in free mode: no guard
+	if _, err := freeClient(t, scenario(t, ""), Config{MaxCredits: &limit}).Post("/v1/ocr", ocr(ImageBase64(pngOf(0))), Opts{}); err != nil {
+		t.Errorf("free call refused: %v", err)
+	}
+	c = newClient(t, scenario(t, ""), Config{MaxCredits: &limit})
 	h := uploadPNG(t, c, 0)
 	_, err = c.Post("/v1/segment", map[string]any{"model": "sam3", "image": ImageHandle(h), "prompts": []any{map[string]string{"text": "x"}}}, Opts{})
 	wantCode(t, err, "budget_exceeded")
@@ -373,33 +494,38 @@ func TestEstimateMatchesBillingExamples(t *testing.T) {
 	}
 }
 
-func TestPublicTierModelLocked(t *testing.T) {
-	c := newClient(t, scenario(t, ""), Config{APIKey: "fbs_fake_public"})
-	models, err := c.Models()
-	if err != nil {
+func TestFreeTierRetriesBusyAndGivesUpOnFinalCodes(t *testing.T) {
+	c := freeClient(t, scenario(t, "free-busy"), Config{})
+	start := time.Now()
+	if _, err := c.Post("/v1/ocr", ocr(ImageBase64(pngOf(0))), Opts{}); err != nil {
 		t.Fatal(err)
 	}
-	if models["sam3"].Available || models["ppocr-v6"].PerMinute != 10 {
-		t.Errorf("models %+v", models)
+	if time.Since(start) < 1200*time.Millisecond || !reflect.DeepEqual(statuses(calls(t, "/v1/ocr")), []int{429, 200}) {
+		t.Errorf("waited %v, statuses %v", time.Since(start), statuses(calls(t, "/v1/ocr")))
 	}
-	h := uploadPNG(t, c, 0)
-	_, err = c.Post("/v1/segment", map[string]any{"model": "sam3", "image": ImageHandle(h), "prompts": []any{map[string]string{"text": "cat"}}}, Opts{})
-	if e := wantCode(t, err, "model_locked"); e.Status != 403 {
-		t.Errorf("status %d", e.Status)
-	}
-	raw, err := c.Post("/v1/ocr", ocr(ImageHandle(h)), Opts{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	var r struct {
-		Billing struct {
-			Pool      string
-			Allowance struct{ Used, Limit int }
+	for _, want := range []struct {
+		name, code string
+		status     int
+	}{{"free-daily-limit", "daily_limit_reached", 429}, {"free-unavailable", "free_tier_unavailable", 403}} {
+		c := freeClient(t, scenario(t, want.name), Config{})
+		_, err := c.Post("/v1/ocr", ocr(ImageBase64(pngOf(0))), Opts{})
+		e := wantCode(t, err, want.code)
+		if e.Status != want.status || e.Retryable || !strings.Contains(e.Message, "FOLDBUN_API_KEY") || len(calls(t, "/v1/ocr")) != 1 {
+			t.Errorf("%s: error %+v", want.name, e)
 		}
 	}
-	_ = json.Unmarshal(raw, &r)
-	if r.Billing.Pool != "public" || r.Billing.Allowance.Used != 1 || r.Billing.Allowance.Limit != 100 {
-		t.Errorf("billing %+v", r.Billing)
+}
+
+func TestRemainingZeroHoldsTheNextCall(t *testing.T) {
+	c := freeClient(t, scenario(t, "free-remaining-zero"), Config{})
+	for range 2 {
+		if _, err := c.Post("/v1/ocr", ocr(ImageBase64(pngOf(0))), Opts{}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	es := calls(t, "/v1/ocr")
+	if len(es) != 2 || es[1].T-es[0].T < 1.0 {
+		t.Errorf("log %+v", es)
 	}
 }
 
@@ -511,18 +637,6 @@ func TestBatchStopEarly(t *testing.T) {
 	err := c.Batch("segment", batchBody(t, c, 3), Opts{}, func(Event) error { n++; return ErrStop })
 	if err != nil || n != 1 {
 		t.Errorf("err %v after %d events", err, n)
-	}
-}
-
-func TestTokenBucketPaces(t *testing.T) {
-	b := newBucket(60)
-	for range 60 {
-		b.take()
-	}
-	start := time.Now()
-	b.take()
-	if d := time.Since(start); d < 800*time.Millisecond || d > 1500*time.Millisecond {
-		t.Errorf("waited %v", d)
 	}
 }
 
