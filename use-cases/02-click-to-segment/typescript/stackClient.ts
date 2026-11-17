@@ -327,9 +327,8 @@ export class StackClient {
     return this.get("/v1/whoami");
   }
 
-  /** `GET /v1/models` once, keyed by model id. Needs a key; the free tier does not offer it. */
+  /** `GET /v1/models` once, keyed by model id. Works with a project ID alone (each model then also carries its free-tier limits). */
   async models(): Promise<Record<string, Json>> {
-    this.requireKey("listing models and prices is not part of the free tier");
     if (!this.modelsPromise) {
       this.modelsPromise = this.get("/v1/models").then(
         (r) => Object.fromEntries((r.data as Json[]).map((m) => [m.id, m])),

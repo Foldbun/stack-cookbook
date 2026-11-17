@@ -421,11 +421,8 @@ func (c *Client) Get(path string) (json.RawMessage, error) {
 // WhoAmI is GET /v1/whoami: the project (free) or the account (key) behind the credentials.
 func (c *Client) WhoAmI() (json.RawMessage, error) { return c.Get("/v1/whoami") }
 
-// Models is GET /v1/models, fetched once, keyed by model id. Needs a key; the free tier does not offer it.
+// Models is GET /v1/models, fetched once, keyed by model id. Works with a project ID alone (each model then also carries its free-tier limits).
 func (c *Client) Models() (map[string]Model, error) {
-	if err := c.RequireKey("listing models and prices is not part of the free tier"); err != nil {
-		return nil, err
-	}
 	c.modelsMu.Lock()
 	defer c.modelsMu.Unlock()
 	if c.models == nil {

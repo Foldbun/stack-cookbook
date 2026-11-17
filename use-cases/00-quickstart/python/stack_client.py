@@ -180,8 +180,7 @@ class StackClient:
         return self.get("/v1/whoami")
 
     def models(self):
-        """GET /v1/models: the model list with prices. Needs a key; the free tier does not offer it."""
-        self.require_key("listing models and prices is not part of the free tier")
+        """GET /v1/models: the model list with prices, once. Works with a project ID alone (each model then also carries its free-tier limits)."""
         if self._models is None:
             self._models = {m["id"]: m for m in self.get("/v1/models")["data"]}
         return self._models

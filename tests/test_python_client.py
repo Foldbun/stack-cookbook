@@ -36,6 +36,13 @@ def test_no_key_means_free_tier_with_the_cookbook_project(monkeypatch):
     assert not c.free and c.project == PROJECT
 
 
+def test_free_tier_lists_models_with_the_project_alone(server):
+    c = free(server)
+    assert "ppocr-v6" in c.models()
+    (entry,) = calls(server, "/v1/models")
+    assert (entry["project"], entry["hasAuthorization"]) == (PROJECT, False)
+
+
 def test_free_call_sends_only_the_project_header(server):
     c = free(server)
     r = c.post("/v1/ocr", {"image": sc.image_base64(png())}, tag="a")
@@ -64,7 +71,6 @@ def test_free_tier_refuses_locally_what_it_does_not_have(server):
         lambda: c.upload(png(), "image/png"),
         lambda: c.post("/v1/ocr", {"image": sc.image_handle("img_" + "0" * 64)}),
         lambda: list(c.batch("ocr", {"items": []})),
-        lambda: c.models(),
     ):
         with pytest.raises(sc.MissingApiKey) as exc:
             fn()
@@ -92,10 +98,7 @@ def test_fake_free_tier_rules(server):
     assert (status, body["error"]["code"]) == (400, "unsupported")
     assert call("POST", "/v1/images", png(), {"Content-Type": "image/png"})[0] == 400
     assert call("POST", "/v1/batch/ocr", json.dumps({"items": [{"image": {"id": "img_" + "0" * 64}}]}).encode(), ctype)[0] == 400
-    assert call("GET", "/v1/models") == (
-        403,
-        {"error": {"code": "free_tier_unavailable", "message": "the free tier is not available yet", "retryable": False, "retryAfterMs": 0}},
-    )
+    assert call("GET", "/v1/models")[0] == 200
     big = json.dumps({"image": {"base64": __import__("base64").b64encode(b"\0" * (4 * 1024 * 1024 + 1)).decode()}}).encode()
     assert call("POST", "/v1/ocr", big, ctype)[1]["error"]["code"] == "payload_too_large"
     assert call("GET", "/v1/whoami", headers={"X-Foldbun-Project": "nope"})[0] == 401

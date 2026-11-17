@@ -152,7 +152,7 @@ def test_exemplar_and_boxes_modes(api, tmp_path):
 def test_free_tier_sends_each_image_inline(api, tmp_path):
     p, result = run(api, tmp_path, free=True)
     assert [i["status"] for i in result["items"]] == ["ok"] * 4 and "free tier, not charged" in p.stdout
-    # same labels and exports as the keyed run, but single calls with inline images: no upload, no batch, no model list
+    # same labels and exports as the keyed run, but single calls with inline images: no upload, no batch
     assert result["ledger"] == {"calls": 4, "listTotal": 2.8, "chargedTotal": 0}
     paths = [e["path"] for e in fake_log(api)["log"]]
     assert paths.count("/v1/segment") == 4 and not {"/v1/images", "/v1/batch/segment", "/v1/models"} & set(paths)

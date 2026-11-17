@@ -122,6 +122,12 @@ describe("TypeScript client", () => {
     assert.ok(entry!.idempotencyKey);
   });
 
+  it("lists models with the project alone", async () => {
+    assert.ok("ppocr-v6" in (await free().models()));
+    const [entry] = await calls("/v1/models");
+    assert.deepEqual([entry!.project, entry!.hasAuthorization], [PROJECT, false]);
+  });
+
   it("refuses locally what the free tier does not have", async () => {
     const c = free();
     const refusals: Array<() => Promise<unknown>> = [
@@ -130,7 +136,6 @@ describe("TypeScript client", () => {
       async () => {
         for await (const _ of c.batch("ocr", { items: [] })) void _;
       },
-      () => c.models(),
     ];
     for (const fn of refusals) {
       const e = await rejects(fn(), sc.MissingApiKey);

@@ -252,14 +252,25 @@ func TestKeyedCallIsPaidAndNamesTheSourceProject(t *testing.T) {
 	}
 }
 
+func TestFreeTierListsModelsWithTheProjectAlone(t *testing.T) {
+	c := freeClient(t, scenario(t, ""), Config{})
+	models, err := c.Models()
+	if err != nil || models["ppocr-v6"].ID == "" {
+		t.Fatalf("models %v, err %v", models, err)
+	}
+	es := calls(t, "/v1/models")
+	if len(es) != 1 || es[0].Project != project || es[0].HasAuthorization {
+		t.Errorf("log %+v", es)
+	}
+}
+
 func TestFreeTierRefusesLocallyWhatItDoesNotHave(t *testing.T) {
 	c := freeClient(t, scenario(t, ""), Config{})
 	_, upErr := c.Upload(pngOf(0), "image/png")
 	_, handleErr := c.Post("/v1/ocr", ocr(ImageHandle("img_"+strings.Repeat("0", 64))), Opts{})
 	batchErr := c.Batch("ocr", map[string]any{"items": []any{}}, Opts{}, func(Event) error { return nil })
-	_, modelsErr := c.Models()
 	reqErr := c.RequireKey("anything")
-	for _, err := range []error{upErr, handleErr, batchErr, modelsErr, reqErr} {
+	for _, err := range []error{upErr, handleErr, batchErr, reqErr} {
 		e := wantCode(t, err, "missing_api_key")
 		if e.Status != 0 || !strings.HasPrefix(e.Message, "FOLDBUN_API_KEY is not set, and this needs a key: ") || !strings.HasSuffix(e.Message, ".") || strings.Contains(e.Message, "\n") {
 			t.Errorf("error %+v", e)

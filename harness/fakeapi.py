@@ -3,8 +3,8 @@
 Run it with `uv run python -m harness fakeapi --port 8787` and point FOLDBUN_API_BASE at it. Two kinds of caller:
 a request with `Authorization: Bearer fbs_...` is a funded account (every call is charged at list price; an
 `X-Foldbun-Project` header names its source project), and a request with only `X-Foldbun-Project: fbp_...` is the
-free tier: nothing is charged, images must be inline base64 (up to 4 MiB), and uploads, image handles, batches,
-`GET /v1/models` and `Idempotency-Key` are refused. Free calls carry `X-RateLimit-*` headers; a scenario with
+free tier: nothing is charged, images must be inline base64 (up to 4 MiB), and uploads, image handles, batches
+and `Idempotency-Key` are refused; `GET /v1/models` works with a project ID alone. Free calls carry `X-RateLimit-*` headers; a scenario with
 `"free": {"enforce": true}` also enforces the per-class limits (GCRA per project and per client address, daily caps).
 Behaviour follows harness/vendor/openapi.yaml: prices and billing, the SAM encoding cache, idempotency with replay,
 image handles with eviction, batch as Server-Sent Events or JSON, and the error envelope with `retryAfterMs` and
@@ -616,8 +616,6 @@ class Handler(BaseHTTPRequestHandler):
             if self.free_request and self.headers.get("Idempotency-Key") is not None:
                 raise ApiError("unsupported", "the free tier does not take an Idempotency-Key")
             if method == "GET" and path == "/v1/models":
-                if self.free_request:
-                    raise ApiError("free_tier_unavailable", "the free tier is not available yet")
                 if rule and rule.get("error"):
                     raise ApiError(rule["error"]["code"], "scripted", rule["error"].get("retryAfterMs", 0))
                 body = {"data": [self.fake.model_info(m[0]) for m in MODELS]}

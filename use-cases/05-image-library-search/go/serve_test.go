@@ -229,7 +229,7 @@ func TestEmbedQuery(t *testing.T) {
 	}))
 	defer api.Close()
 	t.Setenv("FOLDBUN_API_KEY", "")
-	client, err := stackclient.New(stackclient.Config{BaseURL: api.URL}) // no key: the free tier, so no /v1/models call either
+	client, err := stackclient.New(stackclient.Config{BaseURL: api.URL}) // no key: the free tier
 	if err != nil {
 		t.Fatal(err)
 	}
