@@ -19,6 +19,7 @@ import routing
 import stack_client as sc
 
 EXIT_FAILED, EXIT_NO_KEY, EXIT_TIER, EXIT_BUDGET = 1, 2, 3, 4
+FREE_MAX_ITEMS = 10  # the free tier is for trying the recipe on a few images; a real dataset needs an API key
 
 
 def parse_args(argv=None):
@@ -80,7 +81,8 @@ def build_prompts(unit, cfg, by_prompt, extra):
 
 
 def build_body(unit, cfg):
-    """One batch item: the body of POST /v1/segment without `model`. The image is an uploaded handle."""
+    """The body of POST /v1/segment without `model` (one batch item). The image is an uploaded handle with a key,
+    inline base64 on the free tier."""
     defaults = {"geometry": ["polygon", "mask"] if cfg.masks else ["polygon"], "polygon": {"tolerancePx": 1.0, "holes": False}}
     options = {"defaults": defaults}
     if cfg.mode != "boxes":  # filters and overlap removal belong to search prompts; box prompts are one object each
@@ -88,7 +90,8 @@ def build_body(unit, cfg):
         options["nms"] = {"iou": 0.7, "metric": "mask", "scope": "group"}  # one object found twice under the same class
     if cfg.masks:
         options["maskSize"] = 4096  # the grid is never larger than the image, so masks come at image size
-    return {"image": {"id": unit.handle}, "prompts": unit.prompts, "options": options}
+    image = {"id": unit.handle} if unit.handle else sc.image_base64(unit.path.read_bytes())
+    return {"image": image, "prompts": unit.prompts, "options": options}
 
 
 # endregion
@@ -124,11 +127,16 @@ def run(cfg):
     if cfg.mode == "boxes":  # a box without a label belongs to the first class
         extra = {k: [dict(r, label=r["label"] or names[0]) for r in v] for k, v in extra.items()}
     # region client
-    client = sc.StackClient(max_concurrency=cfg.concurrency)  # FOLDBUN_API_KEY, FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
-    client.models()  # free: checks the key
+    client = sc.StackClient(max_concurrency=cfg.concurrency)  # FOLDBUN_API_KEY (optional), FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
+    if client.free and len(items) > FREE_MAX_ITEMS:
+        client.require_key(f"the free tier is meant for trying a recipe on a few items, and this manifest has {len(items)}")
     # endregion
     units = batches.scan(items, base)
-    batches.upload_all(client, units, cfg.concurrency)
+    if client.free:  # no uploads or batches on the free tier: each image goes inline in its own call
+        batches.measure_all(units)
+    else:
+        client.models()  # free: checks the key
+        batches.upload_all(client, units, cfg.concurrency)
     results, runnable = {}, []
     for u in units:
         u.prompts, u.labels = build_prompts(u, cfg, by_prompt, extra)
@@ -178,6 +186,7 @@ def run(cfg):
     rows = [c for e in entries for c in e["calls"]]
     fresh = [c for c in rows if not c["replayed"]]
     ledger = {"calls": len(rows), "listTotal": round(sum(c["list"] for c in fresh), 6), "chargedTotal": round(sum(c["charged"] for c in fresh), 6)}
+    price = f"list price {ledger['listTotal']:g} credits" + (" (free tier, not charged)" if client.free else f", charged {ledger['chargedTotal']:g}")
     elapsed = time.monotonic() - t0
     result = {
         "usecase": manifest["usecase"],
@@ -192,7 +201,7 @@ def run(cfg):
     ok = sum(e["status"] == "ok" for e in entries)
     accepted = sum(r["counts"]["accept"] for r in (e["output"] for e in entries if e["output"]))
     print(f"{ok} of {len(entries)} images done in {elapsed:.1f} s ({ok / max(elapsed, 1e-9) * 60:.0f} images/min)")
-    print(f"{accepted} labels accepted, {queued} rows in the review queue, list price {ledger['listTotal']:g} credits, charged {ledger['chargedTotal']:g}")
+    print(f"{accepted} labels accepted, {queued} rows in the review queue, {price}")
     return 0
 
 

@@ -188,3 +188,48 @@ def test_render_pdf_without_network(tmp_path):
     items, base = main.render_pdf(src, tmp_path, dpi=72)
     assert items == [{"id": "sample-p1", "image": "sample-p1.jpg", "document": "sample", "page": 1}]
     assert (base / "sample-p1.jpg").stat().st_size > 0
+
+
+def load_main():
+    import importlib.util  # noqa: PLC0415
+
+    spec = importlib.util.spec_from_file_location("uc04_main_free", UC / "python" / "main.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class StubClient:
+    def __init__(self, free):
+        self.free, self.images, self.uploads = free, [], 0
+
+    def upload(self, data, content_type):
+        self.uploads += 1
+        return {"id": "img_1"}
+
+    def post(self, path, body, idempotency_key=None, tag=None):
+        self.images.append(body["image"])
+        return {"markdown": "x", "blocks": []}
+
+    def calls(self, tag=None):
+        return []
+
+
+def test_page_image_free_is_inline_and_keyed_uploads_once(tmp_path):
+    main = load_main()
+    (tmp_path / "p.png").write_bytes(b"abc")
+    item = {"id": "p", "image": "p.png", "document": "d", "page": 1}
+    free, keyed = StubClient(True), StubClient(False)
+    main.read_page(free, item, tmp_path)
+    main.read_page(keyed, item, tmp_path)
+    assert free.images == [{"base64": "YWJj"}]
+    assert free.uploads == 0
+    assert keyed.images == [{"id": "img_1"}]
+    assert keyed.uploads == 1
+
+
+def test_cost_line_labels_the_free_tier():
+    main = load_main()
+    free = main.sc.StackClient(api_key=None)
+    free.ledger.append((None, {"list": 2.0, "charged": 0, "replayed": False}))
+    assert main.cost_line(free) == "list price 2 credits (free tier, not charged)"

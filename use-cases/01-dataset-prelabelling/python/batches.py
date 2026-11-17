@@ -8,6 +8,9 @@ as `POST /v1/batch/segment` event streams. Every step can be repeated without pa
   the same batch again replays the items that finished (`replayed: true`, no charge) and runs the rest;
 * items that came back `expired`, or failed with a retryable error, go into a new batch in the next round;
 * every finished item is written to `<out>/raw/<id>.json`, so `--resume` does not even ask the API again.
+
+Without an API key (the free tier) there are no uploads, handles or batches: each image goes inline as base64 in its
+own `POST /v1/segment` call, with the same prompts, model and options, and the same checkpoints and rounds.
 """
 
 import hashlib
@@ -19,9 +22,21 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import stack_client as sc
+from PIL import Image, ImageOps
 
 CONTENT_TYPES = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
-RETRYABLE_ITEM_ERRORS = {"model_busy", "model_unavailable", "upstream_error", "upstream_timeout", "internal_error", "unavailable", "rate_limited", "no_result"}
+RETRYABLE_ITEM_ERRORS = {
+    "model_busy",
+    "model_unavailable",
+    "upstream_error",
+    "upstream_timeout",
+    "internal_error",
+    "unavailable",
+    "rate_limited",
+    "free_busy",
+    "no_result",
+}
+FATAL_CODES = {"model_locked", "budget_exceeded", "insufficient_balance", "daily_limit_reached", "free_tier_unavailable", "missing_api_key"}
 STREAM_ATTEMPTS = 3
 MAX_PROMPTS = 50  # per segment item
 
@@ -88,6 +103,17 @@ def upload_all(client, units, workers):
 # endregion
 
 
+# region inline
+def measure_all(units):
+    """Free tier: nothing is uploaded, so read the size locally (EXIF rotation applied, as the API does)."""
+    for u in units:
+        with Image.open(u.path) as im:
+            u.width, u.height = ImageOps.exif_transpose(im).size
+
+
+# endregion
+
+
 def canonical(obj):
     return json.dumps(obj, sort_keys=True, separators=(",", ":"))
 
@@ -136,7 +162,7 @@ def run_batch(client, model, units, key, tag, on_ok):
                         err = data.get("error") or {"code": "expired", "message": "the batch time limit passed before this item finished"}
                         cur.update(status=data["status"], error=local_error(err["code"], err["message"]))
         except sc.StackError as err:
-            if err.code in ("model_locked", "budget_exceeded", "insufficient_balance") or not (err.retryable or err.code == "batch_timeout"):
+            if err.code in FATAL_CODES or not (err.retryable or err.code == "batch_timeout"):
                 raise
             log(f"  batch {tag}: {err.code}, attempt {attempt} of {STREAM_ATTEMPTS}")
         if summary is not None:
@@ -179,8 +205,31 @@ def save_checkpoint(raw_dir, unit, outcome):
     tmp.replace(path)
 
 
+def run_singles(client, cfg, pending, round_no, raw_dir):
+    """Free tier: one `POST /v1/segment` per image, up to `cfg.concurrency` at a time. The client waits out 429s itself."""
+    log(f"round {round_no}: {len(pending)} images, one call each (up to {cfg.concurrency} at once)")
+
+    # region single-run
+    def send(unit):
+        try:
+            result = client.post("/v1/segment", {"model": cfg.model, **unit.body}, tag=f"r{round_no}-{unit.id}")
+        except sc.StackError as err:
+            if err.code in FATAL_CODES:
+                raise
+            return unit.id, {"status": "error", "result": None, "error": local_error(err.code, err.message, err.status), "calls": []}
+        outcome = {"status": "ok", "result": result, "error": None, "calls": [client.calls(f"r{round_no}-{unit.id}")[-1]]}
+        save_checkpoint(raw_dir, unit, outcome)
+        return unit.id, outcome
+
+    # endregion
+    with ThreadPoolExecutor(cfg.concurrency) as pool:
+        return dict(pool.map(send, pending))
+
+
 def run_round(client, cfg, pending, round_no, raw_dir):
     """Send `pending` as batches, up to `cfg.concurrency` at a time; returns the outcome of every unit."""
+    if client.free:
+        return run_singles(client, cfg, pending, round_no, raw_dir)
     batches = [pending[i : i + cfg.batch_size] for i in range(0, len(pending), cfg.batch_size)]
     log(f"round {round_no}: {len(pending)} items in {len(batches)} batches (up to {cfg.concurrency} at once)")
 
