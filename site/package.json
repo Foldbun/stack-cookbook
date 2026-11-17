@@ -6,9 +6,9 @@
   "scripts": {
     "sync": "node scripts/sync-usecases.mjs",
     "dev": "node scripts/sync-usecases.mjs && astro dev",
-    "build": "node scripts/sync-usecases.mjs && astro build && node scripts/csp.mjs && node scripts/check-links.mjs dist",
+    "build": "node scripts/sync-usecases.mjs && astro build && node scripts/sitemap-extras.mjs && node scripts/csp.mjs && node scripts/check-links.mjs dist",
     "preview": "astro preview",
-    "test": "node --test scripts/"
+    "test": "node --test \"scripts/*.test.mjs\""
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "0.4.8",

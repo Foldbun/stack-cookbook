@@ -17,10 +17,24 @@ pnpm --dir site preview --host 127.0.0.1 --port 4321   # then open http://127.0.
 `pnpm --dir site dev` regenerates the pages once and starts the development server. After changing a README or a source
 file while it runs, run `pnpm --dir site sync` to regenerate the pages.
 
-`pnpm build` runs four steps: `scripts/sync-usecases.mjs` (generate), `astro build`, `scripts/csp.mjs` (move inline
+`pnpm build` runs five steps: `scripts/sync-usecases.mjs` (generate), `astro build`, `scripts/sitemap-extras.mjs` (add
+`<lastmod>` from git history and `hreflang="zh"` to the sitemap), `scripts/csp.mjs` (move inline
 scripts and styles into files, write `csp.txt`, the policy the web server sends) and `scripts/check-links.mjs` (every
 internal link, script, stylesheet and image of every built page resolves under `/cookbook/`; every `#fragment` names an
 id of the target page).
+
+`pnpm test` checks the built site (run `pnpm build` first): unique titles of at most 60 characters, descriptions,
+`og:image` and `twitter:image`, hreflang, valid JSON-LD (TechArticle or CollectionPage, BreadcrumbList) and a `<lastmod>`
+for every sitemap URL.
+
+## Search and link previews
+
+`src/route-middleware.ts` (a Starlight route middleware) writes the page `<title>` (`<seoTitle> | Stack Cookbook`; the
+home page has its own title), `og:image` / `twitter:image`, `hreflang="zh"` and the JSON-LD. The short page title is
+`seo_title` in each `usecase.toml` (at most 43 characters, English and Chinese). The images are `public/og/cookbook.<lang>.png`
+(1200x630); they are drawn by `node scripts/make-og.mjs` and committed, so rerun it only when the brand or wording changes.
+The time of a page is the last git commit touching its sources, not the build time; in a shallow clone there is no
+`<lastmod>` and no `dateModified`.
 
 ## What is generated
 
