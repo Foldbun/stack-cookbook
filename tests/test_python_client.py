@@ -18,11 +18,104 @@ def calls(srv, path):
     return [e for e in fake_log(srv)["log"] if e["path"] == path]
 
 
-def test_missing_key(monkeypatch):
+PROJECT = "fbp_testProject0001"
+
+
+def free(srv, **kw):
+    return sc.StackClient("", srv.url, project=kw.pop("project", PROJECT), **kw)
+
+
+def test_no_key_means_free_tier_with_the_cookbook_project(monkeypatch):
     monkeypatch.delenv("FOLDBUN_API_KEY", raising=False)
-    with pytest.raises(sc.MissingApiKey) as exc:
-        sc.StackClient()
-    assert exc.value.message == sc.MISSING_KEY
+    monkeypatch.delenv("FOLDBUN_PROJECT_ID", raising=False)
+    c = sc.StackClient()
+    assert c.free and c.project == sc.COOKBOOK_PROJECT == "fbp_2kIj7bWkULQkLAbceHhfLW4eY6O0"
+    monkeypatch.setenv("FOLDBUN_PROJECT_ID", PROJECT)
+    monkeypatch.setenv("FOLDBUN_API_KEY", KEY)
+    c = sc.StackClient()
+    assert not c.free and c.project == PROJECT
+
+
+def test_free_call_sends_only_the_project_header(server):
+    c = free(server)
+    r = c.post("/v1/ocr", {"image": sc.image_base64(png())}, tag="a")
+    assert r["cost"] == 0 and "balance" not in r
+    assert r["billing"]["tier"] == "free" and r["billing"]["project"] == PROJECT and r["billing"]["listPrice"] == 0.25 and r["billing"]["charged"] is False
+    (entry,) = calls(server, "/v1/ocr")
+    assert (entry["project"], entry["hasAuthorization"], entry["idempotencyKey"], entry["status"]) == (PROJECT, False, None, 200)
+    assert c.calls("a") == [
+        {"endpoint": "/v1/ocr", "model": "ppocr-v6", "list": 0.25, "charged": 0, "cache": None, "queueMs": 4, "processingMs": 700, "replayed": False}
+    ]
+    assert c.summary() == {"calls": 1, "listTotal": 0.25, "chargedTotal": 0}
+    assert c.whoami()["tier"] == "free" and c.whoami()["project"]["id"] == PROJECT
+
+
+def test_keyed_call_is_paid_and_names_the_source_project(server):
+    c = client(server, project=PROJECT)
+    r = c.post("/v1/ocr", {"image": sc.image_base64(png())})
+    assert r["billing"]["charged"] is True and r["cost"] == 0.25 and r["balance"] == 999.75
+    (entry,) = calls(server, "/v1/ocr")
+    assert (entry["project"], entry["hasAuthorization"]) == (PROJECT, True) and entry["idempotencyKey"]
+
+
+def test_free_tier_refuses_locally_what_it_does_not_have(server):
+    c = free(server)
+    for fn in (
+        lambda: c.upload(png(), "image/png"),
+        lambda: c.post("/v1/ocr", {"image": sc.image_handle("img_" + "0" * 64)}),
+        lambda: list(c.batch("ocr", {"items": []})),
+        lambda: c.models(),
+    ):
+        with pytest.raises(sc.MissingApiKey) as exc:
+            fn()
+        assert exc.value.code == "missing_api_key" and exc.value.message.startswith("FOLDBUN_API_KEY is not set") and "\n" not in exc.value.message
+    assert fake_log(server)["log"] == []
+
+
+def test_fake_free_tier_rules(server):
+    """The fake itself refuses what the free tier does not have, so a client that sends it gets caught."""
+    import json
+    import urllib.request
+
+    def call(method, path, body=None, headers=None):
+        req = urllib.request.Request(server.url + path, data=body, method=method, headers={"X-Foldbun-Project": PROJECT, **(headers or {})})
+        try:
+            with urllib.request.urlopen(req) as r:
+                return r.status, json.loads(r.read())
+        except urllib.error.HTTPError as err:
+            return err.code, json.loads(err.read())
+
+    ocr = json.dumps({"image": sc.image_base64(png())}).encode()
+    ctype = {"Content-Type": "application/json"}
+    assert call("POST", "/v1/ocr", ocr, ctype)[0] == 200
+    status, body = call("POST", "/v1/ocr", ocr, {**ctype, "Idempotency-Key": "k"})
+    assert (status, body["error"]["code"]) == (400, "unsupported")
+    assert call("POST", "/v1/images", png(), {"Content-Type": "image/png"})[0] == 400
+    assert call("POST", "/v1/batch/ocr", json.dumps({"items": [{"image": {"id": "img_" + "0" * 64}}]}).encode(), ctype)[0] == 400
+    assert call("GET", "/v1/models") == (
+        403,
+        {"error": {"code": "free_tier_unavailable", "message": "the free tier is not available yet", "retryable": False, "retryAfterMs": 0}},
+    )
+    big = json.dumps({"image": {"base64": __import__("base64").b64encode(b"\0" * (4 * 1024 * 1024 + 1)).decode()}}).encode()
+    assert call("POST", "/v1/ocr", big, ctype)[1]["error"]["code"] == "payload_too_large"
+    assert call("GET", "/v1/whoami", headers={"X-Foldbun-Project": "nope"})[0] == 401
+
+
+def test_free_limits_are_enforced_end_to_end(server):
+    """Burst 2 at 60 per minute: the remaining-zero header holds the third call back, the daily cap ends the run."""
+    scenario(server, {"free": {"enforce": True, "ipShare": 1, "classes": {"medium": {"rpm": 60, "burst": 2, "daily": 3}}}})
+    c = free(server)
+    t = time.monotonic()
+    for _ in range(3):
+        c.post("/v1/ocr", {"image": sc.image_base64(png())})
+    assert time.monotonic() - t >= 0.9  # the second answer said remaining 0, reset 1
+    assert [e["status"] for e in calls(server, "/v1/ocr")] == [200, 200, 200]  # never refused: the client waited
+    with pytest.raises(sc.StackError) as exc:
+        c.post("/v1/ocr", {"image": sc.image_base64(png())})
+    e = exc.value
+    assert (e.status, e.code, e.retryable) == (429, "daily_limit_reached", False) and "FOLDBUN_API_KEY" in e.message
+    assert len(calls(server, "/v1/ocr")) == 4
+    assert free(server, project="fbp_otherProject01").post("/v1/ocr", {"image": sc.image_base64(png())})["cost"] == 0
 
 
 def test_env_configuration(server, monkeypatch):
@@ -40,12 +133,12 @@ def test_upload_ocr_and_ledger(server):
     r1 = c.post("/v1/ocr", {"image": sc.image_handle(first["id"])}, tag="a")
     r2 = c.post("/v1/ocr", {"image": sc.image_base64(png())}, tag="b")
     assert r1["image"]["id"] == r2["image"]["id"] == first["id"]
-    assert r1["billing"]["pool"] == "free" and r1["cost"] == 0
+    assert r1["billing"]["pool"] is None and r1["cost"] == 0.25
     rows = c.calls("a")
     assert rows == [
-        {"endpoint": "/v1/ocr", "model": "ppocr-v6", "list": 0.25, "charged": 0, "cache": None, "queueMs": 4, "processingMs": 700, "replayed": False}
+        {"endpoint": "/v1/ocr", "model": "ppocr-v6", "list": 0.25, "charged": 0.25, "cache": None, "queueMs": 4, "processingMs": 700, "replayed": False}
     ]
-    assert c.summary() == {"calls": 2, "listTotal": 0.5, "chargedTotal": 0}
+    assert c.summary() == {"calls": 2, "listTotal": 0.5, "chargedTotal": 0.5}
     log = fake_log(server)["log"]
     assert all(e["userAgent"] == sc.USER_AGENT for e in log)
     assert [e["status"] for e in log if e["path"] == "/v1/images"] == [201, 200]
@@ -125,6 +218,7 @@ def test_budget_refuses_before_sending(server):
     with pytest.raises(sc.BudgetExceeded):
         c.post("/v1/ocr", {"image": sc.image_base64(png())})
     assert len(calls(server, "/v1/ocr")) == 1
+    assert free(server, max_credits=0.01).post("/v1/ocr", {"image": sc.image_base64(png())})["cost"] == 0  # nothing is charged: no guard
     h = c.upload(png(), "image/png")["id"]
     with pytest.raises(sc.BudgetExceeded):  # 0.5 + 0.05 > 0.3, counted before anything is sent
         c.post("/v1/segment", {"model": "sam3", "image": {"id": h}, "prompts": [{"text": "x"}]})
@@ -142,15 +236,28 @@ def test_estimate_matches_billing_examples():
     assert sc.estimate(models, "/v1/documents/parse", {}, "paddleocr-vl") == 2
 
 
-def test_public_tier_model_locked(server):
-    c = client(server, api_key="fbs_fake_public")
-    assert not c.models()["sam3"]["available"] and c.models()["ppocr-v6"]["perMinute"] == 10
-    h = c.upload(png(), "image/png")["id"]
-    with pytest.raises(sc.StackError) as exc:
-        c.post("/v1/segment", {"model": "sam3", "image": {"id": h}, "prompts": [{"text": "cat"}]})
-    assert (exc.value.status, exc.value.code) == (403, "model_locked")
-    r = c.post("/v1/ocr", {"image": {"id": h}})
-    assert r["billing"]["pool"] == "public" and r["billing"]["allowance"] == {"used": 1, "limit": 100}
+def test_free_tier_retries_busy_and_gives_up_on_final_codes(server):
+    scenario(server, "free-busy")
+    c = free(server)
+    t = time.monotonic()
+    c.post("/v1/ocr", {"image": sc.image_base64(png())})
+    assert time.monotonic() - t >= 1.2 and [e["status"] for e in calls(server, "/v1/ocr")] == [429, 200]
+    for name, code, status in (("free-daily-limit", "daily_limit_reached", 429), ("free-unavailable", "free_tier_unavailable", 403)):
+        scenario(server, name)
+        with pytest.raises(sc.StackError) as exc:
+            free(server).post("/v1/ocr", {"image": sc.image_base64(png())})
+        e = exc.value
+        assert (e.status, e.code, e.retryable) == (status, code, False) and "FOLDBUN_API_KEY" in e.message
+        assert len(calls(server, "/v1/ocr")) == 1
+
+
+def test_remaining_zero_holds_the_next_call(server):
+    scenario(server, "free-remaining-zero")
+    c = free(server)
+    c.post("/v1/ocr", {"image": sc.image_base64(png())})
+    c.post("/v1/ocr", {"image": sc.image_base64(png())})
+    first, second = calls(server, "/v1/ocr")
+    assert second["t"] - first["t"] >= 1.0
 
 
 def test_unauthorized(server):
@@ -203,12 +310,3 @@ def test_network_errors_retry_only_with_key(monkeypatch):
     with pytest.raises(sc.StackError) as exc:
         c._send("POST", "/v1/ocr", b"{}", retry_network=False)
     assert exc.value.code == "network_error"
-
-
-def test_token_bucket_paces():
-    b = sc._Bucket(60)
-    for _ in range(60):
-        b.take()
-    t = time.monotonic()
-    b.take()
-    assert 0.8 <= time.monotonic() - t <= 1.5

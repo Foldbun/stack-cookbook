@@ -112,8 +112,6 @@ def test_error_envelopes(server):
     assert call(server, "POST", "/v1/ocr", {"image": {"id": "img_" + "1" * 64}})[0] == 404
     assert call(server, "POST", "/v1/ocr", raw=b"{not json")[0] == 400
     assert call(server, "POST", "/v1/images", raw=b"not an image", headers={"Content-Type": "image/png"})[0] == 400
-    status, _, raw = call(server, "POST", "/v1/segment", {"model": "sam3", "image": {"id": h}, "prompts": [{"text": "cat"}]}, key="fbs_fake_public")
-    assert status == 403 and json.loads(raw)["error"]["code"] == "model_locked"
     server.fake.reset({"rules": [{"path": "/v1/ocr", "error": {"code": "model_busy", "retryAfterMs": 2500}}]})
     status, headers, raw = call(server, "POST", "/v1/ocr", {"image": {"base64": base64.b64encode(png()).decode()}})
     assert status == 503 and headers["Retry-After"] == "3" and json.loads(raw)["error"]["retryAfterMs"] == 2500

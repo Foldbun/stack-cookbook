@@ -1,9 +1,17 @@
 # Copied from clients/python/ in github.com/Foldbun/stack-cookbook. Edit the original there.
 """Minimal client for the Foldbun Stack API (Python standard library only).
 
-Semantics shared with the TypeScript and Go client files: API key from FOLDBUN_API_KEY, base URL from
-FOLDBUN_API_BASE, retries only for `retryable` errors, an idempotency key per call that is reused on retry,
-a per-pool token bucket, a concurrency cap, a credit cap (FOLDBUN_MAX_CREDITS) and a ledger of every call.
+Semantics shared with the TypeScript and Go client files:
+
+- Free tier: without FOLDBUN_API_KEY a call carries only `X-Foldbun-Project` (FOLDBUN_PROJECT_ID, default: the
+  Cookbook's shared project) and is not charged. The free tier takes inline base64 images and single calls only.
+- Paid: with FOLDBUN_API_KEY a call carries `Authorization` and the project header (the call's source project), is
+  charged at list price and gets an idempotency key that is reused on retry.
+- Limits: a 429 (`Retry-After`, `retryAfterMs`) is retried a bounded number of times with jitter; when
+  `X-RateLimit-Remaining` is 0 the next call waits `X-RateLimit-Reset` seconds. `daily_limit_reached` and
+  `free_tier_unavailable` are final.
+- Also: base URL from FOLDBUN_API_BASE, a concurrency cap, a credit cap for keyed runs (FOLDBUN_MAX_CREDITS) and a
+  ledger of every call.
 """
 
 import base64
@@ -11,21 +19,32 @@ import http.client
 import json
 import math
 import os
+import random
 import threading
 import time
 import urllib.parse
 import uuid
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 DEFAULT_BASE = "https://api.stack.foldbun.com"
 USER_AGENT = f"foldbun-stack-cookbook/{VERSION} (python; +https://github.com/Foldbun/stack-cookbook)"
-MISSING_KEY = (
-    'FOLDBUN_API_KEY is not set. See "API keys" in the README; every use case page shows the output and cost of a real run, so it can be read without a key.'
-)
+# The Cookbook's own project. A project ID is not a secret: it names who is calling and authorises nothing beyond
+# the free tier, whose limits are shared by every reader of the Cookbook. To go beyond trying the recipes, create
+# your own project in the console and set FOLDBUN_PROJECT_ID (or use an API key).
+COOKBOOK_PROJECT = "fbp_2kIj7bWkULQkLAbceHhfLW4eY6O0"
 DEFAULT_MODEL = {"/v1/ocr": "ppocr-v6", "/v1/documents/parse": "paddleocr-vl", "/v1/remove-background": "birefnet", "/v1/refine": "sam3"}
 # (connect, read) timeouts in seconds
 T_MODELS, T_UPLOAD, T_CALL, T_BATCH = (10, 10), (10, 60), (10, 90), (10, 45)
 BATCH_MAX_S, MAX_RETRIES, MAX_WAIT_S = 600, 5, 60
+# Codes that are retried even when the error does not say `retryable`, and codes that are never retried.
+RETRY_CODES, FINAL_CODES = {"rate_limited", "free_busy"}, {"daily_limit_reached", "free_tier_unavailable"}
+FREE_HINT = {
+    "daily_limit_reached": (
+        " The daily limit of the free tier is shared by everyone using this project and resets at 00:00 UTC;"
+        " set FOLDBUN_API_KEY to continue now, or FOLDBUN_PROJECT_ID to use your own project."
+    ),
+    "free_tier_unavailable": " The free tier is not available here; set FOLDBUN_API_KEY to use an API key.",
+}
 
 
 class StackError(Exception):
@@ -38,8 +57,10 @@ class StackError(Exception):
 
 
 class MissingApiKey(StackError):
-    def __init__(self):
-        super().__init__(0, "missing_api_key", MISSING_KEY)
+    """The run needs FOLDBUN_API_KEY because the free tier cannot do it; `reason` says what the free tier lacks."""
+
+    def __init__(self, reason):
+        super().__init__(0, "missing_api_key", f"FOLDBUN_API_KEY is not set, and this needs a key: {reason}.")
 
 
 class BudgetExceeded(StackError):
@@ -53,48 +74,31 @@ def image_base64(data: bytes) -> dict:
 
 
 def image_handle(handle: str) -> dict:
-    """Uploaded image input: reuse one upload across calls and models; required in batches."""
+    """Uploaded image input (needs a key): reuse one upload across calls and models; required in batches."""
     return {"id": handle}
 
 
-class _Bucket:
-    def __init__(self, per_minute):
-        self.rate, self.tokens, self.t = per_minute / 60.0, float(per_minute), time.monotonic()
-        self.cap, self.lock = float(per_minute), threading.Lock()
-
-    def take(self):
-        while True:
-            with self.lock:
-                now = time.monotonic()
-                self.tokens = min(self.cap, self.tokens + (now - self.t) * self.rate)
-                self.t = now
-                if self.tokens >= 1:
-                    self.tokens -= 1
-                    return
-                wait = (1 - self.tokens) / self.rate
-            time.sleep(wait)
-
-
 class StackClient:
-    def __init__(self, api_key=None, base_url=None, *, max_concurrency=4, max_credits=None, throttle=True):
-        self.api_key = api_key or os.environ.get("FOLDBUN_API_KEY")
-        if not self.api_key:
-            raise MissingApiKey()
+    def __init__(self, api_key=None, base_url=None, *, project=None, max_concurrency=4, max_credits=None):
+        self.api_key = api_key or os.environ.get("FOLDBUN_API_KEY") or None  # optional: without it, the free tier
+        self.project = project or os.environ.get("FOLDBUN_PROJECT_ID") or COOKBOOK_PROJECT
+        self.free = not self.api_key
         base = urllib.parse.urlsplit(base_url or os.environ.get("FOLDBUN_API_BASE") or DEFAULT_BASE)
         self._scheme, self._host, self._prefix = base.scheme, base.netloc, base.path.rstrip("/")
         cap = max_credits if max_credits is not None else os.environ.get("FOLDBUN_MAX_CREDITS")
         self.max_credits = float(cap) if cap not in (None, "") else None
-        self.throttle = throttle
         self.ledger = []  # one row per successful inference call; see calls()
         self._sem = threading.BoundedSemaphore(max_concurrency)
         self._lock = threading.Lock()
-        self._models, self._buckets, self._uploads, self._spent, self._reserved = None, {}, {}, 0.0, 0.0
+        self._models, self._uploads, self._spent, self._reserved, self._gate = None, {}, 0.0, 0.0, {}
 
     # region http
     def _request(self, method, path, body=None, headers=None, timeout=T_CALL, stream=False):
         conn_cls = http.client.HTTPSConnection if self._scheme == "https" else http.client.HTTPConnection
         conn = conn_cls(self._host, timeout=timeout[0])
-        h = {"Authorization": f"Bearer {self.api_key}", "User-Agent": USER_AGENT, "Accept": "application/json"}
+        h = {"X-Foldbun-Project": self.project, "User-Agent": USER_AGENT, "Accept": "application/json"}
+        if self.api_key:
+            h["Authorization"] = f"Bearer {self.api_key}"
         h.update(headers or {})
         conn.connect()
         conn.sock.settimeout(timeout[1])
@@ -106,9 +110,13 @@ class StackClient:
         conn.close()
         return resp, raw
 
-    def _send(self, method, path, body=None, headers=None, timeout=T_CALL, retry_network=True, stream=False):
-        """Send with retries: `retryable` API errors always, network errors only when retry_network."""
+    def _send(self, method, path, body=None, headers=None, timeout=T_CALL, retry_network=True, stream=False, gate=None):
+        """Send with retries: `retryable` API errors (and 429s) always, network errors only when retry_network.
+
+        `gate` names the rate-limit window of the call (the model): when a response said `X-RateLimit-Remaining: 0`,
+        the next call of that window waits `X-RateLimit-Reset` seconds first."""
         for attempt in range(MAX_RETRIES + 1):
+            self._wait_gate(gate)
             try:
                 resp, raw = self._request(method, path, body, headers, timeout, stream)
             except (OSError, http.client.HTTPException) as exc:
@@ -117,21 +125,42 @@ class StackClient:
                 time.sleep(min(2**attempt, MAX_WAIT_S))
                 continue
             if resp.status < 300:
+                self._note_limits(gate, resp)
                 return resp, raw
             err = self._error(resp, raw)
-            if not err.retryable or attempt == MAX_RETRIES:
+            if err.code in FINAL_CODES or not (err.retryable or err.code in RETRY_CODES) or attempt == MAX_RETRIES:
                 raise err
             header = resp.getheader("Retry-After")
-            wait_ms = max(err.retry_after_ms, int(header) * 1000 if header and header.isdigit() else 0, 1000)
-            time.sleep(min(wait_ms / 1000, MAX_WAIT_S))
+            wait = max(err.retry_after_ms / 1000, float(header) if header and header.isdigit() else 0, 1.0)
+            time.sleep(min(wait + random.uniform(0, min(wait * 0.25, 2.0)), MAX_WAIT_S))  # jitter on top, never shorter
         raise AssertionError("unreachable")
 
-    @staticmethod
-    def _error(resp, raw):
+    def _wait_gate(self, gate):
+        while gate is not None:
+            with self._lock:
+                wait = self._gate.get(gate, 0) - time.monotonic()
+            if wait <= 0:
+                return
+            time.sleep(wait)
+
+    def _note_limits(self, gate, resp):
+        """X-RateLimit-Remaining 0: hold the next call of this window for X-RateLimit-Reset seconds."""
+        remaining, reset = resp.getheader("X-RateLimit-Remaining"), resp.getheader("X-RateLimit-Reset")
+        if gate is None or remaining is None or not remaining.strip().isdigit() or int(remaining) > 0:
+            return
+        try:
+            seconds = min(max(float(reset), 0.0), MAX_WAIT_S) if reset else 1.0
+        except ValueError:
+            seconds = 1.0
+        with self._lock:
+            self._gate[gate] = max(self._gate.get(gate, 0), time.monotonic() + seconds)
+
+    def _error(self, resp, raw):
         rid = resp.getheader("X-Request-Id")
         try:
             e = json.loads(raw)["error"]
-            return StackError(resp.status, e["code"], e["message"], e.get("retryable", False), e.get("retryAfterMs", 0), rid)
+            message = e["message"] + (FREE_HINT.get(e["code"], "") if self.free else "")
+            return StackError(resp.status, e["code"], message, e.get("retryable", False), e.get("retryAfterMs", 0), rid)
         except (ValueError, KeyError, TypeError):
             return StackError(resp.status, "http_error", raw[:200].decode("utf-8", "replace"), resp.status >= 500, 0, rid)
 
@@ -141,14 +170,26 @@ class StackClient:
         _, raw = self._send("GET", path, timeout=T_MODELS)
         return json.loads(raw)
 
+    def require_key(self, reason):
+        """Refuse a feature the free tier does not have (uploads, handles, batches, big runs): raises MissingApiKey."""
+        if self.free:
+            raise MissingApiKey(reason)
+
+    def whoami(self):
+        """GET /v1/whoami: the project (free) or the account (key) behind the credentials."""
+        return self.get("/v1/whoami")
+
     def models(self):
+        """GET /v1/models: the model list with prices. Needs a key; the free tier does not offer it."""
+        self.require_key("listing models and prices is not part of the free tier")
         if self._models is None:
             self._models = {m["id"]: m for m in self.get("/v1/models")["data"]}
         return self._models
 
     # region upload
     def upload(self, data: bytes, content_type="image/jpeg") -> dict:
-        """POST /v1/images with the raw bytes. Free; returns {id, width, height, bytes, contentType}."""
+        """POST /v1/images with the raw bytes. Needs a key; returns {id, width, height, bytes, contentType}."""
+        self.require_key("image uploads are not part of the free tier, which takes inline base64 images")
         _, raw = self._send("POST", "/v1/images", data, {"Content-Type": content_type}, T_UPLOAD)
         info = json.loads(raw)
         with self._lock:
@@ -161,14 +202,18 @@ class StackClient:
     def post(self, path, body, idempotency_key=None, *, tag=None, timeout=T_CALL):
         """One inference call. The idempotency key is reused on every retry, so a retry never charges twice."""
         model = body.get("model") or DEFAULT_MODEL.get(path)
-        self._reserve(estimate(self.models(), path, body, model))
-        headers = {"Content-Type": "application/json", "Idempotency-Key": idempotency_key or str(uuid.uuid4())}
+        if "id" in (body.get("image") or {}):
+            self.require_key("image handles come from uploads, which are not part of the free tier")
+        worst = 0 if self.free else estimate(self.models(), path, body, model)
+        self._reserve(worst)
+        headers = {"Content-Type": "application/json"}
+        if not self.free:
+            headers["Idempotency-Key"] = idempotency_key or str(uuid.uuid4())
         data = json.dumps(body).encode()
         try:
             with self._sem:
-                self._take(model)
                 try:
-                    resp, raw = self._send("POST", path, data, headers, timeout)
+                    resp, raw = self._send("POST", path, data, headers, timeout, gate=model)
                 except StackError as err:
                     handle = (body.get("image") or {}).get("id")
                     if err.code != "image_not_found" or handle not in self._uploads:
@@ -177,9 +222,9 @@ class StackClient:
                     # key and was not charged, so the repeat needs a new key.
                     self.upload(*self._uploads[handle])
                     headers["Idempotency-Key"] = str(uuid.uuid4())
-                    resp, raw = self._send("POST", path, data, headers, timeout)
+                    resp, raw = self._send("POST", path, data, headers, timeout, gate=model)
         finally:
-            self._release(estimate(self.models(), path, body, model))
+            self._release(worst)
         result = json.loads(raw)
         self._record(path, result, resp.getheader("Idempotent-Replayed") == "true", tag)
         return result
@@ -188,7 +233,8 @@ class StackClient:
 
     # region batch
     def batch(self, endpoint, body, idempotency_key=None, *, tag=None):
-        """POST /v1/batch/{endpoint} as Server-Sent Events. Yields (event, data) for progress, item and summary."""
+        """POST /v1/batch/{endpoint} as Server-Sent Events. Yields (event, data) for progress, item and summary. Needs a key."""
+        self.require_key("batch requests are not part of the free tier")
         path = f"/v1/batch/{endpoint}"
         single = f"/v1/{endpoint}"
         model = body.get("model") or DEFAULT_MODEL.get(single)
@@ -197,8 +243,7 @@ class StackClient:
         headers = {"Content-Type": "application/json", "Accept": "text/event-stream", "Idempotency-Key": idempotency_key or str(uuid.uuid4())}
         try:
             with self._sem:
-                self._take(model)
-                resp, _ = self._send("POST", path, json.dumps(body).encode(), headers, T_BATCH, stream=True)
+                resp, _ = self._send("POST", path, json.dumps(body).encode(), headers, T_BATCH, stream=True, gate=model)
                 deadline, event = time.monotonic() + BATCH_MAX_S, None
                 try:
                     for line in resp:
@@ -229,8 +274,8 @@ class StackClient:
         row = {
             "endpoint": endpoint,
             "model": result.get("model"),
-            "list": billing.get("total", result.get("cost", 0)),
-            "charged": 0 if replayed else result.get("cost", 0),
+            "list": billing.get("total", billing.get("listPrice", result.get("cost", 0))),
+            "charged": 0 if replayed or self.free else result.get("cost", 0),
             "cache": result.get("cache"),
             "queueMs": result.get("timing", {}).get("queueMs", 0),
             "processingMs": result.get("timing", {}).get("processingMs", 0),
@@ -261,15 +306,6 @@ class StackClient:
     def _release(self, worst):
         with self._lock:
             self._reserved -= worst
-
-    def _take(self, model):
-        info = self.models().get(model) or {}
-        per_minute = info.get("perMinute")
-        if not self.throttle or not per_minute:
-            return
-        with self._lock:
-            bucket = self._buckets.setdefault(info.get("pool") or model, _Bucket(per_minute))
-        bucket.take()
 
 
 def _round(x):

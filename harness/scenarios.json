@@ -19,6 +19,22 @@
     "description": "A batch of 4 or more items: item 1 fails with bad_model_output, items from index 3 expire. A client records items 0 and 2 in the ledger, item 1 as an error and items 3+ as expired.",
     "rules": [{"path": "/v1/batch/*", "times": 1, "itemErrors": {"1": "bad_model_output"}, "expireFrom": 3}]
   },
+  "free-busy": {
+    "description": "Free tier (no key): the first /v1/ocr call answers 429 free_busy with retryAfterMs 1200. A client waits at least 1.2 s and repeats the call; the second attempt succeeds.",
+    "rules": [{"path": "/v1/ocr", "times": 1, "error": {"code": "free_busy", "retryAfterMs": 1200}}]
+  },
+  "free-daily-limit": {
+    "description": "Free tier (no key): the first /v1/ocr call answers 429 daily_limit_reached. A client does not repeat the call and raises a typed error whose message points to FOLDBUN_API_KEY.",
+    "rules": [{"path": "/v1/ocr", "times": 1, "error": {"code": "daily_limit_reached", "retryAfterMs": 3600000}}]
+  },
+  "free-unavailable": {
+    "description": "Free tier (no key): the first /v1/ocr call answers 403 free_tier_unavailable. A client does not repeat the call and raises a typed error whose message points to FOLDBUN_API_KEY.",
+    "rules": [{"path": "/v1/ocr", "times": 1, "error": {"code": "free_tier_unavailable"}}]
+  },
+  "free-remaining-zero": {
+    "description": "Free tier (no key): the first /v1/ocr answer carries X-RateLimit-Remaining 0 and X-RateLimit-Reset 1. A client sends the second call at least 1 s after the first.",
+    "rules": [{"path": "/v1/ocr", "times": 1, "responseHeaders": {"X-RateLimit-Limit": "120", "X-RateLimit-Remaining": "0", "X-RateLimit-Reset": "1", "X-RateLimit-Scope": "project"}}]
+  },
   "batch-dropped": {
     "description": "The event stream of the first batch closes after 2 items without a summary. Repeating the batch with the same Idempotency-Key replays the finished items (replayed: true, not charged) and runs the rest.",
     "rules": [{"path": "/v1/batch/*", "times": 1, "disconnectAfterItems": 2}]
