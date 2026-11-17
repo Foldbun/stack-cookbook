@@ -4,7 +4,11 @@ This is the entry point the cookbook harness runs (`--manifest`, `--out`). To us
 own photos, see imgsearch.py. Next to result.json this writes:
 
     index/        the vector index (format described in index.py)
-    stats.json    timing, what was embedded, what the second (no-op) indexing pass did, the daily allowance
+    stats.json    timing, what was embedded, what the second (no-op) indexing pass did
+
+Without FOLDBUN_API_KEY the run uses the free tier: images go inline as base64, one call each, and the library may
+hold at most embedder.FREE_MAX_IMAGES images (the smoke library has 25). With a key the images are uploaded and
+embedded in batches, charged at list price.
 """
 
 import argparse
@@ -83,14 +87,14 @@ def main() -> int:
     ap.add_argument("--limit", type=int)
     ap.add_argument("--resume", action="store_true", help="continue from the index in <out>/index (without it the index is rebuilt from scratch)")
     ap.add_argument("--batch-size", type=int, default=50)
-    ap.add_argument("--free-only", action="store_true", help="stop when the included daily calls are used up instead of paying for more")
     args = ap.parse_args()
     manifest = json.loads(args.manifest.read_text())  # not resolved: the images are found next to it, also behind a symlink
     base = args.manifest.parent
     started, t0 = datetime.now(UTC), time.monotonic()
     try:
         client = sc.StackClient(max_concurrency=args.concurrency)
-        client.models()  # free: checks the key
+        client.whoami()  # works with and without a key: confirms the credentials and the project
+        embedder.check_free_size(client, len(manifest["items"][: args.limit]))  # a big library needs a key
     except sc.MissingApiKey as err:
         print(err.message, file=sys.stderr)
         return EXIT_NO_KEY
@@ -108,7 +112,7 @@ def main() -> int:
     try:
         # region run-index
         t_index = time.monotonic()
-        report = embedder.index_library(client, index, base, MODELS, batch_size=args.batch_size, free_only=args.free_only, workers=args.concurrency)
+        report = embedder.index_library(client, index, base, MODELS, batch_size=args.batch_size, workers=args.concurrency)
         stats["indexSeconds"] = round(time.monotonic() - t_index, 3)
         # endregion
         # region reindex-check
@@ -168,7 +172,7 @@ def main() -> int:
     stats.update(
         library={"images": len(index.items), "uniqueImages": len({it["sha256"] for it in index.items}), "vectorsEmbedded": report.embedded},
         stopped=report.stopped,
-        allowance=report.allowance,
+        tier="free" if client.free else "key",
         failed=len(report.failed),
     )
     result = {
@@ -183,8 +187,9 @@ def main() -> int:
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
     (args.out / "stats.json").write_text(json.dumps(stats, indent=2) + "\n")
+    print(embedder.cost_line(client))
     if report.stopped:
-        print(f"stopped early: {report.stopped['message']}; run again with --resume after 00:00 UTC", file=sys.stderr)
+        print(f"stopped early: {report.stopped['message']}; run again with --resume to continue where it stopped", file=sys.stderr)
     return code
 
 

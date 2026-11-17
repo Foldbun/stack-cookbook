@@ -34,6 +34,8 @@ const (
 	exitTier   = 3
 	exitBudget = 4
 	exitUsage  = 2 // bad arguments; the Python version exits with 2 for these as well (argparse)
+
+	freeMaxItems = 10 // the free tier is for trying the recipe on a few images; a real dataset needs an API key
 )
 
 // config holds the command line.
@@ -240,8 +242,9 @@ func buildPrompts(u *Unit, c *config, classes classIndex, ex *extra) ([]map[stri
 	return prompts, labels
 }
 
-// buildBody is one batch item: the body of POST /v1/segment without `model`. The image is an uploaded handle.
-func buildBody(u *Unit, c *config) map[string]any {
+// buildBody is one batch item: the body of POST /v1/segment without `model`. The image is an uploaded handle with a key,
+// inline base64 on the free tier.
+func buildBody(u *Unit, c *config) (map[string]any, error) {
 	geometry := []string{"polygon"}
 	if c.Masks {
 		geometry = append(geometry, "mask")
@@ -255,7 +258,15 @@ func buildBody(u *Unit, c *config) map[string]any {
 	if c.Masks {
 		options["maskSize"] = 4096 // the grid is never larger than the image, so masks come at image size
 	}
-	return map[string]any{"image": map[string]any{"id": u.Handle}, "prompts": u.Prompts, "options": options}
+	var image any = stackclient.ImageHandle(u.Handle)
+	if u.Handle == "" {
+		data, err := os.ReadFile(u.Path)
+		if err != nil {
+			return nil, err
+		}
+		image = stackclient.ImageBase64(data)
+	}
+	return map[string]any{"image": image, "prompts": u.Prompts, "options": options}, nil
 }
 
 // endregion
@@ -350,19 +361,24 @@ func run(ctx context.Context, c *config) error {
 		}
 	}
 	// region client
-	client, err := stackclient.New(stackclient.Config{MaxConcurrency: c.Concurrency}) // FOLDBUN_API_KEY, FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
+	client, err := stackclient.New(stackclient.Config{MaxConcurrency: c.Concurrency}) // FOLDBUN_API_KEY (optional), FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
 	if err != nil {
 		return err
 	}
-	if _, err := client.Models(); err != nil { // free: checks the key
-		return err
+	if client.Free() && len(items) > freeMaxItems {
+		return client.RequireKey(fmt.Sprintf("the free tier is meant for trying a recipe on a few items, and this manifest has %d", len(items)))
 	}
 	// endregion
 	units, err := scan(items, filepath.Dir(c.Manifest))
 	if err != nil {
 		return err
 	}
-	if err := uploadAll(client, units, c.Concurrency); err != nil {
+	if client.Free() { // no uploads or batches on the free tier: each image goes inline in its own call
+		err = measureAll(units)
+	} else if _, err = client.Models(); err == nil { // free: checks the key
+		err = uploadAll(client, units, c.Concurrency)
+	}
+	if err != nil {
 		return err
 	}
 	results, runnable := map[string]*outcome{}, []*Unit{}
@@ -374,7 +390,9 @@ func run(ctx context.Context, c *config) error {
 		case len(u.Prompts) > maxPrompts:
 			results[u.ID()] = &outcome{Status: "error", Err: localError("too_many_prompts", fmt.Sprintf("%d prompts; the API takes at most 50", len(u.Prompts))), Calls: []stackclient.Row{}}
 		default:
-			u.Body = buildBody(u, c)
+			if u.Body, err = buildBody(u, c); err != nil {
+				return err
+			}
 			u.Digest = digestOf(u.Body)
 			runnable = append(runnable, u)
 		}
@@ -461,7 +479,11 @@ func run(ctx context.Context, c *config) error {
 		}
 	}
 	fmt.Printf("%d of %d images done in %.1f s (%.0f images/min)\n", ok, len(entries), elapsed.Seconds(), float64(ok)/math.Max(elapsed.Seconds(), 1e-9)*60)
-	fmt.Printf("%d labels accepted, %d rows in the review queue, list price %g credits, charged %g\n", accepted, queued, ledger.ListTotal, ledger.ChargedTotal)
+	price := fmt.Sprintf("list price %g credits, charged %g", ledger.ListTotal, ledger.ChargedTotal)
+	if client.Free() {
+		price = fmt.Sprintf("list price %g credits (free tier, not charged)", ledger.ListTotal)
+	}
+	fmt.Printf("%d labels accepted, %d rows in the review queue, %s\n", accepted, queued, price)
 	if interrupted > 0 {
 		fmt.Printf("stopped early: %d images were not sent; run again with --resume to finish them\n", interrupted)
 	}
@@ -533,7 +555,9 @@ func realMain(args []string) int {
 	case err == nil:
 		return 0
 	case code == "missing_api_key":
-		fmt.Fprintln(os.Stderr, stackclient.MissingKey)
+		var apiErr *stackclient.Error
+		errors.As(err, &apiErr)
+		fmt.Fprintln(os.Stderr, apiErr.Message)
 		return exitNoKey
 	case code == "model_locked":
 		fmt.Fprintln(os.Stderr, err)

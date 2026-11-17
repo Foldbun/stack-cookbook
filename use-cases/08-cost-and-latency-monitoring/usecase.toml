@@ -10,9 +10,10 @@ docs = ["/docs/billing/", "/docs/rate-limits/", "/docs/use-cases/concept-segment
 playground = "/playground/?model=sam3"
 
 # The workload (assets/workload.jsonl) replays 6 ppocr-v6 reads, 10 sam-lite box calls on one image and 5 sam3 text calls on
-# one image: list price 2.55 with the encoding cache (1.5 + 0.30 + 0.75), 0.75 charged on a funded account whose daily
-# allowances cover ppocr-v6 and sam-lite. The cap counts every call at its worst case (encoding fee included) and the list price
-# of calls inside an allowance, so 2.75 is the smallest round figure that lets the whole replay through. Full = smoke.
+# one image: list price 2.55 with the encoding cache (1.5 + 0.30 + 0.75), all of it charged when a key is present (a keyed
+# call is always charged at list price) and none of it on the free tier. The cap counts every call at its worst case (encoding
+# fee included), so 2.75 is the smallest round figure that lets the whole keyed replay through; it is not used on the free
+# tier. Full = smoke.
 [sizes.smoke]
 manifest = "assets/manifest.json"
 budget_credits = 2.75

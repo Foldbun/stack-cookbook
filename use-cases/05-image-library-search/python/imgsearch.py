@@ -6,15 +6,17 @@
     uv run imgsearch.py duplicates --threshold .9 groups of near-duplicate images
     uv run imgsearch.py status                    what the index holds
 
-Image similarity uses dinov3 (Built with DINOv3); text search uses siglip2. FOLDBUN_API_KEY must be set.
-Exit codes: 0 done, 1 failed, 2 no API key, 3 account tier cannot use a model, 4 credit cap refused a call,
-5 stopped because the daily allowance is used up (run the same command again after 00:00 UTC).
+Image similarity uses dinov3 (Built with DINOv3); text search uses siglip2.
+FOLDBUN_API_KEY is optional. Without it the commands use the free tier, which is meant for trying the tool: each image
+is sent inline in its own call, and `index` accepts a folder of at most embedder.FREE_MAX_IMAGES (25) images. With a
+key, images are uploaded and embedded in batches at list price and the library can be any size.
+Exit codes: 0 done, 1 failed (or stopped by the free tier's daily limit: run the same command again later, only
+missing images are embedded), 2 needs an API key, 3 account tier cannot use a model, 4 credit cap refused a call.
 """
 
 import argparse
 import sys
 import time
-from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import embedder
@@ -22,19 +24,11 @@ import search
 import stack_client as sc
 from index import LibraryIndex, file_sha256, scan_folder
 
-EXIT_FAILED, EXIT_NO_KEY, EXIT_TIER, EXIT_BUDGET, EXIT_ALLOWANCE = 1, 2, 3, 4, 5
-
-
-def next_reset() -> str:
-    """When the included daily calls come back: 00:00 UTC."""
-    now = datetime.now(UTC)
-    wait = datetime.combine(now.date() + timedelta(days=1), datetime.min.time(), UTC) - now
-    return f"00:00 UTC, in {wait.seconds // 3600} h {wait.seconds % 3600 // 60} min"
+EXIT_FAILED, EXIT_NO_KEY, EXIT_TIER, EXIT_BUDGET = 1, 2, 3, 4
 
 
 def print_cost(client: sc.StackClient) -> None:
-    s = client.summary()
-    print(f"cost: {s['listTotal']:g} credits at list price, {s['chargedTotal']:g} charged, in {s['calls']} calls")
+    print(embedder.cost_line(client))
 
 
 def cmd_index(args, client) -> int:
@@ -43,9 +37,7 @@ def cmd_index(args, client) -> int:
     index.set_items(scan_folder(root, index.items))
     index.commit()  # drops the rows of files that were removed
     t0 = time.monotonic()
-    report = embedder.index_library(
-        client, index, root, batch_size=args.batch_size, free_only=args.free_only, keep_free=args.keep_free, workers=args.concurrency
-    )
+    report = embedder.index_library(client, index, root, batch_size=args.batch_size, workers=args.concurrency)
     print(f"embedded {report.embedded} vectors in {time.monotonic() - t0:.1f} s")
     print_cost(client)
     for sha, err in report.failed.items():
@@ -53,8 +45,8 @@ def cmd_index(args, client) -> int:
     if report.stopped:
         left = sum(len(index.missing(m)) for m in ("dinov3", "siglip2"))
         print(f"stopped: {report.stopped['message']} ({report.stopped['code']}); {left} vectors are still missing.")
-        print(f"The included calls come back at {next_reset()}. Run the same command then: only missing images are embedded.")
-        return EXIT_ALLOWANCE if report.stopped["code"] == "daily_limit_reached" else EXIT_BUDGET
+        print("Run the same command again later (or with a higher credit cap): only missing images are embedded.")
+        return EXIT_FAILED if report.stopped["code"] == "daily_limit_reached" else EXIT_BUDGET
     return EXIT_FAILED if report.failed else 0
 
 
@@ -114,9 +106,7 @@ def main(argv=None) -> int:
     p = sub.add_parser("index", help="embed the new and changed images of a folder")
     p.add_argument("folder", type=Path)
     p.add_argument("--batch-size", type=int, default=50, help="images per batch request; the index is saved after each (default 50, at most 1000)")
-    p.add_argument("--concurrency", type=int, default=4, help="parallel uploads")
-    p.add_argument("--free-only", action="store_true", help="stop when the included daily calls are used up instead of paying for more")
-    p.add_argument("--keep-free", type=int, default=0, metavar="N", help="with the public pool or --free-only: leave N included calls for queries")
+    p.add_argument("--concurrency", type=int, default=4, help="parallel uploads (with a key) or calls (free tier)")
     p.set_defaults(run=cmd_index)
     p = sub.add_parser("image", help="the images that look most like a given image")
     p.add_argument("image", type=Path)
@@ -133,16 +123,13 @@ def main(argv=None) -> int:
     p.set_defaults(run=cmd_status)
     args = ap.parse_args(argv)
     try:
-        client = sc.StackClient(max_concurrency=4) if args.cmd in ("index", "image", "text") else None
+        client = sc.StackClient(max_concurrency=getattr(args, "concurrency", 4)) if args.cmd in ("index", "image", "text") else None
         return args.run(args, client)
     except sc.MissingApiKey as err:
         print(err.message, file=sys.stderr)
         return EXIT_NO_KEY
     except sc.StackError as err:
         print(f"{err.status} {err.code}: {err.message}" + (f" (request {err.request_id})" if err.request_id else ""), file=sys.stderr)
-        if err.code == "daily_limit_reached":
-            print(f"The included calls come back at {next_reset()}.", file=sys.stderr)
-            return EXIT_ALLOWANCE
         return {"model_locked": EXIT_TIER, "budget_exceeded": EXIT_BUDGET}.get(err.code, EXIT_FAILED)
 
 

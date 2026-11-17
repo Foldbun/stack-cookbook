@@ -66,7 +66,8 @@ func TestBuildBodyAndPrompts(t *testing.T) {
 	if !reflect.DeepEqual(u.Labels, []string{"Dog", "cow"}) {
 		t.Errorf("labels = %v", u.Labels)
 	}
-	got, _ := json.Marshal(buildBody(u, c))
+	body, _ := buildBody(u, c)
+	got, _ := json.Marshal(body)
 	want := `{"image":{"id":"img_1"},"options":{"defaults":{"filter":{"minScore":0.3},"geometry":["polygon"],"polygon":{"holes":false,"tolerancePx":1.0}},"nms":{"iou":0.7,"metric":"mask","scope":"group"}},"prompts":[{"text":"dog"},{"text":"cow"}]}`
 	if string(got) != want {
 		t.Errorf("body = %s\nwant   %s", got, want)
@@ -75,7 +76,8 @@ func TestBuildBodyAndPrompts(t *testing.T) {
 	// masks add the mask geometry and a grid at image size; boxes have no filter and no overlap removal
 	c = &config{Mode: "boxes", Masks: true}
 	u.Prompts = []map[string]any{{"box": [4]int{1, 2, 3, 4}}}
-	got, _ = json.Marshal(buildBody(u, c))
+	body, _ = buildBody(u, c)
+	got, _ = json.Marshal(body)
 	want = `{"image":{"id":"img_1"},"options":{"defaults":{"geometry":["polygon","mask"],"polygon":{"holes":false,"tolerancePx":1.0}},"maskSize":4096},"prompts":[{"box":[1,2,3,4]}]}`
 	if string(got) != want {
 		t.Errorf("boxes body = %s\nwant        %s", got, want)

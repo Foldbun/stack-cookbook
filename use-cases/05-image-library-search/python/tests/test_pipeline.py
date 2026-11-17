@@ -2,6 +2,7 @@ import json
 
 import embedder
 import numpy as np
+import pytest
 import search
 import stack_client as sc
 from conftest import api_calls
@@ -9,11 +10,12 @@ from index import LibraryIndex, scan_folder
 
 from harness.fakeapi import tiny_png
 
-PUBLIC, FUNDED = "fbs_fake_public", "fbs_fake"
+KEY, PROJECT = "fbs_fake", "fbp_testProject0001"
 
 
-def build(server, folder, index_dir, key=PUBLIC, **kw):
-    client = sc.StackClient(key, server.url, throttle=False)
+def build(server, folder, index_dir, key=KEY, **kw):
+    """Index `folder` with a key (batches, handles), or without one (key=None: the free tier, single calls with base64)."""
+    client = sc.StackClient(key or "", server.url, project=PROJECT)
     index = LibraryIndex.load(index_dir)
     index.set_items(scan_folder(folder, index.items))
     index.commit()
@@ -48,28 +50,56 @@ def test_only_new_and_changed_files_are_embedded(server, make_library, tmp_path)
     assert len([f for f in files if f.startswith("vectors-dinov3")]) == 1 and "index.json.tmp" not in files
 
 
-def test_public_allowance_stops_cleanly_and_resumes(server, make_library, tmp_path):
-    folder = make_library(70)  # 140 vectors needed, 100 calls included per UTC day
-    _, index, report = build(server, folder, tmp_path / "idx", batch_size=10)
-    assert report.stopped and report.stopped["code"] == "daily_limit_reached"
-    assert report.embedded == 100 and not report.failed
-    saved = LibraryIndex.load(tmp_path / "idx")  # everything that finished was committed
-    assert sum(len(m["sha256s"]) for m in saved.models.values()) == 100
-    assert len(saved.models["dinov3"]["sha256s"]) == len(saved.models["siglip2"]["sha256s"]) == 50  # chunks alternate the models
-    # "Next day": a fresh server has a fresh allowance. Only the 40 missing vectors are embedded.
-    with type(server)(validate=True) as tomorrow:
-        _, index, report = build(tomorrow, folder, tmp_path / "idx", batch_size=10)
-        assert report.embedded == 40 and not report.stopped
-        assert len(api_calls(tomorrow)) == 4  # the 20 images left, in chunks of 10, with 2 models
-    assert all(len(m["sha256s"]) == 70 for m in index.models.values())
+def test_free_mode_embeds_with_single_inline_calls(server, make_library, tmp_path):
+    folder = make_library(6)
+    client, index, report = build(server, folder, tmp_path / "idx", key=None)
+    assert client.free and report.embedded == 12 and not report.stopped and not report.failed
+    assert len(api_calls(server, "/v1/embeddings")) == 12  # one call per image and model
+    assert not api_calls(server, "/v1/batch") and not api_calls(server, "/v1/images")  # no batch, no upload, no handle
+    assert all(len(rows) == 2 and all(r["charged"] == 0 and r["list"] > 0 for r in rows) for rows in report.rows.values())
+    assert client.summary()["chargedTotal"] == 0 and client.summary()["listTotal"] > 0
+    assert "free tier, not charged" in embedder.cost_line(client)
+    before = len(api_calls(server, "/v1/embeddings"))
+    _, _, report = build(server, folder, tmp_path / "idx", key=None)  # incremental: nothing is missing
+    assert report.embedded == 0 and len(api_calls(server, "/v1/embeddings")) == before
+    _, keyed, _ = build(server, folder, tmp_path / "idx2")  # the keyed vectors are the same numbers
+    assert np.allclose(index.matrix("siglip2")[1], keyed.matrix("siglip2")[1])
 
 
-def test_free_only_stops_a_funded_account_at_the_allowance(server, make_library, tmp_path):
+def test_free_mode_needs_a_key_for_a_bigger_library(server, make_library, tmp_path):
+    folder = make_library(embedder.FREE_MAX_IMAGES + 1)
+    with pytest.raises(sc.MissingApiKey) as exc:
+        build(server, folder, tmp_path / "idx", key=None)
+    assert str(embedder.FREE_MAX_IMAGES + 1) in exc.value.message and not api_calls(server, "/v1/embeddings")
+    _, index, report = build(server, folder, tmp_path / "idx")  # with a key the library has no size limit
+    assert report.embedded == 2 * len(index.items) and not report.failed
+
+
+def test_free_mode_stops_at_the_daily_limit_and_resumes(server, make_library, tmp_path):
+    folder = make_library(10)
+    server.fake.reset({"free": {"enforce": True, "ipShare": 1, "classes": {"light": {"rpm": 6000, "burst": 100, "daily": 7}}}})
+    _, index, report = build(server, folder, tmp_path / "idx", key=None, batch_size=4)
+    assert report.stopped and report.stopped["code"] == "daily_limit_reached" and not report.failed
+    saved = LibraryIndex.load(tmp_path / "idx")  # what finished was committed
+    assert report.embedded == sum(len(m["sha256s"]) for m in saved.models.values()) == 7
+    server.fake.reset({})  # "next day": the daily count starts again
+    _, index, report = build(server, folder, tmp_path / "idx", key=None, batch_size=4)
+    assert report.embedded == 13 and not report.stopped
+    assert all(len(m["sha256s"]) == 10 for m in index.models.values())
+
+
+def test_credit_cap_stops_a_keyed_run_and_resumes(server, make_library, tmp_path):
     folder = make_library(8)
-    _, _, report = build(server, folder, tmp_path / "idx", key=FUNDED, free_only=True, keep_free=0)
-    assert not report.stopped  # 16 calls are far inside the 1,000 included ones
-    _, _, report = build(server, folder, tmp_path / "idx2", key=PUBLIC, keep_free=90)  # leave 90 calls for queries
-    assert report.stopped and report.embedded == 10
+    client = sc.StackClient(KEY, server.url, max_credits=0.5)  # 16 images at 0.05 would cost 0.8
+    index = LibraryIndex.load(tmp_path / "idx")
+    index.set_items(scan_folder(folder, index.items))
+    index.commit()
+    report = embedder.index_library(client, index, folder, batch_size=4, log=lambda *_: None)
+    assert report.stopped and report.stopped["code"] == "budget_exceeded"
+    kept = sum(len(m["sha256s"]) for m in LibraryIndex.load(tmp_path / "idx").models.values())
+    assert 0 < kept < 16 and report.embedded == kept
+    _, index, report = build(server, folder, tmp_path / "idx")  # the same command without the cap embeds only what is missing
+    assert report.embedded == 16 - kept and not report.stopped
 
 
 def test_partial_batch_is_retried(server, make_library, tmp_path):

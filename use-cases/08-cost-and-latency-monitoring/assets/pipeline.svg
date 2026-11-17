@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 270" role="img" aria-labelledby="t d" font-family="system-ui, sans-serif" font-size="14">
   <title id="t">Monitoring pipeline</title>
-  <desc id="d">Application code calls MonitoredClient, which wraps the unchanged client file and sends the call to the Stack API. Each answer's billing, cost, cache, timing and balance feed Prometheus counters, gauges and histograms served at /metrics, and a sliding-hour spend guard that alerts or refuses new calls. GET /v1/whoami refreshes balance and daily allowances.</desc>
+  <desc id="d">Application code calls MonitoredClient, which wraps the unchanged client file and sends the call to the Stack API. Each answer's billing, cost, cache, timing and balance feed Prometheus counters, gauges and histograms served at /metrics, and a sliding-hour spend guard that alerts or refuses new calls. GET /v1/whoami refreshes the balance, or the free-tier daily use and limits.</desc>
   <defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#667"/></marker>
   </defs>

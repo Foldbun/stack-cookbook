@@ -103,7 +103,7 @@
             "alerts": { "type": "integer", "minimum": 0 }
           }
         },
-        "balanceSpent": { "type": ["number", "null"], "description": "Balance before minus balance after, from GET /v1/whoami; null when the API has no such endpoint. The balance itself is never recorded." },
+        "balanceSpent": { "type": ["number", "null"], "description": "Balance before minus balance after, from GET /v1/whoami; null when the API has no such endpoint or on the free tier, which has no balance. The balance itself is never recorded." },
         "metrics": { "type": "object", "description": "Snapshot of the stack_* counters and gauges at the end of the run (no histogram buckets, no client-side timing, no balance).", "additionalProperties": { "type": "number" } }
       }
     }

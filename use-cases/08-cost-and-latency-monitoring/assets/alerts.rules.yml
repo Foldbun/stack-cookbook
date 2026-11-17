@@ -51,8 +51,10 @@ groups:
         annotations:
           summary: "{{ $value }} calls of {{ $labels.model }} failed with {{ $labels.code }} in 10 minutes"
 
-      - alert: StackAllowanceNearlyUsed
-        expr: stack_daily_allowance_used / stack_daily_allowance_limit > 0.9
+      - alert: StackFreeDailyLimitNearlyUsed
+        # Free tier only (no API key): these gauges come from GET /v1/whoami and are absent on a keyed process.
+        # After the limit of a weight class (light, medium, heavy) is reached, its calls get 429 daily_limit_reached until 00:00 UTC.
+        expr: stack_free_used_today / stack_free_daily_limit > 0.9
         labels: { severity: info }
         annotations:
-          summary: "The {{ $labels.pool }} pool's included daily calls are 90 % used; calls beyond it are billed or refused"
+          summary: "The free tier's daily limit for {{ $labels.class }} models is 90 % used; further calls are refused until it resets at 00:00 UTC"
