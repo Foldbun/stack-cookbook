@@ -17,7 +17,10 @@ export default defineConfig({
   markdown: { processor: satteri({ hastPlugins: [headingAnchors] }) },
   integrations: [
     starlight({
-      title: { 'en-US': `${BRAND.name} Cookbook`, 'zh-CN': `${BRAND.name} Cookbook` },
+      // The site title is the suffix of every <title> ("<page> | Stack Cookbook"); the product name sits in the page title
+      // and in og:site_name. src/route-middleware.ts sets the page titles, the home page's own title included.
+      title: { 'en-US': `${BRAND.suffix} Cookbook`, 'zh-CN': `${BRAND.suffix} Cookbook` },
+      routeMiddleware: './src/route-middleware.ts',
       description: `${BRAND.name} — ${BRAND.tagline.en}. Runnable use cases.`,
       logo: { light: './src/assets/brand/foldbun-stack-color-wheat-light.svg', dark: './src/assets/brand/foldbun-stack-color-wheat-dark.svg', alt: BRAND.name },
       favicon: '/favicon.svg',

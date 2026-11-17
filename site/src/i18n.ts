@@ -8,6 +8,8 @@ import { BRAND } from './lib/brand.ts'
 export const en = {
   'site.title': `${BRAND.name} Cookbook`,
   'site.tagline': `${BRAND.name} — ${BRAND.tagline.en}`,
+  'site.seoTitle': `${BRAND.name} Cookbook: runnable vision API use cases`,
+  'site.ogAlt': `${BRAND.name} Cookbook: runnable use cases for the vision model API`,
   'site.description': 'Runnable use cases for the Foldbun Stack API: the problem, the pipeline, the code in several languages, measured results and cost.',
   'brand.tag': 'Cookbook',
   'brand.home': `${BRAND.name} Cookbook home`,
@@ -66,6 +68,8 @@ export const en = {
 export const zh: typeof en = {
   'site.title': `${BRAND.name} Cookbook`,
   'site.tagline': `${BRAND.name} — ${BRAND.tagline.zh}`,
+  'site.seoTitle': `${BRAND.name} Cookbook：视觉 API 可运行用例`,
+  'site.ogAlt': `${BRAND.name} Cookbook：视觉模型 API 的可运行用例`,
   'site.description': 'Foldbun Stack API 的可运行用例：问题、管线、多种语言的代码、实测结果与费用。',
   'brand.tag': 'Cookbook',
   'brand.home': `${BRAND.name} Cookbook 首页`,
