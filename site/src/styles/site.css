@@ -1,6 +1,8 @@
 /* Cookbook-specific styles (the home matrix, the use case meta row). Everything else comes from the Stack theme files. */
 .matrix { margin-top: var(--sp-3); }
 .matrix-filter { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+/* Starlight gives every sibling after the first a 1rem top margin inside the markdown content; in this flex row that pushed all but the first button down. */
+.sl-markdown-content .matrix-filter > * { margin-top: 0; }
 .matrix-filter-label { color: var(--text-2); font-size: var(--fs-sm); margin-right: var(--sp-1); }
 .matrix-filter .btn[aria-pressed='true'] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .matrix-scroll { overflow-x: auto; }
