@@ -17,11 +17,13 @@ Each language has one small client file for the Foldbun Stack API. It is not an 
 
 The three files send the same requests and produce the same ledger for the same inputs. The rules are the table in [CONTRIBUTING.md](../CONTRIBUTING.md#layout-and-contract); in short:
 
-- configuration from `FOLDBUN_API_KEY`, `FOLDBUN_API_BASE` and `FOLDBUN_MAX_CREDITS`, and the same `User-Agent` (with the language name);
-- an `Idempotency-Key` on every inference call and batch, reused on every retry;
+- configuration from `FOLDBUN_API_KEY` (optional), `FOLDBUN_PROJECT_ID` (optional, defaults to the Cookbook's public project), `FOLDBUN_API_BASE` and `FOLDBUN_MAX_CREDITS`, and the same `User-Agent` (with the language name);
+- two modes: with no key the client is on the free tier and sends only the project header and inline base64 images; with a key it sends the key (and the project header as the call's source) and may upload, use handles and batches;
+- with a key, an `Idempotency-Key` on every inference call and batch, reused on every retry;
 - retries only for errors with `retryable: true`, after `max(retryAfterMs, Retry-After, 1 s)` (at most 60 s, at most 5 retries); network errors are retried with a doubling pause;
-- on `404 image_not_found` for a handle the client uploaded: upload again and repeat the call once, with a new idempotency key;
-- a token bucket per pool, at most 4 requests in flight, and the credit cap checked against the worst-case list price before anything is sent (the refusal text is the same);
+- with a key, on `404 image_not_found` for a handle the client uploaded: upload again and repeat the call once, with a new idempotency key;
+- throttling that follows the server: on `429` wait `Retry-After`, and when `X-RateLimit-Remaining` is 0 wait `X-RateLimit-Reset` seconds; no pacing of its own. At most 4 requests in flight;
+- with a key, the credit cap checked against the worst-case list price before anything is sent (the refusal text is the same); on the free tier the list price of what ran is reported as "free tier, not charged";
 - the ledger: one row per successful call or `ok` batch item, with the fields of `contract/result.schema.json`; replayed rows are counted but add nothing to the totals;
 - typed errors that carry `status`, `code`, `message`, `retryable`, `retryAfterMs` and the request id.
 

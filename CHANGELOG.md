@@ -2,6 +2,17 @@
 
 All notable changes to this repository. Versions follow [Semantic Versioning](https://semver.org/); the client files carry their own version (`VERSION` in each file).
 
+## 0.3.0 - 2026-11-17
+
+The recipes run on the Foldbun Stack free tier by default: no key and no sign-up.
+
+- Free tier by default. With no `FOLDBUN_API_KEY` the clients send only `X-Foldbun-Project` with the Cookbook's public project ID and inline base64 images (no uploads, handles, batches or idempotency keys). `FOLDBUN_PROJECT_ID` is optional and replaces it with the reader's own project and its limits.
+- The API key is optional. When set, calls are charged at list price and the project header records the project as the source. `FOLDBUN_MAX_CREDITS` still caps what a keyed run may spend; on the free tier the recipes print the list price of what ran, labelled "free tier, not charged".
+- Every smoke run works with no key. Full runs need `FOLDBUN_API_KEY` and say so (exit code 2) when it is missing.
+- Throttling follows the server: on `429` the clients wait `Retry-After`, and when `X-RateLimit-Remaining` is 0 they wait `X-RateLimit-Reset` seconds. The client-side per-pool pacing is gone.
+- The wording of the retired daily allowances ("public pool", "free pool", included calls, tiers by account balance) is removed from the READMEs, `CONTRIBUTING.md`, `clients/README.md` and the site. Cost tables keep the measured list prices, now framed as what a keyed run costs.
+- The root README has a section on how the recipes authenticate (free tier, own project, API key).
+
 ## 0.2.0 - 2026-11-14
 
 Three more use cases, each measured on its own dataset.

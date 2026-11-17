@@ -1,4 +1,4 @@
-<!-- en-sha: e5792e2ccd1e -->
+<!-- en-sha: 24bbcd47b46a -->
 # Foldbun Stack Cookbook
 
 [English](README.md) | 简体中文
@@ -9,20 +9,27 @@
 
 ## 快速开始 <!-- #quick-start -->
 
-以下命令需要 API 密钥，而密钥尚未开放（见 [API 密钥](#api-keys)）。除调用 API 之外的部分无需密钥即可运行：`uv run python -m harness check` 会用本地的 API 仿真服务运行全部实现。
+不需要密钥，也不需要注册：示例在 Foldbun Stack 的免费层上、以 Cookbook 自己的项目运行（见[示例如何认证](#authentication)）。
 
 ```bash
 git clone https://github.com/Foldbun/stack-cookbook.git
 cd stack-cookbook/use-cases/00-quickstart/python
-export FOLDBUN_API_KEY="fbs_..."
 uv run main.py
 ```
 
 curl：`bash ../curl/run.sh`。TypeScript：`cd ../typescript && pnpm install && node main.ts`。Go：`cd ../go && go run .`。
 
-## API 密钥 <!-- #api-keys -->
+每个用例都有一个小的 smoke 运行，用法相同。完整运行规模更大，需要 API 密钥。
 
-示例使用在 Foldbun Stack 控制台中创建的密钥调用 API。API 密钥即将推出。在此之前，可以在 [Playground](https://stack.foldbun.com/playground/) 中无需账户试用全部模型；每个用例页面都展示了一次真实运行的实测结果和费用，没有密钥也可以阅读示例。参见[认证](https://stack.foldbun.com/docs/authentication/)。
+## 示例如何认证 <!-- #authentication -->
+
+调用 API 有两种方式，示例根据环境变量自动选择：
+
+- **免费层（默认）。** 没有设置 `FOLDBUN_API_KEY` 时，示例只发送请求头 `X-Foldbun-Project: fbp_2kIj7bWkULQkLAbceHhfLW4eY6O0`，也就是 Cookbook 自己的公共项目。七个模型全部免费，只接受内联 base64 图片（解码后最大 4 MiB）：没有图片上传、没有图片 handle、没有批处理端点，也没有幂等键。限额按项目计，随模型的重量级别而不同，另有按客户端 IP 的份额。Cookbook 的项目由所有读者共用，可能比较忙；免费层排在付费流量之后，不承诺可用性。被拒绝的调用返回 HTTP 429 并带 `Retry-After`，示例会等待后继续。部分地区无法使用免费层（403）。参见[免费层](https://stack.foldbun.com/docs/free-tier/)和[限速](https://stack.foldbun.com/docs/rate-limits/)。
+- **你自己的项目。** 在[控制台](https://stack.foldbun.com/console/)里创建项目（每个账户都有一个默认项目），把 `FOLDBUN_PROJECT_ID` 设为它的 ID。示例随后按你项目自己的限额计数，而不是共享的限额：轻量、中等、重型模型每分钟分别为 30、10、2 次请求，每日分别为 2,000、500、50 次。
+- **API 密钥（付费）。** 把 `FOLDBUN_API_KEY` 设为控制台里的密钥（`fbs_...`）。此时每次调用都按标价扣费；如果同时设置了项目 ID，该项目会被记为调用的来源。有密钥才能使用上传、handle 和批处理。带密钥的调用没有任何免费额度。
+
+每个用例的 smoke 运行都不需要密钥。完整运行需要 `FOLDBUN_API_KEY`：它们规模大，有些还用到上传、handle 或批处理；没有密钥时，完整运行会说明原因并退出。`FOLDBUN_MAX_CREDITS` 限制带密钥的运行最多花多少：客户端会拒绝可能超出它的调用。在免费层上，示例会打印所运行内容的标价，并标注“免费层，不扣费”。参见[认证](https://stack.foldbun.com/docs/authentication/)。
 
 ## 用例 <!-- #use-cases -->
 
@@ -39,7 +46,7 @@ curl：`bash ../curl/run.sh`。TypeScript：`cd ../typescript && pnpm install &&
 | [08 监控线上集成的成本与时延](use-cases/08-cost-and-latency-monitoring/README.zh-CN.md) | 已充值 |  | ✓ |  |  |
 <!-- /usecases -->
 
-公共池：新账户即可运行。已充值：需要充值过的账户，免费池内的调用不扣费。按量扣费：按[价目表](https://stack.foldbun.com/docs/billing/)从余额扣费。
+每个 smoke 运行都在免费层上免费，不需要密钥。完整运行需要 API 密钥，按[价目表](https://stack.foldbun.com/docs/billing/)的标价扣费。
 
 ## 语言与工具链 <!-- #languages -->
 
@@ -56,7 +63,7 @@ curl：`bash ../curl/run.sh`。TypeScript：`cd ../typescript && pnpm install &&
 
 ## 示例如何测试 <!-- #testing -->
 
-`uv run python -m harness check` 在离线状态下运行全部检查，不需要密钥：schema、静态检查、客户端测试，以及每个实现对本地假 API 的运行；假 API 的应答按[公开的 API 描述](https://stack.foldbun.com/docs/openapi.yaml)校验。每次发版前，维护者用真实密钥运行 `harness live`，其结果就是用例页面上的数字。不使用 GitHub Actions。参见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+`uv run python -m harness check` 在离线状态下运行全部检查，不需要密钥，也不需要项目 ID：schema、静态检查、客户端测试，以及每个实现对本地假 API 的运行；假 API 的应答按[公开的 API 描述](https://stack.foldbun.com/docs/openapi.yaml)校验。每次发版前，维护者用真实密钥运行 `harness live`，其结果就是用例页面上的数字（标价，也就是带密钥运行的花费）。不使用 GitHub Actions。参见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 数据与许可证 <!-- #data -->
 
