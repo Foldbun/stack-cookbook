@@ -1,6 +1,6 @@
 [project]
 name = "stack-cookbook-harness"
-version = "0.3.1"
+version = "0.3.2"
 description = "Test harness of the Foldbun Stack Cookbook: contract checks, fake API, offline and live matrix."
 requires-python = ">=3.12"
 license = "MIT"

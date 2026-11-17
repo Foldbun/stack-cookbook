@@ -2,7 +2,7 @@
 
 All notable changes to this repository. Versions follow [Semantic Versioning](https://semver.org/); the client files carry their own version (`VERSION` in each file).
 
-## Unreleased
+## 0.3.2 - 2026-11-18
 
 - Site: search and link-preview metadata. Unique page titles (`<page> | Stack Cookbook`; the home page title is no longer repeated), a default Open Graph / Twitter image per language, `hreflang="zh"` next to `zh-CN`, TechArticle and BreadcrumbList JSON-LD, and a `<lastmod>` in the sitemap taken from git history. `usecase.toml` gets an optional `seo_title`.
 - Site: `pnpm test` runs real checks on the built pages (it failed on Node 24 before: the directory had no test files).
