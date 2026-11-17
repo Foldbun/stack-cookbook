@@ -32,7 +32,7 @@
           "passed": { "type": "boolean" },
           "failedChecks": { "type": "array", "items": { "type": "string" } },
           "receipt": { "oneOf": [{ "$ref": "#/$defs/receipt" }, { "type": "null" }] },
-          "note": { "type": "string", "description": "Why there is no receipt: the error code of the fallback call, e.g. model_locked on an account without the paid pool." }
+          "note": { "type": "string", "description": "Why there is no receipt: the error code of the fallback call, e.g. model_locked on a key without access to the model." }
         }
       }
     }

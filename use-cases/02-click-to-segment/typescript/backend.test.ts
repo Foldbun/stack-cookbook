@@ -1,5 +1,6 @@
 // node --test: the backend against a stand-in for the Stack client (no network, no key).
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { createServer, request, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
@@ -7,16 +8,21 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, test } from "node:test";
 
-import { Backend, RateLimit, fromStack, type Stack } from "./backend.ts";
+import { Backend, LIMITS, RateLimit, fromStack, imageSize, type Stack } from "./backend.ts";
 import * as sc from "./stackClient.ts";
 
 class FakeStack implements Stack {
+  readonly free: boolean;
+  constructor(free = false) {
+    this.free = free;
+  }
   uploads = 0;
   bodies: sc.Json[] = [];
   fail: Error | null = null;
   private rows: Array<[string | undefined, sc.LedgerRow]> = [];
 
   async upload(): Promise<sc.Json> {
+    if (this.free) throw new sc.MissingApiKey("image uploads are not part of the free tier");
     this.uploads++;
     return { id: "img_" + "a".repeat(64), width: 100, height: 80 };
   }
@@ -26,9 +32,9 @@ class FakeStack implements Stack {
     this.bodies.push(body);
     const cache = this.bodies.length === 1 ? "miss" : "hit";
     const list = cache === "miss" ? 0.21 : 0.01;
-    this.rows.push([opts.tag, { endpoint: path, model: body.model, list, charged: 0, cache, queueMs: 4, processingMs: 60, replayed: false }]);
+    this.rows.push([opts.tag, { endpoint: path, model: body.model, list, charged: this.free ? 0 : list, cache, queueMs: 4, processingMs: 60, replayed: false }]);
     const polygon = [{ outer: [10, 10, 50, 10, 50, 40, 10, 40] }];
-    return { model: body.model, cost: 0, cache, billing: { total: list }, instances: [{ score: 0.9, bbox: [10, 10, 51, 41], area: 1271, polygon }] };
+    return { model: body.model, cost: this.free ? 0 : list, cache, billing: { total: list }, instances: [{ score: 0.9, bbox: [10, 10, 51, 41], area: 1271, polygon }] };
   }
 
   calls(tag?: string): sc.LedgerRow[] {
@@ -390,5 +396,132 @@ test("without a static directory, or with a missing one, every page path is 404 
     } finally {
       await new Promise((resolve) => srv.close(resolve));
     }
+  }
+});
+
+test("fromStack: the free tier's waits are upstream_busy, its refusals name FOLDBUN_API_KEY", () => {
+  for (const code of ["rate_limited", "free_busy"]) {
+    const err = fromStack(new sc.StackError(429, code, "slow down", false, 4200, "req_3"));
+    assert.deepEqual([err.status, err.code, err.retryable, err.retryAfterMs, err.upstreamCode], [503, "upstream_busy", true, 4200, code]);
+  }
+  for (const code of ["daily_limit_reached", "free_tier_unavailable"]) {
+    const err = fromStack(new sc.StackError(code.startsWith("daily") ? 429 : 403, code, "Stack's own words", false, 0, "req_4"));
+    assert.deepEqual([err.status, err.code, err.retryable, err.upstreamCode], [502, "upstream_refused", false, code]);
+    assert.ok(err.message.includes("FOLDBUN_API_KEY") && !err.message.includes("Stack's own words"));
+  }
+  assert.equal(fromStack(new sc.MissingApiKey("uploads")).code, "upstream_refused");
+});
+
+// ---- free mode: no key, no uploads, the image goes inline with every click ----
+
+function png(width: number, height: number): Uint8Array {
+  const b = Buffer.alloc(33);
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13]).copy(b);
+  b.write("IHDR", 12, "latin1");
+  b.writeUInt32BE(width, 16);
+  b.writeUInt32BE(height, 20);
+  return b;
+}
+
+function jpegOf(width: number, height: number, orientation?: number): Uint8Array {
+  const parts: Buffer[] = [Buffer.from([0xff, 0xd8])];
+  if (orientation) {
+    const tiff = Buffer.alloc(26);
+    tiff.write("MM", 0, "latin1");
+    tiff.writeUInt32BE(8, 4); // IFD0 right after the header
+    tiff.writeUInt16BE(1, 8); // one entry
+    tiff.writeUInt16BE(0x0112, 10);
+    tiff.writeUInt16BE(3, 12);
+    tiff.writeUInt32BE(1, 14);
+    tiff.writeUInt16BE(orientation, 18);
+    const head = Buffer.alloc(4);
+    head.writeUInt16BE(0xffe1, 0);
+    head.writeUInt16BE(8 + tiff.length, 2);
+    parts.push(head, Buffer.from("Exif\0\0", "latin1"), tiff);
+  }
+  const frame = Buffer.alloc(15);
+  frame.writeUInt16BE(0xffc0, 0);
+  frame.writeUInt16BE(11, 2);
+  frame[4] = 8;
+  frame.writeUInt16BE(height, 5);
+  frame.writeUInt16BE(width, 7);
+  frame[9] = 1;
+  parts.push(frame, Buffer.from([0xff, 0xda, 0x00, 0x02]));
+  return Buffer.concat(parts);
+}
+
+test("imageSize reads png, jpeg (with orientation) and webp", () => {
+  assert.deepEqual(imageSize(png(30, 20)), [30, 20]);
+  assert.deepEqual(imageSize(jpegOf(40, 25)), [40, 25]);
+  assert.deepEqual(imageSize(jpegOf(40, 25, 1)), [40, 25]);
+  assert.deepEqual(imageSize(jpegOf(40, 25, 6)), [25, 40]); // shown turned by a quarter, as the API counts it
+  const webp = Buffer.concat([Buffer.from("RIFF\0\0\0\0WEBPVP8L\0\0\0\0\x2f", "latin1"), Buffer.alloc(4), Buffer.alloc(6)]);
+  webp.writeUInt32LE(99 | (49 << 14), 21);
+  assert.deepEqual(imageSize(webp), [100, 50]);
+  assert.equal(imageSize(Buffer.from("not an image")), null);
+  assert.equal(imageSize(new Uint8Array(0)), null);
+  assert.equal(imageSize(new Uint8Array([0xff, 0xd8, 0xff, 0xd9])), null);
+});
+
+test("free mode keeps the bytes and sends them inline with every click; bad or large images are refused", async () => {
+  const free = new FakeStack(true);
+  const srv = createServer(new Backend(free, { now: () => clock, log: () => {} }).handle);
+  await new Promise<void>((resolve) => srv.listen(0, "127.0.0.1", resolve));
+  const url = `http://127.0.0.1:${(srv.address() as AddressInfo).port}`;
+  const call = async (path: string, init: RequestInit): Promise<[number, sc.Json]> => {
+    const res = await fetch(url + path, { ...init, headers: { "X-Session-Id": "free", ...(init.headers as Record<string, string>) } });
+    return [res.status, await res.json()];
+  };
+  const post = (data: Uint8Array) => call("/api/images", { method: "POST", body: data, headers: { "Content-Type": "image/png" } });
+  const click = (imageId: string, x: number) =>
+    call("/api/refine", { method: "POST", body: JSON.stringify({ imageId, points: [{ x, y: 20 }] }), headers: { "Content-Type": "application/json" } });
+  try {
+    const data = png(100, 80);
+    const [status, up] = await post(data);
+    assert.deepEqual([status, up.width, up.height], [200, 100, 80]);
+    assert.equal(up.imageId, "im_" + createHash("sha256").update(data).digest("hex").slice(0, 32));
+    assert.equal(free.uploads, 0);
+    for (const x of [20, 60]) assert.equal((await click(up.imageId, x))[0], 200);
+    assert.deepEqual(free.bodies.map((b) => b.image), Array(2).fill({ base64: Buffer.from(data).toString("base64") }));
+    assert.equal((await click(up.imageId, 101))[1].error.code, "invalid_request"); // bounds come from the bytes
+    const [, r] = await click(up.imageId, 30);
+    assert.deepEqual([r.costCredits, r.listCredits], [0, 0.01]);
+    const [, usage] = await call("/api/usage", {});
+    assert.deepEqual([usage.uploads, usage.clicks, usage.costCredits, usage.listCredits], [1, 3, 0, 0.23]);
+    assert.deepEqual(usage.calls.map((c: sc.Json) => c.charged), [0, 0, 0]);
+
+    const [badStatus, bad] = await post(new Uint8Array([0xff, 0xd8, 0xff, 0x00, 0x20, 0x6e]));
+    assert.deepEqual([badStatus, bad.error.code], [400, "invalid_request"]);
+    const [bigStatus, big] = await post(Buffer.concat([png(10, 10), Buffer.alloc(LIMITS.freeImageBytes)]));
+    assert.deepEqual([bigStatus, big.error.code], [413, "payload_too_large"]);
+    assert.match(big.error.message, /4 MiB/);
+    assert.equal(free.uploads, 0);
+  } finally {
+    await new Promise((resolve) => srv.close(resolve));
+  }
+});
+
+test("free mode surfaces the free tier's refusals", async () => {
+  const free = new FakeStack(true);
+  const srv = createServer(new Backend(free, { now: () => clock, log: () => {} }).handle);
+  await new Promise<void>((resolve) => srv.listen(0, "127.0.0.1", resolve));
+  const url = `http://127.0.0.1:${(srv.address() as AddressInfo).port}`;
+  const h = { "X-Session-Id": "limits" };
+  try {
+    const up: sc.Json = await (await fetch(url + "/api/images", { method: "POST", body: png(100, 80), headers: { ...h, "Content-Type": "image/png" } })).json();
+    const click = () => fetch(url + "/api/refine", { method: "POST", body: JSON.stringify({ imageId: up.imageId, points: [{ x: 5, y: 5 }] }), headers: { ...h, "Content-Type": "application/json" } });
+    free.fail = new sc.StackError(429, "daily_limit_reached", "the daily limit is used up", false, 0, "req_5");
+    let res = await click();
+    let r: sc.Json = await res.json();
+    assert.deepEqual([res.status, r.error.code, r.error.retryable, r.error.upstreamCode], [502, "upstream_refused", false, "daily_limit_reached"]);
+    assert.match(r.error.message, /FOLDBUN_API_KEY/);
+    free.fail = new sc.StackError(429, "rate_limited", "slow down", true, 3000);
+    res = await click();
+    r = await res.json();
+    assert.deepEqual([res.status, r.error.code, r.error.retryable, res.headers.get("Retry-After")], [503, "upstream_busy", true, "3"]);
+    free.fail = null;
+    assert.equal((await click()).status, 200);
+  } finally {
+    await new Promise((resolve) => srv.close(resolve));
   }
 });

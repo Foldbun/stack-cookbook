@@ -5,6 +5,8 @@ package main
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/base64"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -34,6 +36,7 @@ type fakeRow struct {
 
 // fakeStack answers like Stack for an image of 100 x 80 pixels and records what it was asked.
 type fakeStack struct {
+	free    bool
 	mu      sync.Mutex
 	uploads int
 	bodies  []string // JSON of every body sent to /v1/refine
@@ -41,7 +44,12 @@ type fakeStack struct {
 	rows    []fakeRow
 }
 
+func (f *fakeStack) Free() bool { return f.free }
+
 func (f *fakeStack) Upload(data []byte, contentType string) (stackclient.ImageInfo, error) {
+	if f.free {
+		return stackclient.ImageInfo{}, &stackclient.Error{Code: "missing_api_key", Message: "image uploads are not part of the free tier"}
+	}
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.uploads++
@@ -60,10 +68,13 @@ func (f *fakeStack) Post(path string, body any, o stackclient.Opts) (json.RawMes
 	if len(f.bodies) > 1 {
 		cache, list = "hit", 0.01
 	}
-	model := "sam-lite"
-	f.rows = append(f.rows, fakeRow{o.Tag, stackclient.Row{Endpoint: path, Model: &model, List: list, Cache: &cache, QueueMs: 4, ProcessingMs: 60}})
-	return json.RawMessage(fmt.Sprintf(`{"model":"sam-lite","cost":0,"cache":%q,"billing":{"total":%g},
-		"instances":[{"score":0.9,"bbox":[10,10,51,41],"area":1271,"polygon":[{"outer":[10,10,50,10,50,40,10,40]}]}]}`, cache, list)), nil
+	model, charged := "sam-lite", list
+	if f.free {
+		charged = 0
+	}
+	f.rows = append(f.rows, fakeRow{o.Tag, stackclient.Row{Endpoint: path, Model: &model, List: list, Charged: charged, Cache: &cache, QueueMs: 4, ProcessingMs: 60}})
+	return json.RawMessage(fmt.Sprintf(`{"model":"sam-lite","cost":%g,"cache":%q,"billing":{"total":%g},
+		"instances":[{"score":0.9,"bbox":[10,10,51,41],"area":1271,"polygon":[{"outer":[10,10,50,10,50,40,10,40]}]}]}`, charged, cache, list)), nil
 }
 
 func (f *fakeStack) Calls(tag string) []stackclient.Row {
@@ -94,9 +105,11 @@ type rig struct {
 
 var epoch = time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 
-func newRig(t *testing.T, opts Options) *rig {
+func newRig(t *testing.T, opts Options) *rig { return newRigMode(t, opts, false) }
+
+func newRigMode(t *testing.T, opts Options, free bool) *rig {
 	t.Helper()
-	r := &rig{t: t, stack: &fakeStack{}}
+	r := &rig{t: t, stack: &fakeStack{free: free}}
 	opts.Now = func() time.Time { return epoch.Add(time.Duration(r.clock.Load()) * time.Millisecond) }
 	r.server = httptest.NewServer(NewBackend(r.stack, opts))
 	t.Cleanup(r.server.Close)
@@ -567,6 +580,10 @@ func TestFromStack(t *testing.T) {
 		{"cap", &stackclient.Error{Code: "budget_exceeded"}, 503, "credit_cap", false, 0, ""},
 		{"balance", &stackclient.Error{Status: 402, Code: "insufficient_balance"}, 502, "upstream_refused", false, 0, "insufficient_balance"},
 		{"daily limit", &stackclient.Error{Status: 429, Code: "daily_limit_reached"}, 502, "upstream_refused", false, 0, "daily_limit_reached"},
+		{"free tier unavailable", &stackclient.Error{Status: 403, Code: "free_tier_unavailable"}, 502, "upstream_refused", false, 0, "free_tier_unavailable"},
+		{"rate limited past the client's waits", &stackclient.Error{Status: 429, Code: "rate_limited", RetryAfterMs: 4200}, 503, "upstream_busy", true, 4200, "rate_limited"},
+		{"free tier busy", &stackclient.Error{Status: 429, Code: "free_busy"}, 503, "upstream_busy", true, 1000, "free_busy"},
+		{"needs a key", &stackclient.Error{Code: "missing_api_key"}, 502, "upstream_refused", false, 0, "missing_api_key"},
 		{"key", &stackclient.Error{Status: 401, Code: "unauthorized"}, 502, "upstream_refused", false, 0, "unauthorized"},
 	}
 	for _, c := range cases {
@@ -721,4 +738,130 @@ func httpRaw(url, request string) (string, error) {
 	c.Write([]byte(request))
 	out, _ := io.ReadAll(c)
 	return string(out), nil
+}
+
+// ---- free mode: no key, no uploads, the image goes inline with every click ----
+
+func pngOf(width, height int) []byte {
+	b := make([]byte, 33)
+	copy(b, "\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR")
+	binary.BigEndian.PutUint32(b[16:], uint32(width))
+	binary.BigEndian.PutUint32(b[20:], uint32(height))
+	return b
+}
+
+func jpegOf(width, height, orientation int) []byte {
+	b := []byte{0xff, 0xd8}
+	if orientation != 0 {
+		tiff := []byte("MM\x00*\x00\x00\x00\x08\x00\x01\x01\x12\x00\x03\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00")
+		binary.BigEndian.PutUint16(tiff[18:], uint16(orientation))
+		b = append(b, 0xff, 0xe1, 0, byte(8+len(tiff)))
+		b = append(b, "Exif\x00\x00"...)
+		b = append(b, tiff...)
+	}
+	b = append(b, 0xff, 0xc0, 0, 11, 8, byte(height>>8), byte(height), byte(width>>8), byte(width), 1, 1, 0x11, 0)
+	return append(b, 0xff, 0xda, 0, 2)
+}
+
+func TestImageSizeReadsPNGJPEGAndWebP(t *testing.T) {
+	webp := append([]byte("RIFF\x00\x00\x00\x00WEBPVP8L\x00\x00\x00\x00\x2f"), make([]byte, 10)...)
+	binary.LittleEndian.PutUint32(webp[21:], 99|49<<14)
+	cases := []struct {
+		name string
+		data []byte
+		w, h int
+	}{
+		{"png", pngOf(30, 20), 30, 20},
+		{"jpeg", jpegOf(40, 25, 0), 40, 25},
+		{"jpeg upright", jpegOf(40, 25, 1), 40, 25},
+		{"jpeg turned by a quarter", jpegOf(40, 25, 6), 25, 40},
+		{"webp", webp, 100, 50},
+		{"text", []byte("not an image"), 0, 0},
+		{"empty", nil, 0, 0},
+		{"jpeg without a frame", []byte{0xff, 0xd8, 0xff, 0xd9}, 0, 0},
+	}
+	for _, c := range cases {
+		if w, h := imageSize(c.data); w != c.w || h != c.h {
+			t.Errorf("%s: %d x %d", c.name, w, h)
+		}
+	}
+}
+
+func TestFreeModeKeepsTheBytesAndSendsThemInlineWithEveryClick(t *testing.T) {
+	r := newRigMode(t, Options{}, true)
+	data := pngOf(100, 80)
+	up := r.do("POST", "/api/images", "free", "image/png", bytes.NewReader(data))
+	sum := sha256.Sum256(data)
+	if up.status != 200 || up.body["width"] != 100.0 || up.body["height"] != 80.0 || up.body["imageId"] != "im_"+hex.EncodeToString(sum[:])[:32] {
+		t.Fatalf("%d %v", up.status, up.body)
+	}
+	if r.stack.uploads != 0 {
+		t.Fatal("free mode must not upload")
+	}
+	img := up.body["imageId"]
+	for _, x := range []float64{20, 60} {
+		if rep := r.refine("free", obj{"imageId": img, "points": []obj{{"x": x, "y": 20}}}); rep.status != 200 {
+			t.Fatalf("%d %v", rep.status, rep.body)
+		}
+	}
+	inline := `"image":{"base64":"` + base64.StdEncoding.EncodeToString(data) + `"}`
+	for i, body := range r.stack.bodies {
+		if !strings.Contains(body, inline) {
+			t.Fatalf("body %d is not inline: %.120s", i, body)
+		}
+	}
+	// bounds come from the bytes
+	if rep := r.refine("free", obj{"imageId": img, "points": []obj{{"x": 101, "y": 20}}}); code(rep) != "invalid_request" {
+		t.Fatalf("%d %v", rep.status, rep.body)
+	}
+	rep := r.refine("free", obj{"imageId": img, "points": []obj{{"x": 30, "y": 20}}})
+	if rep.body["costCredits"] != 0.0 || rep.body["listCredits"] != 0.01 {
+		t.Fatalf("%v", rep.body)
+	}
+	u := r.get("/api/usage", "free").body
+	if u["uploads"] != 1.0 || u["clicks"] != 3.0 || u["costCredits"] != 0.0 || u["listCredits"] != 0.23 {
+		t.Fatalf("%v", u)
+	}
+	for _, c := range u["calls"].([]any) {
+		if c.(obj)["charged"] != 0.0 {
+			t.Fatalf("charged in free mode: %v", c)
+		}
+	}
+}
+
+func TestFreeModeRefusesImagesItCannotSend(t *testing.T) {
+	r := newRigMode(t, Options{}, true)
+	rep := r.do("POST", "/api/images", "bad", "image/jpeg", bytes.NewReader([]byte{0xff, 0xd8, 0xff, 0x00, 0x20, 0x6e}))
+	if rep.status != 400 || code(rep) != "invalid_request" {
+		t.Fatalf("%d %v", rep.status, rep.body)
+	}
+	big := append(pngOf(10, 10), make([]byte, maxFreeImage)...)
+	rep = r.do("POST", "/api/images", "bad", "image/png", bytes.NewReader(big))
+	if rep.status != 413 || code(rep) != "payload_too_large" || !strings.Contains(rep.body["error"].(obj)["message"].(string), "4 MiB") {
+		t.Fatalf("%d %v", rep.status, rep.body)
+	}
+	if r.stack.uploads != 0 || r.stack.sent() != 0 {
+		t.Fatal("nothing may reach Stack")
+	}
+}
+
+func TestFreeModeSurfacesTheFreeTiersRefusals(t *testing.T) {
+	r := newRigMode(t, Options{}, true)
+	img := r.do("POST", "/api/images", "limits", "image/png", bytes.NewReader(pngOf(100, 80))).body["imageId"]
+	body := obj{"imageId": img, "points": []obj{{"x": 5, "y": 5}}}
+	r.stack.fail = &stackclient.Error{Status: 429, Code: "daily_limit_reached", Message: "the daily limit is used up", RequestID: "req_5"}
+	rep := r.refine("limits", body)
+	e, _ := rep.body["error"].(obj)
+	if rep.status != 502 || e["code"] != "upstream_refused" || e["retryable"] != false || e["upstreamCode"] != "daily_limit_reached" || !strings.Contains(e["message"].(string), "FOLDBUN_API_KEY") {
+		t.Fatalf("%d %v", rep.status, rep.body)
+	}
+	r.stack.fail = &stackclient.Error{Status: 429, Code: "rate_limited", Message: "slow", RetryAfterMs: 3000}
+	rep = r.refine("limits", body)
+	if rep.status != 503 || code(rep) != "upstream_busy" || rep.body["error"].(obj)["retryable"] != true || rep.header.Get("Retry-After") != "3" {
+		t.Fatalf("%d %v %v", rep.status, rep.body, rep.header)
+	}
+	r.stack.fail = nil
+	if rep := r.refine("limits", body); rep.status != 200 {
+		t.Fatalf("%d %v", rep.status, rep.body)
+	}
 }

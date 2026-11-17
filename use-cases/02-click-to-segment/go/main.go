@@ -1,5 +1,5 @@
 // Click-to-segment backend: go run . --port 8080 [--host 127.0.0.1] [--static ../web/dist].
-// Holds the API key; see contract/02-backend.yaml.
+// Works without a key (free tier) or with FOLDBUN_API_KEY; see contract/02-backend.yaml.
 package main
 
 import (
@@ -20,10 +20,7 @@ import (
 	"stack-cookbook/02-click-to-segment/stackclient"
 )
 
-const (
-	exitFailed = 1
-	exitNoKey  = 2
-)
+const exitFailed = 1
 
 func main() { os.Exit(run(os.Args[1:])) }
 
@@ -51,13 +48,11 @@ func run(args []string) int {
 		}
 		return exitFailed
 	}
-	// key, base URL and credit cap come from FOLDBUN_API_KEY, FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
+	// No key: the free tier, and the backend sends the image inline with every click. With FOLDBUN_API_KEY: it uploads
+	// each image once and sends its handle. The base URL, project and credit cap come from FOLDBUN_API_BASE,
+	// FOLDBUN_PROJECT_ID and FOLDBUN_MAX_CREDITS.
 	client, err := stackclient.New(stackclient.Config{})
 	if err != nil {
-		if stackclient.Code(err) == "missing_api_key" {
-			fmt.Fprintln(os.Stderr, stackclient.MissingKey)
-			return exitNoKey
-		}
 		fmt.Fprintln(os.Stderr, err)
 		return exitFailed
 	}
@@ -80,6 +75,11 @@ func run(args []string) int {
 	served := make(chan error, 1)
 	go func() { served <- srv.Serve(ln) }()
 	fmt.Printf("listening on http://%s\n", net.JoinHostPort(*host, strconv.Itoa(ln.Addr().(*net.TCPAddr).Port)))
+	if client.Free() {
+		fmt.Println("mode: free tier (images are sent inline with every click)")
+	} else {
+		fmt.Println("mode: API key (images are uploaded once)")
+	}
 	select {
 	case err := <-served:
 		fmt.Fprintln(os.Stderr, err)

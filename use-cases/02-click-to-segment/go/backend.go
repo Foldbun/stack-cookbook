@@ -1,6 +1,6 @@
 package main
 
-// Key-holding backend of the click-to-segment component. The HTTP contract is contract/02-backend.yaml; the browser
+// Backend of the click-to-segment component (it holds the API key, if there is one). The HTTP contract is contract/02-backend.yaml; the browser
 // talks only to this backend, and only this backend talks to the Foldbun Stack API.
 
 import (
@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -30,6 +31,7 @@ const Language = "go"
 
 const (
 	maxImageBytes  = 20 << 20 // the Stack upload limit
+	maxFreeImage   = 4 << 20  // the largest image the free tier takes inline
 	maxRefineBytes = 64 << 10
 	maxPoints      = 20 // the Stack limit of POST /v1/refine
 	maxImages      = 256
@@ -46,6 +48,7 @@ var (
 
 // Stack is the part of the Stack client the backend uses (the tests pass a stand-in).
 type Stack interface {
+	Free() bool // true without an API key: the free tier, which has no uploads
 	Upload(data []byte, contentType string) (stackclient.ImageInfo, error)
 	Post(path string, body any, o stackclient.Opts) (json.RawMessage, error)
 	Calls(tag string) []stackclient.Row
@@ -80,6 +83,12 @@ func newError(status int, code, message string) *apiError {
 	return &apiError{Status: status, Code: code, Message: message}
 }
 
+// freeRefused is what the backend says when the free tier refuses for good: its own text, never Stack's.
+var freeRefused = map[string]string{
+	"daily_limit_reached":   "the daily limit of the free tier is used up (it resets at 00:00 UTC); start the backend with FOLDBUN_API_KEY to continue now",
+	"free_tier_unavailable": "the free tier is not available; start the backend with FOLDBUN_API_KEY",
+}
+
 // fromStack maps an error of the client file (after its own retries) to the backend's error.
 // Stack's message is not forwarded.
 func fromStack(err error) *apiError {
@@ -91,8 +100,14 @@ func fromStack(err error) *apiError {
 		return e
 	case se.Code == "budget_exceeded":
 		return newError(503, "credit_cap", "the backend's credit cap is reached")
-	case !se.Retryable:
-		return &apiError{Status: 502, Code: "upstream_refused", Message: "Foldbun Stack refused the call", UpstreamCode: se.Code, RequestID: se.RequestID}
+	case se.Code == "missing_api_key": // a call that only a key can make
+		return &apiError{Status: 502, Code: "upstream_refused", Message: "this needs an API key: start the backend with FOLDBUN_API_KEY", UpstreamCode: se.Code}
+	case !se.Retryable && se.Code != "rate_limited" && se.Code != "free_busy": // those two are the free tier's waits that outlived the client's
+		message := "Foldbun Stack refused the call"
+		if m, ok := freeRefused[se.Code]; ok {
+			message = m
+		}
+		return &apiError{Status: 502, Code: "upstream_refused", Message: message, UpstreamCode: se.Code, RequestID: se.RequestID}
 	}
 	return &apiError{Status: 503, Code: "upstream_busy", Message: "Foldbun Stack is busy; try again", Retryable: true,
 		RetryAfterMs: max(1000, se.RetryAfterMs), UpstreamCode: se.Code, RequestID: se.RequestID}
@@ -150,7 +165,8 @@ func (s *session) limit(bucket *rateLimit, now time.Time) error {
 // image is one entry of the image cache: the Stack handle of an upload that is running or done.
 type image struct {
 	id            string
-	handle        string
+	handle        string // empty in free mode, which has no uploads
+	data          []byte // free mode keeps the bytes and sends them inline with every click
 	width, height int
 	err           error
 	done          chan struct{} // closed when handle, width, height or err are set
@@ -164,6 +180,7 @@ type Backend struct {
 	now       func() time.Time
 	log       func(string)
 	staticDir string
+	free      bool // the client decides: no key, no uploads
 
 	mu       sync.Mutex // guards sessions, order, images and imageUse
 	sessions map[string]*session
@@ -174,7 +191,7 @@ type Backend struct {
 
 // NewBackend creates a backend over a Stack client.
 func NewBackend(stack Stack, o Options) *Backend {
-	b := &Backend{stack: stack, models: o.Models, now: o.Now, log: o.Log, staticDir: o.StaticDir,
+	b := &Backend{stack: stack, models: o.Models, now: o.Now, log: o.Log, staticDir: o.StaticDir, free: stack.Free(),
 		sessions: map[string]*session{}, order: list.New(), images: map[string]*image{}, imageUse: list.New()}
 	if len(b.models) == 0 {
 		b.models = []string{"sam-lite"}
@@ -413,13 +430,28 @@ func (b *Backend) uploadImage(r *http.Request, s *session) (any, error) {
 	if len(data) == 0 {
 		return nil, invalid("the body is empty: send the raw bytes of the image")
 	}
+	var width, height int
+	if b.free { // no upload will answer with the size, so read it from the bytes
+		if len(data) > maxFreeImage {
+			return nil, newError(413, "payload_too_large", fmt.Sprintf("at most %d bytes without an API key (the free tier takes images up to 4 MiB)", maxFreeImage))
+		}
+		if width, height = imageSize(data); width == 0 {
+			return nil, invalid("the body is not a readable jpeg, png or webp image")
+		}
+	}
 	sum := sha256.Sum256(data)
 	imageID := "im_" + hex.EncodeToString(sum[:])[:32]
 	img, started := b.begin(imageID)
 	if started {
-		// the client file keeps the bytes and uploads again if Stack evicts them
-		info, err := b.stack.Upload(data, contentType)
-		b.finish(img, info, err)
+		// With a key: one Stack upload per distinct content; the client file keeps the bytes and uploads again if Stack
+		// evicts them. Free tier: there are no uploads; this cache keeps the bytes and every click sends them inline.
+		if b.free {
+			img.data = data // set before finish wakes the waiters
+			b.finish(img, stackclient.ImageInfo{Width: width, Height: height}, nil)
+		} else {
+			info, err := b.stack.Upload(data, contentType)
+			b.finish(img, info, err)
+		}
 	}
 	if err := ready(r.Context(), img); err != nil {
 		if r.Context().Err() != nil {
@@ -493,7 +525,11 @@ func (b *Backend) refine(r *http.Request, s *session) (any, error) {
 		return nil, err
 	}
 	// Stateless: every click sends all points of the object.
-	call := stackRefine{Model: req.model, Image: stackclient.ImageHandle(img.handle), Points: req.points, Box: req.box}
+	input := stackclient.ImageHandle(img.handle)
+	if img.handle == "" {
+		input = stackclient.ImageBase64(img.data)
+	}
+	call := stackRefine{Model: req.model, Image: input, Points: req.points, Box: req.box}
 	start := time.Now()
 	data, err := b.stack.Post("/v1/refine", call, stackclient.Opts{Tag: s.tag})
 	if err != nil {
@@ -692,3 +728,91 @@ func readBody(r *http.Request, limit int64) ([]byte, error) {
 	}
 	return data, nil
 }
+
+// region image-size
+
+// imageSize returns the width and height of a PNG, JPEG or WebP image as the API counts them (JPEG: EXIF orientation
+// applied), else 0, 0. Free mode has no upload that answers with the size, and the points are checked against it.
+func imageSize(data []byte) (w, h int) {
+	le24 := func(b []byte) int { return int(b[0]) | int(b[1])<<8 | int(b[2])<<16 }
+	switch {
+	case len(data) >= 24 && string(data[:8]) == "\x89PNG\r\n\x1a\n":
+		w, h = int(binary.BigEndian.Uint32(data[16:20])), int(binary.BigEndian.Uint32(data[20:24]))
+	case len(data) >= 30 && string(data[:4]) == "RIFF" && string(data[8:12]) == "WEBP":
+		switch string(data[12:16]) {
+		case "VP8 ":
+			w, h = int(binary.LittleEndian.Uint16(data[26:28])&0x3fff), int(binary.LittleEndian.Uint16(data[28:30])&0x3fff)
+		case "VP8L":
+			bits := binary.LittleEndian.Uint32(data[21:25])
+			w, h = int(bits&0x3fff)+1, int(bits>>14&0x3fff)+1
+		case "VP8X":
+			w, h = 1+le24(data[24:27]), 1+le24(data[27:30])
+		}
+	case len(data) >= 2 && data[0] == 0xff && data[1] == 0xd8:
+		var turned bool
+		if w, h, turned = jpegSize(data); turned {
+			w, h = h, w
+		}
+	}
+	if w <= 0 || h <= 0 {
+		return 0, 0
+	}
+	return w, h
+}
+
+// jpegSize walks the marker segments: the size from the frame header, and whether the EXIF orientation (5 to 8) turns
+// the image.
+func jpegSize(data []byte) (w, h int, turned bool) {
+	for i := 2; i+4 <= len(data) && data[i] == 0xff; {
+		marker := data[i+1]
+		if marker == 0xff { // fill byte
+			i++
+			continue
+		}
+		if marker == 0x01 || (marker >= 0xd0 && marker <= 0xd8) { // markers without a length
+			i += 2
+			continue
+		}
+		length := int(binary.BigEndian.Uint16(data[i+2 : i+4]))
+		body := data[min(i+4, len(data)):min(i+2+length, len(data))]
+		if marker == 0xe1 && strings.HasPrefix(string(body), "Exif\x00\x00") {
+			turned = exifTurns(body[6:])
+		}
+		if len(body) >= 5 && marker >= 0xc0 && marker <= 0xcf && marker != 0xc4 && marker != 0xc8 && marker != 0xcc {
+			return int(binary.BigEndian.Uint16(body[3:5])), int(binary.BigEndian.Uint16(body[1:3])), turned
+		}
+		if marker == 0xda { // the scan starts: no frame header came first
+			break
+		}
+		i += 2 + length
+	}
+	return 0, 0, turned
+}
+
+// exifTurns reports whether the orientation tag of the first IFD turns the image by a quarter (values 5 to 8).
+func exifTurns(tiff []byte) bool {
+	if len(tiff) < 8 || (string(tiff[:2]) != "II" && string(tiff[:2]) != "MM") {
+		return false
+	}
+	var order binary.ByteOrder = binary.BigEndian
+	if tiff[0] == 'I' {
+		order = binary.LittleEndian
+	}
+	offset := int(order.Uint32(tiff[4:8]))
+	if offset+2 > len(tiff) {
+		return false
+	}
+	for k, n := 0, int(order.Uint16(tiff[offset:])); k < n; k++ {
+		at := offset + 2 + 12*k
+		if at+12 > len(tiff) {
+			return false
+		}
+		if order.Uint16(tiff[at:]) == 0x0112 {
+			o := order.Uint16(tiff[at+8:])
+			return o >= 5 && o <= 8
+		}
+	}
+	return false
+}
+
+// endregion
