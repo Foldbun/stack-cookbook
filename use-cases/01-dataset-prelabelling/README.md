@@ -119,8 +119,9 @@ The client reads the key and base URL from the environment and never prints the 
 <details><summary>Python (python/main.py)</summary>
 
 ```python
-client = sc.StackClient(max_concurrency=cfg.concurrency)  # FOLDBUN_API_KEY, FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
-client.models()  # free: checks the key
+client = sc.StackClient(max_concurrency=cfg.concurrency)  # FOLDBUN_API_KEY (optional), FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
+if client.free and len(items) > FREE_MAX_ITEMS:
+    client.require_key(f"the free tier is meant for trying a recipe on a few items, and this manifest has {len(items)}")
 ```
 
 </details>
@@ -128,12 +129,12 @@ client.models()  # free: checks the key
 <details><summary>Go (go/main.go)</summary>
 
 ```go
-client, err := stackclient.New(stackclient.Config{MaxConcurrency: c.Concurrency}) // FOLDBUN_API_KEY, FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
+client, err := stackclient.New(stackclient.Config{MaxConcurrency: c.Concurrency}) // FOLDBUN_API_KEY (optional), FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
 if err != nil {
 	return err
 }
-if _, err := client.Models(); err != nil { // free: checks the key
-	return err
+if client.Free() && len(items) > freeMaxItems {
+	return client.RequireKey(fmt.Sprintf("the free tier is meant for trying a recipe on a few items, and this manifest has %d", len(items)))
 }
 ```
 
@@ -279,7 +280,8 @@ def build_prompts(unit, cfg, by_prompt, extra):
 
 
 def build_body(unit, cfg):
-    """One batch item: the body of POST /v1/segment without `model`. The image is an uploaded handle."""
+    """The body of POST /v1/segment without `model` (one batch item). The image is an uploaded handle with a key,
+    inline base64 on the free tier."""
     defaults = {"geometry": ["polygon", "mask"] if cfg.masks else ["polygon"], "polygon": {"tolerancePx": 1.0, "holes": False}}
     options = {"defaults": defaults}
     if cfg.mode != "boxes":  # filters and overlap removal belong to search prompts; box prompts are one object each
@@ -287,7 +289,8 @@ def build_body(unit, cfg):
         options["nms"] = {"iou": 0.7, "metric": "mask", "scope": "group"}  # one object found twice under the same class
     if cfg.masks:
         options["maskSize"] = 4096  # the grid is never larger than the image, so masks come at image size
-    return {"image": {"id": unit.handle}, "prompts": unit.prompts, "options": options}
+    image = {"id": unit.handle} if unit.handle else sc.image_base64(unit.path.read_bytes())
+    return {"image": image, "prompts": unit.prompts, "options": options}
 ```
 
 </details>
@@ -330,8 +333,9 @@ func buildPrompts(u *Unit, c *config, classes classIndex, ex *extra) ([]map[stri
 	return prompts, labels
 }
 
-// buildBody is one batch item: the body of POST /v1/segment without `model`. The image is an uploaded handle.
-func buildBody(u *Unit, c *config) map[string]any {
+// buildBody is one batch item: the body of POST /v1/segment without `model`. The image is an uploaded handle with a key,
+// inline base64 on the free tier.
+func buildBody(u *Unit, c *config) (map[string]any, error) {
 	geometry := []string{"polygon"}
 	if c.Masks {
 		geometry = append(geometry, "mask")
@@ -345,7 +349,15 @@ func buildBody(u *Unit, c *config) map[string]any {
 	if c.Masks {
 		options["maskSize"] = 4096 // the grid is never larger than the image, so masks come at image size
 	}
-	return map[string]any{"image": map[string]any{"id": u.Handle}, "prompts": u.Prompts, "options": options}
+	var image any = stackclient.ImageHandle(u.Handle)
+	if u.Handle == "" {
+		data, err := os.ReadFile(u.Path)
+		if err != nil {
+			return nil, err
+		}
+		image = stackclient.ImageBase64(data)
+	}
+	return map[string]any{"image": image, "prompts": u.Prompts, "options": options}, nil
 }
 ```
 
@@ -410,7 +422,7 @@ for attempt in range(1, STREAM_ATTEMPTS + 1):
                     err = data.get("error") or {"code": "expired", "message": "the batch time limit passed before this item finished"}
                     cur.update(status=data["status"], error=local_error(err["code"], err["message"]))
     except sc.StackError as err:
-        if err.code in ("model_locked", "budget_exceeded", "insufficient_balance") or not (err.retryable or err.code == "batch_timeout"):
+        if err.code in FATAL_CODES or not (err.retryable or err.code == "batch_timeout"):
             raise
         log(f"  batch {tag}: {err.code}, attempt {attempt} of {STREAM_ATTEMPTS}")
     if summary is not None:
@@ -464,10 +476,7 @@ for attempt := 1; attempt <= streamAttempts; attempt++ {
 	})
 	var apiErr *stackclient.Error
 	if errors.As(err, &apiErr) {
-		switch {
-		case apiErr.Code == "model_locked" || apiErr.Code == "budget_exceeded" || apiErr.Code == "insufficient_balance":
-			return nil, err
-		case !(apiErr.Retryable || apiErr.Code == "batch_timeout"):
+		if fatalCodes[apiErr.Code] || !(apiErr.Retryable || apiErr.Code == "batch_timeout") {
 			return nil, err
 		}
 		logf("  batch %s: %s, attempt %d of %d", tag, apiErr.Code, attempt, streamAttempts)

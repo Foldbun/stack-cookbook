@@ -91,28 +91,20 @@ Go 实现是同一条管线的单个命令：`cd use-cases/05-image-library-sear
 <details><summary>Python (python/embedder.py)</summary>
 
 ```python
-def index_library(
-    client, index: LibraryIndex, root: Path, models=("dinov3", "siglip2"), *, batch_size=50, free_only=False, keep_free=0, workers=4, log=print
-) -> Report:
-    """Embed every library image that is missing from the index, with every model, a chunk at a time.
-
-    Chunks alternate between the models, so that when the daily allowance ends the first part of the library has
-    both vectors instead of one model having used all of it.
-    """
+def index_library(client, index: LibraryIndex, root: Path, models=("dinov3", "siglip2"), *, batch_size=50, workers=4, log=print) -> Report:
+    """Embed every library image that is missing from the index, with every model, a chunk at a time."""
+    check_free_size(client, len(index.items))
     report = Report()
     paths = {it["sha256"]: root / it["path"] for it in index.items}
-    # sha256 of every image that lacks a vector of some model, in catalogue order
-    pending = list(dict.fromkeys(sha for model in models for sha in index.missing(model)))
-    log(f"{len(index.items)} images in the library, {len(pending)} to embed")
-    for start in range(0, len(pending), batch_size):
-        chunk = pending[start : start + batch_size]
-        for model in models:
-            need = {sha: paths[sha] for sha in chunk if not index.has(model, sha)}
-            if need and not report.stopped:
-                embed_chunk(client, index, model, need, report, free_only=free_only, keep_free=keep_free, workers=workers)
-        log(f"  {min(start + batch_size, len(pending))}/{len(pending)}")
-        if report.stopped:
-            break
+    for model in models:
+        pending = index.missing(model)  # sha256 of the images that lack this model's vector, in catalogue order
+        log(f"{len(index.items)} images in the library, {len(pending)} to embed with {model}")
+        for start in range(0, len(pending), batch_size):
+            if report.stopped:
+                return report
+            chunk = {sha: paths[sha] for sha in pending[start : start + batch_size]}
+            embed_chunk(client, index, model, chunk, report, workers=workers)
+            log(f"  {min(start + batch_size, len(pending))}/{len(pending)}")
     return report
 ```
 
@@ -122,45 +114,27 @@ def index_library(
 
 ```go
 // indexLibrary embeds every library image that is missing from the index, with every model, a chunk at a time.
-//
-// Chunks alternate between the models, so that when the daily allowance ends the first part of the library has both
-// vectors instead of one model having used all of it.
-func indexLibrary(client *stackclient.Client, index *LibraryIndex, root string, models []string, batchSize int, freeOnly bool, keepFree float64, workers int, log func(string)) (*Report, error) {
+func indexLibrary(client *stackclient.Client, index *LibraryIndex, root string, models []string, batchSize, workers int, log func(string)) (*Report, error) {
+	if err := checkFreeSize(client, len(index.Items)); err != nil {
+		return nil, err
+	}
 	report := newReport()
 	paths := map[string]string{}
 	for _, it := range index.Items {
 		paths[it.Sha256] = filepath.Join(root, it.Path)
 	}
-	// sha256 of every image that lacks a vector of some model, in catalogue order
-	var pending []string
-	queued := map[string]bool{}
 	for _, model := range models {
-		for _, sha := range index.Missing(model) {
-			if !queued[sha] {
-				queued[sha] = true
-				pending = append(pending, sha)
+		pending := index.Missing(model) // sha256 of the images that lack this model's vector, in catalogue order
+		log(fmt.Sprintf("%d images in the library, %d to embed with %s", len(index.Items), len(pending), model))
+		for start := 0; start < len(pending); start += batchSize {
+			if report.Stopped != nil {
+				return report, nil
 			}
-		}
-	}
-	log(fmt.Sprintf("%d images in the library, %d to embed", len(index.Items), len(pending)))
-	for start := 0; start < len(pending); start += batchSize {
-		chunk := pending[start:min(start+batchSize, len(pending))]
-		for _, model := range models {
-			var need []string
-			for _, sha := range chunk {
-				if !index.Has(model, sha) {
-					need = append(need, sha)
-				}
+			chunk := pending[start:min(start+batchSize, len(pending))]
+			if err := embedChunk(client, index, model, chunk, paths, report, workers); err != nil {
+				return report, err
 			}
-			if len(need) > 0 && report.Stopped == nil {
-				if err := embedChunk(client, index, model, need, paths, report, freeOnly, keepFree, workers); err != nil {
-					return report, err
-				}
-			}
-		}
-		log(fmt.Sprintf("  %d/%d", min(start+batchSize, len(pending)), len(pending)))
-		if report.Stopped != nil {
-			break
+			log(fmt.Sprintf("  %d/%d", min(start+batchSize, len(pending)), len(pending)))
 		}
 	}
 	return report, nil
@@ -176,8 +150,8 @@ func indexLibrary(client *stackclient.Client, index *LibraryIndex, root string, 
 <details><summary>Python (python/embedder.py)</summary>
 
 ```python
-def run_batch(client, model, shas, handles, attempt, report, *, free_only, keep_free):
-    """One batch request. Returns ([(sha256, vector)] that succeeded, [sha256] to send again)."""
+def run_batch(client, model, shas, handles, attempt, report):
+    """One batch request (needs a key). Returns ([(sha256, vector)] that succeeded, [sha256] to send again)."""
     tag = f"{model}:{shas[0][:12]}:{attempt}"
     body = {"model": model, "items": [{"image": sc.image_handle(h)} for h in handles]}
     done, retry = [], []
@@ -190,20 +164,11 @@ def run_batch(client, model, shas, handles, attempt, report, *, free_only, keep_
                 if data["status"] == "ok":
                     done.append((sha, data["result"]["embeddings"][0]["vector"]))
                     report.rows.setdefault(sha, []).append(client.calls(tag)[-1])  # the ledger row of the item that just arrived
-                    billing = data["result"].get("billing") or {}
-                    if billing.get("allowance"):
-                        report.allowance[model] = {"pool": billing["pool"], **billing["allowance"]}
-                        used, limit = billing["allowance"]["used"], billing["allowance"]["limit"]
-                        # On the public pool the next call would be refused. With `free_only` a funded account stops
-                        # here too, instead of paying for the calls that come after the included ones.
-                        if (billing["pool"] == "public" or free_only) and limit - used <= keep_free:
-                            report.stopped = {"code": "daily_limit_reached", "message": f"{used} of {limit} included calls used today", "model": model}
-                            break  # closing the stream stops the batch; the items that already finished are kept
                 elif data["status"] == "expired" or data["error"]["code"] in RETRY_CODES:
                     retry.append(sha)  # not billed; goes into the next attempt (an evicted handle is uploaded again)
                 elif data["error"]["code"] in STOP_CODES:
                     report.stopped = {**data["error"], "model": model}
-                    break
+                    break  # closing the stream stops the batch; the items that already finished are kept
                 else:
                     report.failed[sha] = data["error"]  # for example an image the API cannot read: no retry helps
     except sc.StackError as err:
@@ -219,15 +184,52 @@ def run_batch(client, model, shas, handles, attempt, report, *, free_only, keep_
     return done, retry
 
 
-def embed_chunk(client, index: LibraryIndex, model: str, paths: dict[str, Path], report: Report, *, free_only=False, keep_free=0, workers=4) -> None:
+def run_singles(client, model, paths, shas, report, workers):
+    """The free tier: one `/v1/embeddings` call per image, the bytes inline as base64 (at most 4 MiB). Same return value as run_batch."""
+
+    def one(sha):
+        if report.stopped:
+            return sha, "retry", None  # another call already hit a limit: send nothing more
+        tag = f"{model}:{sha[:12]}"
+        body = {"model": model, "image": sc.image_base64(paths[sha].read_bytes())}
+        try:
+            result = client.post("/v1/embeddings", body, tag=tag)  # the client waits and retries 429 by itself
+        except sc.MissingApiKey:
+            raise
+        except sc.StackError as err:
+            if err.code == "model_locked":
+                raise
+            kind = "stop" if err.code in STOP_CODES else "retry" if err.code in RETRY_CODES else "fail"
+            return sha, kind, {"code": err.code, "message": err.message}
+        return sha, "ok", (result["embeddings"][0]["vector"], client.calls(tag)[-1])
+
+    done, retry = [], []
+    with ThreadPoolExecutor(workers) as pool:
+        for sha, kind, value in pool.map(one, shas):
+            if kind == "ok":
+                done.append((sha, value[0]))
+                report.rows.setdefault(sha, []).append(value[1])
+            elif kind == "retry":
+                retry.append(sha)
+            elif kind == "stop":
+                report.stopped = report.stopped or {**value, "model": model}
+            else:
+                report.failed[sha] = value
+    return done, retry
+
+
+def embed_chunk(client, index: LibraryIndex, model: str, paths: dict[str, Path], report: Report, *, workers=4) -> None:
     """Embed the images `paths` (sha256 -> file) with `model`, commit them, and record the outcome in `report`."""
     todo = list(paths)
     for attempt in range(ATTEMPTS):
         if not todo or report.stopped:
             break
-        with ThreadPoolExecutor(workers) as pool:
-            handles = list(pool.map(lambda sha: _upload(client, paths[sha]), todo))  # free; also re-uploads evicted images
-        done, retry = run_batch(client, model, todo, handles, attempt, report, free_only=free_only, keep_free=keep_free)
+        if client.free:
+            done, retry = run_singles(client, model, paths, todo, report, workers)
+        else:
+            with ThreadPoolExecutor(workers) as pool:
+                handles = list(pool.map(lambda sha: _upload(client, paths[sha]), todo))  # free of charge; also re-uploads evicted images
+            done, retry = run_batch(client, model, todo, handles, attempt, report)
         if done:
             index.add(model, [s for s, _ in done], [v for _, v in done])
             index.commit()
@@ -242,8 +244,8 @@ def embed_chunk(client, index: LibraryIndex, model: str, paths: dict[str, Path],
 <details><summary>Go (go/embedder.go)</summary>
 
 ```go
-// runBatch sends one batch request. It returns the embeddings that succeeded and the sha256 to send again.
-func runBatch(client *stackclient.Client, model string, shas, handles []string, attempt int, report *Report, freeOnly bool, keepFree float64) ([]embedding, []string, error) {
+// runBatch sends one batch request (needs a key). It returns the embeddings that succeeded and the sha256 to send again.
+func runBatch(client *stackclient.Client, model string, shas, handles []string, attempt int, report *Report) ([]embedding, []string, error) {
 	tag := fmt.Sprintf("%s:%s:%d", model, shas[0][:12], attempt)
 	items := make([]map[string]any, len(handles))
 	for i, h := range handles {
@@ -269,26 +271,11 @@ func runBatch(client *stackclient.Client, model string, shas, handles []string, 
 			done = append(done, embedding{sha, data.Result.Embeddings[0].Vector})
 			rows := client.Calls(tag)
 			report.Rows[sha] = append(report.Rows[sha], rows[len(rows)-1]) // the ledger row of the item that just arrived
-			if b := data.Result.Billing; b != nil && b.Allowance != nil {
-				seen := map[string]any{"pool": b.Pool}
-				for k, v := range b.Allowance {
-					seen[k] = v
-				}
-				report.Allowance[model] = seen
-				used, _ := b.Allowance["used"].(float64)
-				limit, _ := b.Allowance["limit"].(float64)
-				// On the public pool the next call would be refused. With freeOnly a funded account stops here too,
-				// instead of paying for the calls that come after the included ones.
-				if (b.Pool == "public" || freeOnly) && limit-used <= keepFree {
-					report.Stopped = &Stopped{"daily_limit_reached", fmt.Sprintf("%g of %g included calls used today", used, limit), model}
-					return stackclient.ErrStop // ending the stream stops the batch; the items that already finished are kept
-				}
-			}
 		case data.Status == "expired" || (data.Error != nil && retryCodes[data.Error.Code]):
 			retry = append(retry, sha) // not billed; goes into the next attempt (an evicted handle is uploaded again)
 		case data.Error != nil && stopCodes[data.Error.Code]:
 			report.Stopped = &Stopped{data.Error.Code, data.Error.Message, model}
-			return stackclient.ErrStop
+			return stackclient.ErrStop // ending the stream stops the batch; the items that already finished are kept
 		case data.Error != nil:
 			report.Failed[sha] = *data.Error // for example an image the API cannot read: no retry helps
 		default:
@@ -328,19 +315,109 @@ func runBatch(client *stackclient.Client, model string, shas, handles []string, 
 	return done, retry, nil
 }
 
+// runSingles is the free tier: one /v1/embeddings call per image, the bytes inline as base64 (at most 4 MiB), at most
+// workers calls at a time. It returns what runBatch returns.
+func runSingles(client *stackclient.Client, model string, shas []string, paths map[string]string, report *Report, workers int) ([]embedding, []string, error) {
+	type outcome struct {
+		kind   string // ok, retry, stop or fail
+		vector []float32
+		row    stackclient.Row
+		info   ErrInfo
+		err    error // anything but an API error, or an API error that ends the run
+	}
+	outcomes, stopped := make([]outcome, len(shas)), make(chan struct{})
+	var once sync.Once
+	slots, wg := make(chan struct{}, max(workers, 1)), sync.WaitGroup{}
+	for i, sha := range shas {
+		wg.Add(1)
+		slots <- struct{}{}
+		go func() {
+			defer func() { <-slots; wg.Done() }()
+			select {
+			case <-stopped:
+				outcomes[i].kind = "retry" // another call already hit a limit: send nothing more
+				return
+			default:
+			}
+			data, err := os.ReadFile(paths[sha])
+			if err != nil {
+				outcomes[i].err = err
+				return
+			}
+			tag := model + ":" + sha[:12]
+			body := map[string]any{"model": model, "image": stackclient.ImageBase64(data)}
+			raw, err := client.Post("/v1/embeddings", body, stackclient.Opts{Tag: tag}) // the client waits and retries 429 by itself
+			var apiErr *stackclient.Error
+			switch {
+			case errors.As(err, &apiErr) && apiErr.Code != "model_locked" && apiErr.Code != "missing_api_key":
+				kind := "fail"
+				if stopCodes[apiErr.Code] {
+					kind = "stop"
+					once.Do(func() { close(stopped) })
+				} else if retryCodes[apiErr.Code] {
+					kind = "retry"
+				}
+				outcomes[i].kind, outcomes[i].info = kind, ErrInfo{apiErr.Code, apiErr.Message}
+			case err != nil:
+				outcomes[i].err = err
+			default:
+				var result struct {
+					Embeddings []struct {
+						Vector []float32 `json:"vector"`
+					} `json:"embeddings"`
+				}
+				if err := json.Unmarshal(raw, &result); err != nil || len(result.Embeddings) == 0 {
+					outcomes[i].err = errors.New("embeddings response without a vector")
+					return
+				}
+				rows := client.Calls(tag)
+				outcomes[i].kind, outcomes[i].vector, outcomes[i].row = "ok", result.Embeddings[0].Vector, rows[len(rows)-1]
+			}
+		}()
+	}
+	wg.Wait()
+	var done []embedding
+	var retry []string
+	for i, sha := range shas {
+		o := outcomes[i]
+		switch {
+		case o.err != nil:
+			return nil, nil, o.err
+		case o.kind == "ok":
+			done = append(done, embedding{sha, o.vector})
+			report.Rows[sha] = append(report.Rows[sha], o.row)
+		case o.kind == "retry":
+			retry = append(retry, sha)
+		case o.kind == "stop":
+			if report.Stopped == nil {
+				report.Stopped = &Stopped{o.info.Code, o.info.Message, model}
+			}
+		default:
+			report.Failed[sha] = o.info
+		}
+	}
+	return done, retry, nil
+}
+
 // embedChunk embeds the images paths (sha256 -> file; order gives the batch order) with model, commits them, and
 // records the outcome in report.
-func embedChunk(client *stackclient.Client, index *LibraryIndex, model string, order []string, paths map[string]string, report *Report, freeOnly bool, keepFree float64, workers int) error {
+func embedChunk(client *stackclient.Client, index *LibraryIndex, model string, order []string, paths map[string]string, report *Report, workers int) error {
 	todo := order
 	for attempt := 0; attempt < attempts; attempt++ {
 		if len(todo) == 0 || report.Stopped != nil {
 			break
 		}
-		handles, err := uploadAll(client, todo, paths, workers) // free; also uploads again what was evicted
-		if err != nil {
-			return err
+		var done []embedding
+		var retry []string
+		var err error
+		if client.Free() {
+			done, retry, err = runSingles(client, model, todo, paths, report, workers)
+		} else {
+			var handles []string
+			if handles, err = uploadAll(client, todo, paths, workers); err == nil { // free of charge; also uploads again what was evicted
+				done, retry, err = runBatch(client, model, todo, handles, attempt, report)
+			}
 		}
-		done, retry, err := runBatch(client, model, todo, handles, attempt, report, freeOnly, keepFree)
 		if err != nil {
 			return err
 		}
@@ -700,7 +777,7 @@ stats["reindex"] = {"apiCalls": len(client.ledger) - calls_before, "embedded": a
 ```go
 callsBefore := len(client.Calls(""))
 var again *Report
-again, err = indexLibrary(client, index, base, models, *batchSize, *freeOnly, 0, *concurrency, func(string) {})
+again, err = indexLibrary(client, index, base, models, *batchSize, *concurrency, func(string) {})
 if err == nil {
 	st.Reindex.APICalls, st.Reindex.Embedded = len(client.Calls(""))-callsBefore, again.Embedded // nothing is missing, so nothing is sent
 }

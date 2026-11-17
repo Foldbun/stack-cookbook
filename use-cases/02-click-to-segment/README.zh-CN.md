@@ -143,13 +143,25 @@ private async uploadImage(req: IncomingMessage, s: Session): Promise<sc.Json> {
   if (!IMAGE_TYPES.has(type)) throw new ApiError(415, "unsupported_media_type", "send the raw bytes as image/jpeg, image/png or image/webp");
   const data = await readBody(req, LIMITS.imageBytes);
   if (data.length === 0) throw invalid("the body is empty: send the raw bytes of the image");
+  let size: [number, number] | null = null;
+  if (this.free) {
+    // no upload will answer with the size, so read it from the bytes
+    if (data.length > LIMITS.freeImageBytes) {
+      throw new ApiError(413, "payload_too_large", `at most ${LIMITS.freeImageBytes} bytes without an API key (the free tier takes images up to 4 MiB)`);
+    }
+    size = imageSize(data);
+    if (!size) throw invalid("the body is not a readable jpeg, png or webp image");
+  }
   const imageId = "im_" + createHash("sha256").update(data).digest("hex").slice(0, 32);
   let pending = this.images.get(imageId);
   if (pending) {
     this.images.delete(imageId); // most recently used goes last
   } else {
-    // one Stack upload per distinct content; the client file keeps the bytes and uploads again if Stack evicts them
-    pending = this.stack.upload(data, type).then((u) => ({ handle: u.id, width: u.width, height: u.height }));
+    // With a key: one Stack upload per distinct content; the client file keeps the bytes and uploads again if Stack
+    // evicts them. Free tier: there are no uploads; this cache keeps the bytes and every click sends them inline.
+    pending = size
+      ? Promise.resolve({ handle: null, width: size[0], height: size[1], data })
+      : this.stack.upload(data, type).then((u) => ({ handle: u.id, width: u.width, height: u.height }));
     pending.catch(() => this.images.delete(imageId));
   }
   this.images.set(imageId, pending);
@@ -178,6 +190,13 @@ def _upload_image(self, req: Request, s: Session) -> dict:
     data = req.read_body(IMAGE_BYTES)
     if not data:
         raise invalid("the body is empty: send the raw bytes of the image")
+    size = None
+    if self.free:  # no upload will answer with the size, so read it from the bytes
+        if len(data) > FREE_IMAGE_BYTES:
+            raise ApiError(413, "payload_too_large", f"at most {FREE_IMAGE_BYTES} bytes without an API key (the free tier takes images up to 4 MiB)")
+        size = image_size(data)
+        if size is None:
+            raise invalid("the body is not a readable jpeg, png or webp image")
     image_id = "im_" + hashlib.sha256(data).hexdigest()[:32]
     with self._lock:
         pending = self._images.get(image_id)
@@ -188,11 +207,15 @@ def _upload_image(self, req: Request, s: Session) -> dict:
         while len(self._images) > MAX_IMAGES:
             self._images.popitem(last=False)
     if owner:
-        # one Stack upload per distinct content; the client file keeps the bytes and uploads again if Stack evicts them.
-        # Concurrent uploads of the same bytes wait for this one instead of uploading again.
+        # With a key: one Stack upload per distinct content; the client file keeps the bytes and uploads again if
+        # Stack evicts them. Concurrent uploads of the same bytes wait for this one instead of uploading again.
+        # Free tier: there are no uploads; this cache keeps the bytes and every click sends them inline.
         try:
-            u = self.stack.upload(data, content_type)
-            pending.set_result(Image(u["id"], u["width"], u["height"]))
+            if size:
+                pending.set_result(Image(None, size[0], size[1], data))
+            else:
+                u = self.stack.upload(data, content_type)
+                pending.set_result(Image(u["id"], u["width"], u["height"]))
         except BaseException as exc:
             with self._lock:
                 if self._images.get(image_id) is pending:
@@ -228,13 +251,28 @@ func (b *Backend) uploadImage(r *http.Request, s *session) (any, error) {
 	if len(data) == 0 {
 		return nil, invalid("the body is empty: send the raw bytes of the image")
 	}
+	var width, height int
+	if b.free { // no upload will answer with the size, so read it from the bytes
+		if len(data) > maxFreeImage {
+			return nil, newError(413, "payload_too_large", fmt.Sprintf("at most %d bytes without an API key (the free tier takes images up to 4 MiB)", maxFreeImage))
+		}
+		if width, height = imageSize(data); width == 0 {
+			return nil, invalid("the body is not a readable jpeg, png or webp image")
+		}
+	}
 	sum := sha256.Sum256(data)
 	imageID := "im_" + hex.EncodeToString(sum[:])[:32]
 	img, started := b.begin(imageID)
 	if started {
-		// the client file keeps the bytes and uploads again if Stack evicts them
-		info, err := b.stack.Upload(data, contentType)
-		b.finish(img, info, err)
+		// With a key: one Stack upload per distinct content; the client file keeps the bytes and uploads again if Stack
+		// evicts them. Free tier: there are no uploads; this cache keeps the bytes and every click sends them inline.
+		if b.free {
+			img.data = data // set before finish wakes the waiters
+			b.finish(img, stackclient.ImageInfo{Width: width, Height: height}, nil)
+		} else {
+			info, err := b.stack.Upload(data, contentType)
+			b.finish(img, info, err)
+		}
 	}
 	if err := ready(r.Context(), img); err != nil {
 		if r.Context().Err() != nil {
@@ -279,7 +317,8 @@ private async refine(req: IncomingMessage, s: Session): Promise<sc.Json> {
   });
   checkBounds(points, box, img);
   // Stateless: every click sends all points of the object. The body is the same in every language.
-  const call: sc.Json = { model, image: sc.imageHandle(img.handle), points };
+  const image = img.handle === null ? sc.imageBase64(img.data!) : sc.imageHandle(img.handle);
+  const call: sc.Json = { model, image, points };
   if (box) call.box = box;
   const t = performance.now();
   let result: sc.Json;
@@ -332,7 +371,8 @@ def _refine(self, req: Request, s: Session) -> dict:
         raise not_found from None
     check_bounds(points, box, img)
     # Stateless: every click sends all points of the object. The body is the same in every language.
-    call: dict = {"model": model, "image": sc.image_handle(img.handle), "points": points}
+    image = sc.image_base64(img.data) if img.handle is None else sc.image_handle(img.handle)
+    call: dict = {"model": model, "image": image, "points": points}
     if box:
         call["box"] = box
     t = time.monotonic()
@@ -392,7 +432,11 @@ func (b *Backend) refine(r *http.Request, s *session) (any, error) {
 		return nil, err
 	}
 	// Stateless: every click sends all points of the object.
-	call := stackRefine{Model: req.model, Image: stackclient.ImageHandle(img.handle), Points: req.points, Box: req.box}
+	input := stackclient.ImageHandle(img.handle)
+	if img.handle == "" {
+		input = stackclient.ImageBase64(img.data)
+	}
+	call := stackRefine{Model: req.model, Image: input, Points: req.points, Box: req.box}
 	start := time.Now()
 	data, err := b.stack.Post("/v1/refine", call, stackclient.Opts{Tag: s.tag})
 	if err != nil {
@@ -603,11 +647,22 @@ export class ApiError extends Error {
   }
 }
 
+// What the backend says when the free tier refuses for good: its own text, never Stack's.
+const FREE_REFUSED: Record<string, string> = {
+  daily_limit_reached: "the daily limit of the free tier is used up (it resets at 00:00 UTC); start the backend with FOLDBUN_API_KEY to continue now",
+  free_tier_unavailable: "the free tier is not available; start the backend with FOLDBUN_API_KEY",
+};
+const RETRY_CODES = new Set(["rate_limited", "free_busy"]); // the free tier's waits
+
 /** Map an error of the client file (after its own retries) to the backend's error. Stack's message is not forwarded. */
 export function fromStack(err: unknown): ApiError {
   if (err instanceof sc.BudgetExceeded) return new ApiError(503, "credit_cap", "the backend's credit cap is reached");
-  if (err instanceof sc.StackError && !err.retryable) {
-    return new ApiError(502, "upstream_refused", "Foldbun Stack refused the call", false, 0, err.code, err.requestId);
+  if (err instanceof sc.MissingApiKey) {
+    // a call that only a key can make
+    return new ApiError(502, "upstream_refused", "this needs an API key: start the backend with FOLDBUN_API_KEY", false, 0, err.code);
+  }
+  if (err instanceof sc.StackError && !err.retryable && !RETRY_CODES.has(err.code)) {
+    return new ApiError(502, "upstream_refused", FREE_REFUSED[err.code] ?? "Foldbun Stack refused the call", false, 0, err.code, err.requestId);
   }
   if (!(err instanceof sc.StackError)) {
     const internal = new ApiError(500, "internal", "internal error"); // not an answer or a network failure: a bug, no detail for the caller
@@ -642,16 +697,26 @@ class ApiError(Exception):
         return {"error": err}
 
 
+# What the backend says when the free tier refuses for good: its own text, never Stack's.
+FREE_REFUSED = {
+    "daily_limit_reached": "the daily limit of the free tier is used up (it resets at 00:00 UTC); start the backend with FOLDBUN_API_KEY to continue now",
+    "free_tier_unavailable": "the free tier is not available; start the backend with FOLDBUN_API_KEY",
+}
+
+
 def from_stack(err: BaseException) -> ApiError:
     """Map an error of the client file (after its own retries) to the backend's error. Stack's message is not forwarded."""
     if isinstance(err, ApiError):
         return err
     if isinstance(err, sc.BudgetExceeded):
         return ApiError(503, "credit_cap", "the backend's credit cap is reached")
+    if isinstance(err, sc.MissingApiKey):  # a call that only a key can make
+        return ApiError(502, "upstream_refused", "this needs an API key: start the backend with FOLDBUN_API_KEY", False, 0, err.code)
     if isinstance(err, sc.StackError):
-        if not err.retryable:
-            return ApiError(502, "upstream_refused", "Foldbun Stack refused the call", False, 0, err.code, err.request_id)
-        return ApiError(503, "upstream_busy", "Foldbun Stack is busy; try again", True, max(1000, err.retry_after_ms), err.code, err.request_id)
+        if err.retryable or err.code in sc.RETRY_CODES:  # rate_limited and free_busy that outlived the client's waits
+            return ApiError(503, "upstream_busy", "Foldbun Stack is busy; try again", True, max(1000, err.retry_after_ms), err.code, err.request_id)
+        message = FREE_REFUSED.get(err.code, "Foldbun Stack refused the call")
+        return ApiError(502, "upstream_refused", message, False, 0, err.code, err.request_id)
     if isinstance(err, OSError | http.client.HTTPException | ValueError):  # no usable answer (for example, not JSON)
         return ApiError(503, "upstream_busy", "Foldbun Stack is busy; try again", True, 1000, "network_error")
     return ApiError(500, "internal", "internal error")
@@ -681,6 +746,12 @@ func newError(status int, code, message string) *apiError {
 	return &apiError{Status: status, Code: code, Message: message}
 }
 
+// freeRefused is what the backend says when the free tier refuses for good: its own text, never Stack's.
+var freeRefused = map[string]string{
+	"daily_limit_reached":   "the daily limit of the free tier is used up (it resets at 00:00 UTC); start the backend with FOLDBUN_API_KEY to continue now",
+	"free_tier_unavailable": "the free tier is not available; start the backend with FOLDBUN_API_KEY",
+}
+
 // fromStack maps an error of the client file (after its own retries) to the backend's error.
 // Stack's message is not forwarded.
 func fromStack(err error) *apiError {
@@ -692,8 +763,14 @@ func fromStack(err error) *apiError {
 		return e
 	case se.Code == "budget_exceeded":
 		return newError(503, "credit_cap", "the backend's credit cap is reached")
-	case !se.Retryable:
-		return &apiError{Status: 502, Code: "upstream_refused", Message: "Foldbun Stack refused the call", UpstreamCode: se.Code, RequestID: se.RequestID}
+	case se.Code == "missing_api_key": // a call that only a key can make
+		return &apiError{Status: 502, Code: "upstream_refused", Message: "this needs an API key: start the backend with FOLDBUN_API_KEY", UpstreamCode: se.Code}
+	case !se.Retryable && se.Code != "rate_limited" && se.Code != "free_busy": // those two are the free tier's waits that outlived the client's
+		message := "Foldbun Stack refused the call"
+		if m, ok := freeRefused[se.Code]; ok {
+			message = m
+		}
+		return &apiError{Status: 502, Code: "upstream_refused", Message: message, UpstreamCode: se.Code, RequestID: se.RequestID}
 	}
 	return &apiError{Status: 503, Code: "upstream_busy", Message: "Foldbun Stack is busy; try again", Retryable: true,
 		RetryAfterMs: max(1000, se.RetryAfterMs), UpstreamCode: se.Code, RequestID: se.RequestID}
@@ -796,21 +873,20 @@ const { values } = parseArgs({
 });
 // The page's files: --static (relative to the working directory), by default the build of the web component next to this directory.
 const staticDir = values.static ? resolve(values.static) : resolve(import.meta.dirname, "../web/dist");
-let client: sc.StackClient;
-try {
-  client = new sc.StackClient(); // key, base URL and credit cap from FOLDBUN_API_KEY, FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
-} catch (err) {
-  if (!(err instanceof sc.MissingApiKey)) throw err;
-  console.error(err.message);
-  process.exit(EXIT_NO_KEY);
-}
+// No key: the free tier, and the backend sends the image inline with every click. With FOLDBUN_API_KEY: it uploads each
+// image once and sends its handle. The base URL, project and credit cap come from FOLDBUN_API_BASE, FOLDBUN_PROJECT_ID
+// and FOLDBUN_MAX_CREDITS.
+const client = new sc.StackClient();
 const models = (process.env.SEGMENTER_MODELS || "sam-lite")
   .split(",")
   .map((m) => m.trim())
   .filter(Boolean);
 const backend = new Backend(client, { models, staticDir });
 const server = createServer(backend.handle);
-server.listen(Number(values.port), values.host, () => console.log(`listening on http://${values.host}:${values.port}`));
+server.listen(Number(values.port), values.host, () => {
+  console.log(`listening on http://${values.host}:${values.port}`);
+  console.log("mode: " + (client.free ? "free tier (images are sent inline with every click)" : "API key (images are uploaded once)"));
+});
 
 for (const signal of ["SIGTERM", "SIGINT"] as const) {
   process.on(signal, () => {
@@ -826,11 +902,10 @@ for (const signal of ["SIGTERM", "SIGINT"] as const) {
 <details><summary>Python (python/main.py)</summary>
 
 ```python
-try:
-    client = sc.StackClient()  # key, base URL and credit cap from FOLDBUN_API_KEY, FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
-except sc.MissingApiKey as err:
-    print(err.message, file=sys.stderr)
-    return EXIT_NO_KEY
+# No key: the free tier, and the backend sends the image inline with every click. With FOLDBUN_API_KEY: it uploads
+# each image once and sends its handle. The base URL, project and credit cap come from FOLDBUN_API_BASE,
+# FOLDBUN_PROJECT_ID and FOLDBUN_MAX_CREDITS.
+client = sc.StackClient()
 models = [m.strip() for m in (os.environ.get("SEGMENTER_MODELS") or "sam-lite").split(",") if m.strip()]
 server = Server(args.host, args.port, Backend(client, models=models, static_dir=args.static))
 
@@ -840,6 +915,7 @@ def stop(signum, frame):
 for sig in (signal.SIGTERM, signal.SIGINT):
     signal.signal(sig, stop)
 print(f"listening on http://{args.host}:{server.server_address[1]}", flush=True)
+print("mode: " + ("free tier (images are sent inline with every click)" if client.free else "API key (images are uploaded once)"), flush=True)
 server.serve_forever()
 server.server_close()
 ```
@@ -860,13 +936,11 @@ func run(args []string) int {
 		}
 		return exitFailed
 	}
-	// key, base URL and credit cap come from FOLDBUN_API_KEY, FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
+	// No key: the free tier, and the backend sends the image inline with every click. With FOLDBUN_API_KEY: it uploads
+	// each image once and sends its handle. The base URL, project and credit cap come from FOLDBUN_API_BASE,
+	// FOLDBUN_PROJECT_ID and FOLDBUN_MAX_CREDITS.
 	client, err := stackclient.New(stackclient.Config{})
 	if err != nil {
-		if stackclient.Code(err) == "missing_api_key" {
-			fmt.Fprintln(os.Stderr, stackclient.MissingKey)
-			return exitNoKey
-		}
 		fmt.Fprintln(os.Stderr, err)
 		return exitFailed
 	}
@@ -889,6 +963,11 @@ func run(args []string) int {
 	served := make(chan error, 1)
 	go func() { served <- srv.Serve(ln) }()
 	fmt.Printf("listening on http://%s\n", net.JoinHostPort(*host, strconv.Itoa(ln.Addr().(*net.TCPAddr).Port)))
+	if client.Free() {
+		fmt.Println("mode: free tier (images are sent inline with every click)")
+	} else {
+		fmt.Println("mode: API key (images are uploaded once)")
+	}
 	select {
 	case err := <-served:
 		fmt.Fprintln(os.Stderr, err)

@@ -148,7 +148,7 @@ def fetch_cutout(client: sc.StackClient, image_path: Path, item_id: str, out: Pa
     if resume and cached.exists() and state.exists():
         return cached.read_bytes(), json.loads(state.read_text())["calls"]
     body = {"model": "birefnet", "image": sc.image_base64(image_path.read_bytes()), "options": {"output": "cutout", "format": "webp"}}
-    result = client.post("/v1/remove-background", body, tag=item_id)  # retries, pacing and the credit cap live in the client
+    result = client.post("/v1/remove-background", body, tag=item_id)  # retries, rate limits and the credit cap live in the client
     data = base64.b64decode(result["data"])
     cached.parent.mkdir(parents=True, exist_ok=True)
     state.parent.mkdir(parents=True, exist_ok=True)

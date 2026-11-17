@@ -26,16 +26,16 @@ The examples call the API with a key created in the Foldbun Stack console. API k
 ## Use cases <!-- #use-cases -->
 
 <!-- usecases -->
-| Use case | Tier | curl | Python | TypeScript | Go |
+| Use case | Without a key | curl | Python | TypeScript | Go |
 |---|---|---|---|---|---|
-| [00 First call](use-cases/00-quickstart/README.md) | Public pool | ✓ | ✓ | ✓ | ✓ |
-| [01 Pre-label an image dataset from text prompts](use-cases/01-dataset-prelabelling/README.md) | Billed |  | ✓ |  | ✓ |
-| [02 Click-to-segment component with a key-holding backend](use-cases/02-click-to-segment/README.md) | Funded |  | ✓ | ✓ | ✓ |
-| [03 Receipts and invoices to validated JSON](use-cases/03-receipts-to-json/README.md) | Billed |  | ✓ | ✓ | ✓ |
-| [04 Scanned documents to Markdown chunks for a search index](use-cases/04-documents-to-rag-chunks/README.md) | Billed |  | ✓ |  |  |
-| [05 Search an image library by image, by text, and for near-duplicates](use-cases/05-image-library-search/README.md) | Public pool |  | ✓ |  | ✓ |
-| [06 Marketplace photos to catalogue images](use-cases/06-product-photo-pipeline/README.md) | Billed |  | ✓ |  |  |
-| [08 Monitor cost and latency of a production integration](use-cases/08-cost-and-latency-monitoring/README.md) | Funded |  | ✓ |  |  |
+| [00 First call](use-cases/00-quickstart/README.md) | Everything | ✓ | ✓ | ✓ | ✓ |
+| [01 Pre-label an image dataset from text prompts](use-cases/01-dataset-prelabelling/README.md) | Smoke run |  | ✓ |  | ✓ |
+| [02 Click-to-segment component with a key-holding backend](use-cases/02-click-to-segment/README.md) | Smoke run |  | ✓ | ✓ | ✓ |
+| [03 Receipts and invoices to validated JSON](use-cases/03-receipts-to-json/README.md) | Smoke run |  | ✓ | ✓ | ✓ |
+| [04 Scanned documents to Markdown chunks for a search index](use-cases/04-documents-to-rag-chunks/README.md) | Smoke run |  | ✓ |  |  |
+| [05 Search an image library by image, by text, and for near-duplicates](use-cases/05-image-library-search/README.md) | Smoke run |  | ✓ |  | ✓ |
+| [06 Marketplace photos to catalogue images](use-cases/06-product-photo-pipeline/README.md) | Smoke run |  | ✓ |  |  |
+| [08 Monitor cost and latency of a production integration](use-cases/08-cost-and-latency-monitoring/README.md) | Smoke run |  | ✓ |  |  |
 <!-- /usecases -->
 
 Public pool: runs on a new account. Funded: needs a topped-up account; calls inside the free pool are not charged. Billed: charged from the balance at the [list prices](https://stack.foldbun.com/docs/billing/).

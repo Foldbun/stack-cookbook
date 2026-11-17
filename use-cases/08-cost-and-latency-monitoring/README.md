@@ -182,9 +182,6 @@ def observe(self, model, result, *, replayed=False, client_ms=None):
             self.cache_misses.labels(model).inc()
         if "balance" in result:
             self._set_balance(result["balance"])
-        if billing.get("pool") and billing.get("allowance"):
-            self.allow_used.labels(billing["pool"]).set(billing["allowance"]["used"])
-            self.allow_limit.labels(billing["pool"]).set(billing["allowance"]["limit"])
     by_list = self.guard is not None and self.guard.basis == "list"
     self._guard_record(0 if replayed else billing.get("total", cost) if by_list else cost)
 
@@ -199,6 +196,10 @@ def failure(self, model, error, *, status="error", client_ms=None):
     self._guard_record(0)
 
 def _set_balance(self, value):
+    with self._balance_lock:
+        if self.balance is None:
+            self.balance = Gauge("stack_balance_credits", "Account balance after the last answer or whoami refresh.", registry=self.registry)
+            self.balance_at = Gauge("stack_balance_updated_timestamp_seconds", "When stack_balance_credits was last set.", registry=self.registry)
     self.balance.set(value)
     self.balance_at.set(self.wall())
 
@@ -223,7 +224,7 @@ class SpendGuard:
 
     mode "alert":  `on_alert(info)` runs once each time the spend crosses the limit; calls are not stopped.
     mode "reject": `check()` raises SpendGuardTripped while the spend of the window is over the limit.
-    basis "charged" counts what the account is debited (calls inside a daily allowance count 0); "list" counts the list price.
+    basis "charged" counts what the account is debited (a free-tier call counts 0); "list" counts the list price, which is the basis to use on the free tier.
     Pure logic: pass `clock` (a function returning seconds) to test it without waiting."""
 
     def __init__(self, max_per_hour, *, mode="alert", basis="charged", on_alert=None, window_s=3600.0, clock=time.monotonic):
@@ -293,12 +294,14 @@ Balance and daily allowances from `GET /v1/whoami`, on demand or on a timer:
 
 ```python
 def refresh_account(self, client):
-    """GET /v1/whoami (free, not metered, no rate-limit token): balance and today's daily allowances."""
+    """GET /v1/whoami (not metered): the balance with a key; on the free tier today's use and the daily limit per class."""
     info = client.get("/v1/whoami")
-    self._set_balance(info["balance"])
-    for a in info.get("dailyAllowances", []):
-        self.allow_used.labels(a["pool"]).set(a["used"])
-        self.allow_limit.labels(a["pool"]).set(a["limit"])
+    if info.get("tier") == "free":
+        for cls, limit in info.get("limits", {}).items():
+            self.free_limit.labels(cls).set(limit["daily"])
+            self.free_used.labels(cls).set(info.get("usedToday", {}).get(cls, 0))
+    elif "balance" in info:
+        self._set_balance(info["balance"])
     return info
 
 def refresh_every(self, client, seconds):
@@ -326,15 +329,15 @@ The replay wires the layer around the client and keeps going when one call fails
 
 ```python
 try:
-    client = sc.StackClient(max_concurrency=args.concurrency)  # FOLDBUN_API_KEY, FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
-    client.models()  # free: checks the key
+    client = sc.StackClient(max_concurrency=args.concurrency)  # FOLDBUN_API_KEY (optional), FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
+    if len(manifest["items"]) > FREE_MAX_ITEMS:
+        client.require_key(f"the free tier is meant for trying a recipe on a few items, and this manifest has {len(manifest['items'])}")
 except sc.MissingApiKey as err:
     print(err.message, file=sys.stderr)
     return EXIT_NO_KEY
 alerts = []
-guard = SpendGuard(
-    args.guard_max, mode=args.guard_mode, basis=args.guard_basis, on_alert=lambda info: (alerts.append(info), print(f"ALERT: {info}", file=sys.stderr))
-)
+basis = args.guard_basis or ("list" if client.free else "charged")
+guard = SpendGuard(args.guard_max, mode=args.guard_mode, basis=basis, on_alert=lambda info: (alerts.append(info), print(f"ALERT: {info}", file=sys.stderr)))
 monitor = Monitor(guard=guard)
 mc = MonitoredClient(client, monitor)
 if args.metrics_port:
@@ -352,9 +355,9 @@ if args.metrics_port:
 <details><summary>Python (python/main.py)</summary>
 
 ```python
-def run_call(mc, entry, handles):
+def run_call(mc, entry, images):
     """One workload line -> one result item. Failures are data (status `error`); only a locked model or the credit cap stop the run."""
-    body = {"model": entry["model"], "image": sc.image_handle(handles[entry["image"]]), **entry["request"]}
+    body = {"model": entry["model"], "image": images[entry["image"]], **entry["request"]}
     try:
         result = mc.post(entry["endpoint"], body, tag=entry["id"])
     except sc.StackError as err:

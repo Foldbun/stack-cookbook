@@ -1024,7 +1024,7 @@ func passed(checks []Check) bool {
 ```python
 ocr = client.post(
     "/v1/ocr",
-    {"model": OCR_MODEL, "image": sc.image_handle(handle), "options": {"words": False}},
+    {"model": OCR_MODEL, "image": image, "options": {"words": False}},
     idempotency_key=idempotency_key(sha, OCR_MODEL),
     tag=item["id"],
 )
@@ -1038,7 +1038,7 @@ attempts.append(attempt(OCR_MODEL, extract_receipt(rows_from_ocr(ocr["lines"]), 
 ```ts
 const ocr = await client.post(
   "/v1/ocr",
-  { model: OCR_MODEL, image: sc.imageHandle(handle), options: { words: false } },
+  { model: OCR_MODEL, image, options: { words: false } },
   { idempotencyKey: idempotencyKey(sha, OCR_MODEL), tag: item.id },
 );
 attempts.push(attempt(OCR_MODEL, extractReceipt(rowsFromOcr(ocr.lines), OCR_MODEL, ocr.image.width), today));
@@ -1050,7 +1050,7 @@ attempts.push(attempt(OCR_MODEL, extractReceipt(rowsFromOcr(ocr.lines), OCR_MODE
 
 ```go
 raw, err := client.Post("/v1/ocr",
-	map[string]any{"model": ocrModel, "image": stackclient.ImageHandle(handle), "options": map[string]any{"words": false}},
+	map[string]any{"model": ocrModel, "image": image, "options": map[string]any{"words": false}},
 	stackclient.Opts{Key: idempotencyKey(sha, ocrModel), Tag: item.ID})
 if err != nil {
 	return Entry{}, "", err
@@ -1080,7 +1080,7 @@ if use_fallback and not attempts[0]["passed"]:
     try:
         page = client.post(
             "/v1/documents/parse",
-            {"model": FALLBACK_MODEL, "image": sc.image_handle(handle), "options": {"blocks": True}},
+            {"model": FALLBACK_MODEL, "image": image, "options": {"blocks": True}},
             idempotency_key=idempotency_key(sha, FALLBACK_MODEL),
             tag=item["id"],
         )
@@ -1088,7 +1088,7 @@ if use_fallback and not attempts[0]["passed"]:
     except sc.StackError as err:
         if err.code == "budget_exceeded":
             raise
-        # An account without the paid pool (model_locked) or a failed call: the item stays with what ppocr-v6 read.
+        # A key without access to the model (model_locked) or a failed call: the item stays with what ppocr-v6 read.
         attempts.append({"model": FALLBACK_MODEL, "receipt": None, "passed": False, "checks": [], "note": err.code})
 ```
 
@@ -1101,13 +1101,13 @@ if (useFallback && !attempts[0].passed) {
   try {
     const page = await client.post(
       "/v1/documents/parse",
-      { model: FALLBACK_MODEL, image: sc.imageHandle(handle), options: { blocks: true } },
+      { model: FALLBACK_MODEL, image, options: { blocks: true } },
       { idempotencyKey: idempotencyKey(sha, FALLBACK_MODEL), tag: item.id },
     );
     attempts.push(attempt(FALLBACK_MODEL, extractReceipt(rowsFromBlocks(page.blocks), FALLBACK_MODEL, page.image.width), today));
   } catch (err) {
     if (!(err instanceof sc.StackError) || err.code === "budget_exceeded") throw err;
-    // An account without the paid pool (model_locked) or a failed call: the item stays with what ppocr-v6 read.
+    // A key without access to the model (model_locked) or a failed call: the item stays with what ppocr-v6 read.
     attempts.push({ model: FALLBACK_MODEL, receipt: null, passed: false, checks: [], note: err.code });
   }
 }
@@ -1120,12 +1120,12 @@ if (useFallback && !attempts[0].passed) {
 ```go
 if useFallback && !attempts[0].Passed {
 	raw, err := client.Post("/v1/documents/parse",
-		map[string]any{"model": fallbackModel, "image": stackclient.ImageHandle(handle), "options": map[string]any{"blocks": true}},
+		map[string]any{"model": fallbackModel, "image": image, "options": map[string]any{"blocks": true}},
 		stackclient.Opts{Key: idempotencyKey(sha, fallbackModel), Tag: item.ID})
 	var apiErr *stackclient.Error
 	switch {
 	case errors.As(err, &apiErr) && apiErr.Code != "budget_exceeded":
-		// An account without the paid pool (model_locked) or a failed call: the item stays with what ppocr-v6 read.
+		// A key without access to the model (model_locked) or a failed call: the item stays with what ppocr-v6 read.
 		attempts = append(attempts, Attempt{Model: fallbackModel, Note: apiErr.Code})
 	case err != nil:
 		return Entry{}, "", err
@@ -1153,8 +1153,8 @@ if useFallback && !attempts[0].Passed {
 <details><summary>Python (python/main.py)</summary>
 
 ```python
-# The client allows `--concurrency` requests in flight and spaces calls by the per-minute limit of the model's pool,
-# so the worker threads here only keep it busy. One item is one thread: its calls are sequential (OCR, then maybe parse).
+# The client allows `--concurrency` requests in flight and waits out a 429 by itself, so the worker threads here only
+# keep it busy. One item is one thread: its calls are sequential (OCR, then maybe parse).
 code, lock = 0, threading.Lock()
 with ThreadPoolExecutor(max_workers=args.concurrency) as pool:
     futures = {pool.submit(process_item, client, item, base, use_fallback, today): item for item in todo}
@@ -1188,8 +1188,8 @@ with ThreadPoolExecutor(max_workers=args.concurrency) as pool:
 <details><summary>TypeScript (typescript/main.ts)</summary>
 
 ```ts
-// The client allows `--concurrency` requests in flight and spaces calls by the per-minute limit of the model's pool,
-// so the workers here only keep it busy. One item is one task: its calls are sequential (OCR, then maybe parse).
+// The client allows `--concurrency` requests in flight and waits out a 429 by itself, so the
+// workers here only keep it busy. One item is one task: its calls are sequential (OCR, then maybe parse).
 let code = 0;
 let next = 0;
 async function worker(): Promise<void> {
@@ -1222,8 +1222,8 @@ await Promise.all(Array.from({ length: Math.max(1, concurrency) }, worker));
 <details><summary>Go (go/main.go)</summary>
 
 ```go
-// The client allows `--concurrency` requests in flight and spaces calls by the per-minute limit of the model's pool,
-// so the worker goroutines here only keep it busy. One item is one goroutine: its calls are sequential (OCR, then maybe parse).
+// The client allows `--concurrency` requests in flight and waits out a 429 by itself, so the worker goroutines here
+// only keep it busy. One item is one goroutine: its calls are sequential (OCR, then maybe parse).
 var (
 	mu     sync.Mutex
 	wg     sync.WaitGroup
@@ -1527,7 +1527,7 @@ Smoke set (4 documents), offline fixtures:
 | `ocr_only_needs_review_rate` | 0.25 |
 | `ocr_only_cost_per_1000_list` | 250 |
 | `hybrid_cost_per_1000_list` | 750 |
-| `hybrid_cost_per_1000_charged` | 500 |
+| `hybrid_cost_per_1000_charged` | 750 |
 <!-- /metrics -->
 
 Full set (80 documents), live run; filled in from `expected/full-summary.json` once a maintainer has recorded one:

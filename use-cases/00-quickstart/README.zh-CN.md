@@ -35,12 +35,18 @@ cd use-cases/00-quickstart/python && uv run main.py
 <details><summary>curl (curl/run.sh)</summary>
 
 ```bash
-if [ -z "${FOLDBUN_API_KEY:-}" ]; then
-  echo 'FOLDBUN_API_KEY is not set. See "API keys" in the README; every use case page shows the output and cost of a real run, so it can be read without a key.' >&2
-  exit 2
-fi
+# The Cookbook's own project: public, shared by every reader, and free-tier only. To go beyond trying the recipes,
+# create your own project in the console and set FOLDBUN_PROJECT_ID (or use an API key).
+project="${FOLDBUN_PROJECT_ID:-fbp_2kIj7bWkULQkLAbceHhfLW4eY6O0}"
 base="${FOLDBUN_API_BASE:-https://api.stack.foldbun.com}"
-ua="foldbun-stack-cookbook/1.0.0 (curl; +https://github.com/Foldbun/stack-cookbook)"
+ua="foldbun-stack-cookbook/1.1.0 (curl; +https://github.com/Foldbun/stack-cookbook)"
+# No FOLDBUN_API_KEY: the free tier, which takes the project header only. With a key: paid, and the project is the source project.
+auth=(-H "X-Foldbun-Project: $project")
+free=true
+if [ -n "${FOLDBUN_API_KEY:-}" ]; then
+  auth+=(-H "Authorization: Bearer $FOLDBUN_API_KEY")
+  free=false
+fi
 ```
 
 </details>
@@ -48,13 +54,14 @@ ua="foldbun-stack-cookbook/1.0.0 (curl; +https://github.com/Foldbun/stack-cookbo
 <details><summary>Python (python/main.py)</summary>
 
 ```python
+# No FOLDBUN_API_KEY: the free tier, with the Cookbook's shared project (FOLDBUN_PROJECT_ID to use your own).
+client = sc.StackClient(max_concurrency=args.concurrency)  # FOLDBUN_API_KEY, FOLDBUN_PROJECT_ID, FOLDBUN_API_BASE
 try:
-    client = sc.StackClient(max_concurrency=args.concurrency)  # FOLDBUN_API_KEY, FOLDBUN_API_BASE
-    models = client.models()  # free: checks the key and lists prices
-except sc.MissingApiKey as err:
-    print(err.message, file=sys.stderr)
-    return EXIT_NO_KEY
-print(f"key accepted; ppocr-v6 available: {models['ppocr-v6']['available']}")
+    who = client.whoami()  # shows who is calling: a project (free tier) or an account (API key)
+except sc.StackError as err:
+    print(f"{err.status} {err.code}: {err.message}", file=sys.stderr)
+    return EXIT_NO_KEY if err.code == "missing_api_key" else EXIT_FAILED
+print(f"free tier, project {who['project']['id']}" if client.free else f"key accepted; balance {who['balance']} credits")
 ```
 
 </details>
@@ -62,18 +69,17 @@ print(f"key accepted; ppocr-v6 available: {models['ppocr-v6']['available']}")
 <details><summary>TypeScript (typescript/main.ts)</summary>
 
 ```ts
-let client: sc.StackClient;
+// No FOLDBUN_API_KEY: the free tier, with the Cookbook's shared project (FOLDBUN_PROJECT_ID to use your own).
+const client = new sc.StackClient({ maxConcurrency: Number(args.concurrency) }); // FOLDBUN_API_KEY, FOLDBUN_PROJECT_ID, FOLDBUN_API_BASE
+let who;
 try {
-  client = new sc.StackClient({ maxConcurrency: Number(args.concurrency) }); // FOLDBUN_API_KEY, FOLDBUN_API_BASE
+  who = await client.whoami(); // shows who is calling: a project (free tier) or an account (API key)
 } catch (err) {
-  if (err instanceof sc.MissingApiKey) {
-    console.error(err.message);
-    return EXIT_NO_KEY;
-  }
-  throw err;
+  if (!(err instanceof sc.StackError)) throw err;
+  console.error(err.describe());
+  return err.code === "missing_api_key" ? EXIT_NO_KEY : EXIT_FAILED;
 }
-const models = await client.models(); // free: checks the key and lists prices
-console.log(`key accepted; ppocr-v6 available: ${models["ppocr-v6"].available}`);
+console.log(client.free ? `free tier, project ${who.project.id}` : `key accepted; balance ${who.balance} credits`);
 ```
 
 </details>
@@ -81,20 +87,35 @@ console.log(`key accepted; ppocr-v6 available: ${models["ppocr-v6"].available}`)
 <details><summary>Go (go/main.go)</summary>
 
 ```go
-client, err := stackclient.New(stackclient.Config{MaxConcurrency: *concurrency}) // FOLDBUN_API_KEY, FOLDBUN_API_BASE
-if stackclient.Code(err) == "missing_api_key" {
-	fmt.Fprintln(os.Stderr, stackclient.MissingKey)
-	return exitNoKey
-} else if err != nil {
-	fmt.Fprintln(os.Stderr, err)
-	return exitFailed
-}
-models, err := client.Models() // free: checks the key and lists prices
+// No FOLDBUN_API_KEY: the free tier, with the Cookbook's shared project (FOLDBUN_PROJECT_ID to use your own).
+client, err := stackclient.New(stackclient.Config{MaxConcurrency: *concurrency}) // FOLDBUN_API_KEY, FOLDBUN_PROJECT_ID, FOLDBUN_API_BASE
 if err != nil {
 	fmt.Fprintln(os.Stderr, err)
 	return exitFailed
 }
-fmt.Printf("key accepted; ppocr-v6 available: %t\n", models["ppocr-v6"].Available)
+whoami, err := client.WhoAmI() // shows who is calling: a project (free tier) or an account (API key)
+if err != nil {
+	fmt.Fprintln(os.Stderr, err)
+	if stackclient.Code(err) == "missing_api_key" {
+		return exitNoKey
+	}
+	return exitFailed
+}
+var who struct {
+	Balance json.Number `json:"balance"`
+	Project struct {
+		ID string `json:"id"`
+	} `json:"project"`
+}
+if err := json.Unmarshal(whoami, &who); err != nil {
+	fmt.Fprintln(os.Stderr, "whoami:", err)
+	return exitFailed
+}
+if client.Free() {
+	fmt.Printf("free tier, project %s\n", who.Project.ID)
+} else {
+	fmt.Printf("key accepted; balance %s credits\n", who.Balance)
+}
 ```
 
 </details>
@@ -106,9 +127,18 @@ fmt.Printf("key accepted; ppocr-v6 available: %t\n", models["ppocr-v6"].Availabl
 <details><summary>curl (curl/run.sh)</summary>
 
 ```bash
-status="$(call POST /v1/images -H "Content-Type: $type" --data-binary "@$file")"
-if [ "$status" -ge 300 ]; then fail "$status"; exit 1; fi
-handle="$(jq -r .id "$tmp/body")"
+if [ "$free" = true ]; then
+  # inline: the only form the free tier takes
+  base64 < "$file" | tr -d '\n' > "$tmp/b64"
+  jq -n --rawfile b "$tmp/b64" '{model: "ppocr-v6", image: {base64: $b}}' > "$tmp/request"
+  idem=()
+else
+  # needs a key; the handle can be reused for 7 days at most
+  status="$(call POST /v1/images -H "Content-Type: $type" --data-binary "@$file")"
+  if [ "$status" -ge 300 ]; then fail "$status"; exit 1; fi
+  jq -n --arg h "$(jq -r .id "$tmp/body")" '{model: "ppocr-v6", image: {id: $h}}' > "$tmp/request"
+  idem=(-H "Idempotency-Key: $(uuidgen 2>/dev/null || cat /proc/sys/kernel/random/uuid)")
+fi
 ```
 
 </details>
@@ -116,10 +146,10 @@ handle="$(jq -r .id "$tmp/body")"
 <details><summary>Python (python/main.py)</summary>
 
 ```python
-if item.get("imageInput") == "base64":
-    image = sc.image_base64(data)  # inline: simplest for a single call
+if client.free or item.get("imageInput") == "base64":
+    image = sc.image_base64(data)  # inline: simplest for a single call, and the only form the free tier takes
 else:
-    uploaded = client.upload(data, content_type)  # free; the handle can be reused for 7 days at most
+    uploaded = client.upload(data, content_type)  # needs a key; the handle can be reused for 7 days at most
     image = sc.image_handle(uploaded["id"])
 ```
 
@@ -129,10 +159,10 @@ else:
 
 ```ts
 let image;
-if (item.imageInput === "base64") {
-  image = sc.imageBase64(data); // inline: simplest for a single call
+if (client.free || item.imageInput === "base64") {
+  image = sc.imageBase64(data); // inline: simplest for a single call, and the only form the free tier takes
 } else {
-  const uploaded = await client.upload(data, contentType); // free; the handle can be reused for 7 days at most
+  const uploaded = await client.upload(data, contentType); // needs a key; the handle can be reused for 7 days at most
   image = sc.imageHandle(uploaded.id);
 }
 ```
@@ -143,10 +173,10 @@ if (item.imageInput === "base64") {
 
 ```go
 var image map[string]string
-if it.ImageInput == "base64" {
-	image = stackclient.ImageBase64(data) // inline: simplest for a single call
+if client.Free() || it.ImageInput == "base64" {
+	image = stackclient.ImageBase64(data) // inline: simplest for a single call, and the only form the free tier takes
 } else {
-	uploaded, err := client.Upload(data, contentType) // free; the handle can be reused for 7 days at most
+	uploaded, err := client.Upload(data, contentType) // needs a key; the handle can be reused for 7 days at most
 	if err != nil {
 		return nil, err
 	}
@@ -163,13 +193,15 @@ if it.ImageInput == "base64" {
 <details><summary>curl (curl/run.sh)</summary>
 
 ```bash
-key="$(uuidgen 2>/dev/null || cat /proc/sys/kernel/random/uuid)"
-jq -n --arg h "$handle" '{model: "ppocr-v6", image: {id: $h}}' > "$tmp/request"
-status="$(call POST /v1/ocr -H "Content-Type: application/json" -H "Idempotency-Key: $key" --data-binary "@$tmp/request")"
+status="$(call POST /v1/ocr -H "Content-Type: application/json" "${idem[@]}" --data-binary "@$tmp/request")"
 if [ "$status" = 403 ] && [ "$(jq -r .error.code "$tmp/body")" = model_locked ]; then fail "$status"; exit 3; fi
 if [ "$status" -ge 300 ]; then fail "$status"; exit 1; fi
 jq -r '.lines[] | "  \(.confidence * 100 | round / 100)  \(.text)"' "$tmp/body"
-jq -r '"  list price \(.billing.total) credits, charged \(.cost)"' "$tmp/body"
+if [ "$free" = true ]; then
+  jq -r '"  list price \(.billing.total) credits (free tier, not charged)"' "$tmp/body"
+else
+  jq -r '"  list price \(.billing.total) credits, charged \(.cost)"' "$tmp/body"
+fi
 ```
 
 </details>
@@ -180,9 +212,8 @@ jq -r '"  list price \(.billing.total) credits, charged \(.cost)"' "$tmp/body"
 result = client.post("/v1/ocr", {"model": "ppocr-v6", "image": image}, tag=item["id"])
 for line in result["lines"]:
     print(f"  {line['confidence']:.2f}  {line['text']}")
-billing = result["billing"]
-covered = f"covered by the {billing['pool']} pool ({billing['allowance']['used']}/{billing['allowance']['limit']} today)" if billing["pool"] else "billed"
-print(f"  list price {billing['total']} credits, charged {result['cost']} ({covered})")
+price = result["billing"]["total"]  # list price in credits
+print(f"  list price {price} credits (free tier, not charged)" if client.free else f"  list price {price} credits, charged {result['cost']}")
 ```
 
 </details>
@@ -194,9 +225,8 @@ const result = await client.post("/v1/ocr", { model: "ppocr-v6", image }, { tag:
 for (const line of result.lines) {
   console.log(`  ${line.confidence.toFixed(2)}  ${line.text}`);
 }
-const billing = result.billing;
-const covered = billing.pool ? `covered by the ${billing.pool} pool (${billing.allowance.used}/${billing.allowance.limit} today)` : "billed";
-console.log(`  list price ${billing.total} credits, charged ${result.cost} (${covered})`);
+const price = result.billing.total; // list price in credits
+console.log(client.free ? `  list price ${price} credits (free tier, not charged)` : `  list price ${price} credits, charged ${result.cost}`);
 ```
 
 </details>
@@ -212,9 +242,7 @@ var result struct {
 	output
 	Cost    float64 `json:"cost"`
 	Billing struct {
-		Total     float64 `json:"total"`
-		Pool      string  `json:"pool"`
-		Allowance struct{ Used, Limit int }
+		Total float64 `json:"total"` // list price in credits
 	} `json:"billing"`
 }
 if err := json.Unmarshal(raw, &result); err != nil {
@@ -223,11 +251,11 @@ if err := json.Unmarshal(raw, &result); err != nil {
 for _, l := range result.Lines {
 	fmt.Printf("  %.2f  %s\n", l.Confidence, l.Text)
 }
-b, covered := result.Billing, "billed"
-if b.Pool != "" {
-	covered = fmt.Sprintf("covered by the %s pool (%d/%d today)", b.Pool, b.Allowance.Used, b.Allowance.Limit)
+if client.Free() {
+	fmt.Printf("  list price %g credits (free tier, not charged)\n", result.Billing.Total)
+} else {
+	fmt.Printf("  list price %g credits, charged %g\n", result.Billing.Total, result.Cost)
 }
-fmt.Printf("  list price %g credits, charged %g (%s)\n", b.Total, result.Cost, covered)
 ```
 
 </details>
