@@ -2,16 +2,16 @@
 
 English | [简体中文](README.zh-CN.md)
 
-Wrap the client file in a monitoring layer that turns the billing and timing of every answer into Prometheus metrics (credits by model and unit, calls by outcome, encoding-cache hits and what they saved, queue and processing time, balance and daily allowances) and trips a spend guard before the budget is gone. Nothing is asked of the API except an optional, free `GET /v1/whoami`.
+Wrap the client file in a monitoring layer that turns the billing and timing of every answer into Prometheus metrics (credits by model and unit, calls by outcome, encoding-cache hits and what they saved, queue and processing time, and the balance of a key) and trips a spend guard before the budget is gone. Nothing is asked of the API except an optional, free `GET /v1/whoami`.
 
 ## Problem <!-- #problem -->
 
 An integration that works on the day it ships can still go wrong in production without a single error: a loop that re-sends the same image, a prompt that grows from one to ten per call, a batch job that doubles in size, or a model whose queue time creeps up when everyone else is busy. The API tells you everything you need on each answer, but only for that one call. What you want is a few numbers over time and someone told when they move:
 
-- how many credits per hour, by model and by unit (`image`, `prompt`, `encode_image`, ...), and how much of it was really debited rather than covered by an included daily allowance;
+- how many credits per hour, by model and by unit (`image`, `prompt`, `encode_image`, ...), and how much of it was really debited to a key rather than run free on the free tier;
 - how often a SAM call reuses an image that was already encoded (the encoding fee is waived on a cache hit), and what that saved;
 - how long calls wait in the queue and how long they are processed, as the server measured them;
-- what is left on the account, and an alert before it is gone, or a refusal to send more calls when the spend of the last hour is out of line.
+- what is left on the account (when you use a key), and an alert before it is gone, or a refusal to send more calls when the spend of the last hour is out of line.
 
 This example is that layer for Python: one file, `monitoring.py`, that you copy next to `stack_client.py`. It does not modify the client file. It wraps a client object, reads each answer (`cost`, `billing`, `cache`, `timing`, `balance`, the error code) and, for batches, each `item` event. A replay of 21 calls (`assets/workload.jsonl`) exercises it end to end and checks that the metrics and the client's own ledger agree.
 
@@ -24,29 +24,28 @@ This example is that layer for Python: one file, `monitoring.py`, that you copy 
 |---|---|---|
 | Wrap | `MonitoredClient(StackClient(), Monitor(guard=...))`: `post` and `batch` are measured, everything else is forwarded | none |
 | Call | the wrapped client sends the call as usual: retries, throttling, idempotency and the credit cap are the client's | `POST /v1/ocr`, `/v1/segment`, ..., `POST /v1/batch/*` |
-| Read | credits per `billing.lines[]`, `cost`, `cache`, `timing.queueMs` / `processingMs`, `balance`, the allowance of the pool; an error is counted by its `code` | none |
+| Read | credits per `billing.lines[]`, `cost`, `cache`, `timing.queueMs` / `processingMs`, `balance`; an error is counted by its `code` | none |
 | Guard | the spend of the last hour is compared with the limit; alert once per crossing, or refuse new calls | none |
-| Refresh | `refresh_account()` reads the balance and today's daily allowances; call it on a timer, `refresh_every(client, 60)` does | `GET /v1/whoami` (free, not metered) |
+| Refresh | `refresh_account()` reads the balance of the key; call it on a timer, `refresh_every(client, 60)` does. It needs a key | `GET /v1/whoami` (free, not metered) |
 | Expose | `monitor.serve(9108)` serves `GET /metrics`; Prometheus scrapes it, Grafana and alert rules read it | none |
 
 The metrics, all prefixed `stack_`:
 
 | Metric | Labels | Source |
 |---|---|---|
-| `stack_credits_total` | `model`, `unit`, `charged` | every priced line of `billing.lines[]`; `charged="false"` is list price of work covered by an included daily allowance |
+| `stack_credits_total` | `model`, `unit`, `charged` | every priced line of `billing.lines[]`; `charged="false"` is the list price of work that ran free on the free tier |
 | `stack_calls_total` | `model`, `status`, `code` | `status` is `ok`, `replayed`, `error`, `expired` or `refused` (never sent: credit cap or guard); `code` is the API error code, `none` for `ok` |
 | `stack_cache_hits_total`, `stack_cache_misses_total` | `model` | `cache` of SAM answers |
 | `stack_cache_saved_credits_total` | `model` | list price of the lines with `waived: true` |
 | `stack_latency_ms` (histogram) | `model`, `phase` | `queue` and `processing` from `timing`; `client_total` is the time this process measured around the call, for your own dashboards |
 | `stack_balance_credits`, `stack_balance_updated_timestamp_seconds` | | `balance` of the last answer or `whoami` refresh, and when |
-| `stack_daily_allowance_used`, `stack_daily_allowance_limit` | `pool` | `billing.allowance` of answers and `whoami` |
 | `stack_spend_window_credits`, `stack_spend_guard_tripped` | | the guard's window, and whether it is over the limit |
 
 ## Run it <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY="fbs_..."          # a funded account: sam-lite needs one
-export FOLDBUN_MAX_CREDITS=2.75           # the client refuses calls that could pass it
+# no key needed: the replay runs on the free tier. With FOLDBUN_API_KEY set the calls are charged at list price;
+# FOLDBUN_MAX_CREDITS=2.75 (optional) makes the client refuse calls that could pass it
 cd use-cases/08-cost-and-latency-monitoring/python
 uv run main.py --out out --hold 30        # 21 calls; /metrics on :9108 while it runs and 30 s after
 curl -s localhost:9108/metrics | grep '^stack_'                          # from a second terminal
@@ -56,9 +55,9 @@ uv run python ../evaluate.py --result out/result.json --overhead        # check 
 
 Arguments: `--manifest`, `--out`, `--concurrency` (default 1: with one call at a time, the call that trips the guard has a stable number), `--limit`, `--resume` (accepted; a replay always starts over), `--metrics-port` (default 9108, 0 to not serve), `--hold`, `--guard-max` (credits per hour, default 0.2), `--guard-mode` (`alert` or `reject`), `--guard-basis` (`charged` or `list`). Outputs: `result.json` (format of `contract/result.schema.json`: one item per call and a last item `summary` with what the layer counted) and `metrics.prom`, the text exposition at the end of the run.
 
-Without a key, run the same replay against the local fake of the API (see `CONTRIBUTING.md`); `uv run python -m harness check --uc 08` does that.
+The smoke replay needs no key and no sign-up. The full run needs `FOLDBUN_API_KEY`, as everywhere in the Cookbook. To run the replay without touching the real API at all, use the local fake of the API (see `CONTRIBUTING.md`); `uv run python -m harness check --uc 08` does that.
 
-A new account cannot run it: `sam-lite` and `sam3` answer `403 model_locked`, and the replay stops with exit code 3.
+On the free tier the replay is subject to its limits: when the server answers `429` the client waits for `Retry-After` and carries on, and if the server refuses the caller with a `403` (the free tier is not offered in every region) the replay stops with exit code 3.
 
 To wire it into your own service, copy `monitoring.py` and use it like this:
 
@@ -287,7 +286,7 @@ class SpendGuard:
 </details>
 <!-- /code -->
 
-Balance and daily allowances from `GET /v1/whoami`, on demand or on a timer:
+The balance of a key from `GET /v1/whoami`, on demand or on a timer:
 
 <!-- code: account -->
 <details><summary>Python (python/monitoring.py)</summary>
@@ -322,7 +321,7 @@ def refresh_every(self, client, seconds):
 </details>
 <!-- /code -->
 
-The replay wires the layer around the client and keeps going when one call fails (failures are data, not a crash); only a locked model or the credit cap stops it:
+The replay wires the layer around the client and keeps going when one call fails (failures are data, not a crash); only a refused caller (a `403`) or the credit cap stops it:
 
 <!-- code: wire -->
 <details><summary>Python (python/main.py)</summary>
@@ -393,7 +392,7 @@ The workload is `assets/workload.jsonl`: 6 `ppocr-v6` reads of the Playground se
 | 5, one image | `sam3` (encode 0.50 once, then prompt 0.05) | 0.55 first, 0.05 after | 0.75 |
 | 21 | | | 2.55 |
 
-On a funded account whose daily allowances cover `ppocr-v6` (public pool) and `sam-lite` (free pool), only `sam3` is debited: about 0.75 credits. The credit cap `FOLDBUN_MAX_CREDITS=2.75` is what the replay needs: the client counts a call at its worst case (the encoding fee always included) and counts calls inside an allowance at list price, so the cap must hold the 2.55 spent plus the worst case of the next call; the order of the workload keeps the SAM calls early for that reason, and a test checks it. Forty OCR reads, as a larger replay, would be 10 credits at list price on their own.
+On the free tier nothing is debited: the run prints the 2.55 credits labelled "free tier, not charged". With a key, all 2.55 are charged. The credit cap `FOLDBUN_MAX_CREDITS=2.75` is what a keyed replay needs: the client counts a call at its worst case (the encoding fee always included), so the cap must hold the 2.55 spent plus the worst case of the next call; the order of the workload keeps the SAM calls early for that reason, and a test checks it. Forty OCR reads, as a larger replay, would be 10 credits at list price on their own.
 
 With the encoding cache, 13 of the 15 SAM calls reuse an encoding (9 of `sam-lite`, 4 of `sam3`), which saves 9 x 0.20 + 4 x 0.50 = 3.80 credits of encoding fees that would otherwise appear in `stack_credits_total`. The spend guard, set to 0.2 credits per hour on what is charged, trips on the first `sam3` call (call 8: its encoding alone is 0.50), or on the fifth if the encoding was still cached from an earlier run. The books agree when `credits.list` and `credits.charged` of the metrics equal `ledger.listTotal` and `ledger.chargedTotal` of the client's ledger; `evaluate.py` checks that and the three conditions above.
 
@@ -448,20 +447,20 @@ Until a live run is recorded, `expected/offline.json` holds the replay against t
 | full | 21 | 1.85 | 0.25 |
 <!-- /cost -->
 
-The list price of a smoke run is 2.55 credits; what is debited depends on the account (see Results). Full is the same replay.
+The list price of a smoke run is 2.55 credits; it is free on the free tier and charged this much with a key (see Results). Full is the same replay and needs a key.
 
 ## Adapt it <!-- #adapt -->
 
 - **Your own workload**: replace `assets/workload.jsonl` (one JSON object per line: `id`, `endpoint`, `model`, `image` as a manifest id, `request` as the body without `image` and `model`) and list the images in `assets/manifest.json`.
 - **Your own service**: you only need `monitoring.py` and `stack_client.py`. Create one `Monitor` per process, use one `MonitoredClient` where you used the client, and serve `/metrics` or return `monitor.exposition()` from your own endpoint. Several processes: each is its own Prometheus target; sum them in queries, as the dashboard does.
-- **Limits and modes**: `SpendGuard(max_per_hour, mode="reject")` refuses calls with `SpendGuardTripped` (code `spend_guard_tripped`); catch it where you can degrade gracefully. `basis="list"` counts the list price, which includes calls covered by an allowance. Choose the limit from your normal hourly spend with some headroom.
+- **Limits and modes**: `SpendGuard(max_per_hour, mode="reject")` refuses calls with `SpendGuardTripped` (code `spend_guard_tripped`); catch it where you can degrade gracefully. `basis="list"` counts the list price, which includes calls that ran free on the free tier. Choose the limit from your normal hourly spend with some headroom.
 - **Labels**: `model` has seven values and `unit` a handful, so the series count stays small. Do not add image ids, call ids or request ids as labels.
 - **Other languages**: any client that reads `billing`, `cost`, `cache`, `timing` and `balance` of an answer can export the same metric names; the dashboard and the rules would carry over.
 
 ## Limits and when not to use this <!-- #limits -->
 
 - **No end-to-end latency here.** Latency seen from a client depends on its network path to the API, so the measurements of this use case do not include it; the queue and processing figures are the server's own `timing`. The layer exports `client_total` (the time around the call in your process) so that you can watch your own environment, but this page publishes no such number.
-- **The balance is as old as the last answer or refresh.** `stack_balance_credits` moves when a call finishes or `whoami` is read, nothing else; a process that makes no calls shows a stale number (`stack_balance_updated_timestamp_seconds` tells how stale). Other keys of the same account move it too, and only a refresh sees that.
+- **The balance is as old as the last answer or refresh, and only exists for a key.** `stack_balance_credits` moves when a call finishes or `whoami` is read, nothing else; a process that makes no calls shows a stale number (`stack_balance_updated_timestamp_seconds` tells how stale). Other keys of the same account move it too, and only a refresh sees that.
 - **Not the bill.** The metrics are your process's view of the answers it received. The account console is the authority: calls made by other processes or keys never appear, and an answer that was lost on its way back was charged but never counted. Use the metrics to notice, and the console to settle.
 - **Batches (SSE) are counted per item.** The cost and timing of each `item` event are read from the event itself, as one call each; a batch has no per-item client time, so `client_total` is not recorded for items. A stream that is cut before its summary event is counted as one failed call, and the items that arrived before the cut stay counted.
 - **Replays are recognised through the client's ledger**, which marks the answer of a retried call as `replayed`; they are counted as `status="replayed"` and add no credits. With several threads and no `tag`, that lookup can attribute the flag to a neighbouring call in rare cases.

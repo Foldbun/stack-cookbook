@@ -1,9 +1,9 @@
-<!-- en-sha: 67114e70a5e3 -->
+<!-- en-sha: 1f8fcdf9ef99 -->
 # 按图、按文字搜索图库，并找出近重复图片
 
 [English](README.md) | 简体中文
 
-用 `dinov3` 和 `siglip2` 为图库生成向量，存进可增量更新的本地小索引，回答三个问题：哪些图片与这张图相似，哪些图片符合这句描述，哪些图片互为近重复。两个模型都在公共池内，新账户即可运行 smoke 数据集。
+用 `dinov3` 和 `siglip2` 为图库生成向量，存进可增量更新的本地小索引，回答三个问题：哪些图片与这张图相似，哪些图片符合这句描述，哪些图片互为近重复。smoke 数据集在免费层上运行，不需要密钥，也不需要注册。
 
 **Built with DINOv3.** `dinov3` 的输出受 DINOv3 License 约束；基于它构建的产品应显示标签 "Built with DINOv3"。
 
@@ -18,7 +18,7 @@
 决定代码形状的是调用周围的约束，而不是模型本身：
 
 - **成本。** 每个模型每张图 0.05 credits，建库一次每张图 0.10 credits。每次变动都重新嵌入整个图库会成倍放大这笔费用，因此索引必须增量重建：只嵌入新增或改动的文件，按文件内容的 sha256 判断。
-- **额度。** 公共池每个 UTC 日包含 100 次调用，批处理中的每张图算一次调用。几百张图的图库一天内放不下，所以额度用完时必须干净地停下，次日接着做，而不是做到一半失败。
+- **限额。** 免费层按分钟和按天限制每个项目，每张图算一次调用。几百张图的图库可能撞上限额，而且 Cookbook 的共享项目还有其他读者在用，所以运行遇到 `429` 要等待，达到每日上限时必须干净地停下、稍后接着做，而不是做到一半失败。
 - **失败。** 批处理可能丢失某一项、过期或断开连接。重跑不得重复嵌入，也不得重复计费。
 - **规模。** 这个量级下向量放得进内存，精确检索只是一次矩阵乘法。不需要向量数据库，也没有引入。
 
@@ -29,11 +29,12 @@
       |  计算每个文件的 sha256，与索引中的目录比对
       v
  仅新增或改动的图片
-      |  POST /v1/images（免费），再 POST /v1/batch/embeddings
+      |  有密钥时：POST /v1/images（免费），再 POST /v1/batch/embeddings
+      |  免费层：每张图一次调用，图片内联
       |  每块 50 张，一次一个模型，先 dinov3 后 siglip2
       v
  索引目录：index.json + vectors-dinov3-N.f32 + vectors-siglip2-N.f32
-      |  每块之后提交（原子写入），到每日额度用完时干净地停止
+      |  每块之后提交（原子写入），到每日上限时干净地停止
       v
  查询：除查询文字或不在图库中的查询图片外，全部在本地完成
    图片   -> dinov3 向量  -> 精确余弦 top-k
@@ -41,8 +42,8 @@
    近重复 -> dinov3 向量，取超过阈值的图片对，连通分量（并查集）
 ```
 
-1. `POST /v1/images`：每个新文件上传一次，得到句柄。免费。
-2. 分别用 `dinov3` 和 `siglip2` 调用 `POST /v1/batch/embeddings`：每个请求最多 1,000 项，此处用 50。一个批处理占用一个每分钟限速令牌，但服务端逐项依次执行，每一项都计入每日额度的一次调用。
+1. 使用密钥时，`POST /v1/images`：每个新文件上传一次，得到句柄。免费。免费层没有上传：每张图以 base64 内联发送（解码后最大 4 MiB）。
+2. 使用密钥时，分别用 `dinov3` 和 `siglip2` 调用 `POST /v1/batch/embeddings`：每个请求最多 1,000 项，此处用 50。一个批处理占用一个每分钟限速令牌，但服务端逐项依次执行。免费层没有批处理端点，所以每张图、每个模型各是一次 `POST /v1/embeddings` 调用。
 3. 每一块之后写入 `index.json` 和向量文件。向量已做 L2 归一化，点积就是余弦相似度。
 4. 文字查询是一次 `siglip2` 的 `POST /v1/embeddings` 调用（每条文本 0.01 credits，每次最多 64 条），与图片的 `siglip2` 向量比较，因为图片与文字共用一个空间。图片查询在图片已在图库中时使用已存的 `dinov3` 向量，否则调用一次。
 5. 近重复不需要调用：直接从已存的 `dinov3` 向量中取出超过阈值的图片对。
@@ -50,7 +51,7 @@
 ## 运行 <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY="fbs_..."
+# 无需密钥：没有设置 FOLDBUN_API_KEY 时由免费层处理调用；设置后按标价扣费。
 cd use-cases/05-image-library-search/python
 
 uv run imgsearch.py index ~/photos                          # 嵌入新增和改动的文件；再运行一次即可续做
@@ -62,13 +63,13 @@ uv run imgsearch.py status                                  # 索引中有什么
 uv run main.py                                              # smoke 数据集，写出 out/result.json（harness 运行的就是它）
 ```
 
-`index` 支持 `--batch-size`、`--free-only`（到达包含的每日调用数时停止，不再付费）和 `--keep-free N`（为查询保留 N 次包含的调用）。每日额度用完时，它会打印还缺多少向量、调用数何时恢复（00:00 UTC），并以退出码 5 结束；到时重新运行同一条命令即可。退出码列在 `imgsearch.py` 的文件头。
+`index` 支持 `--batch-size`。服务端返回 `429` 时，它按 `Retry-After` 等待后继续。项目的每日上限用完时，它会打印还缺多少向量、调用数何时恢复，并以退出码 5 结束；到时重新运行同一条命令，索引会从停下的地方接着做。退出码列在 `imgsearch.py` 的文件头。
 
 新建索引后的第一次查询会在最后一行显示费用，例如 `cost: 0.01 credits at list price, 0 charged, in 1 calls`。
 
 同一套代码由清单驱动时就是 harness 运行的程序（`main.py --manifest M --out DIR`）。它还会写出 `DIR/index/`（索引）、`DIR/stats.json`（耗时、观察到的额度、第二次建库的结果，该次必须不发出任何调用）以及符合 `contract/result.schema.json` 的 `DIR/result.json`：每张图库图片一项，每条文字查询一项，各自带有自己那几次调用的账本行。
 
-完整数据集（400 张图片、100 个近重复变体、40 条文字查询，73 MB）是仓库的发布附件（见 `datasets/README.md`）。其清单已提交为 `assets/full.json`，图片和标准答案在压缩包里。把压缩包解压到 `assets/`，再在仓库根目录对参考实现运行完整数据集。一次运行按标价最多 51 credits（500 张图片 x 0.10 加 40 条文本 x 0.01，合计 50.4），约 1,040 次调用；只有已充值账户能在一个 UTC 日内完成，公共池账户会因每日额度用尽而提前停止，需要在之后的日子重复运行。
+完整数据集（400 张图片、100 个近重复变体、40 条文字查询，73 MB）是仓库的发布附件（见 `datasets/README.md`）。其清单已提交为 `assets/full.json`，图片和标准答案在压缩包里。把压缩包解压到 `assets/`，再在仓库根目录对参考实现运行完整数据集。完整运行需要 `FOLDBUN_API_KEY`（没有密钥时以退出码 2 结束）：它规模大，而且用到上传和批处理。一次运行按标价最多 51 credits（500 张图片 x 0.10 加 40 条文本 x 0.01，合计 50.4），约 1,040 次调用。
 
 ```bash
 tar xzf 05-image-library-search-full.tar.gz -C use-cases/05-image-library-search/assets
@@ -83,9 +84,9 @@ Go 实现是同一条管线的单个命令：`cd use-cases/05-image-library-sear
 
 ## 代码 <!-- #code -->
 
-客户端文件（`stack_client.py`、`stackclient/client.go`）是 `clients/` 中对应文件的副本（重试、幂等键、每分钟令牌桶、额度上限和账本）。以下是本用例新增的部分。
+客户端文件（`stack_client.py`、`stackclient/client.go`）是 `clients/` 中对应文件的副本（遵循服务端 `429` 和限速响应头的重试与等待、带密钥调用的幂等键、额度上限和账本）。以下是本用例新增的部分。
 
-**遍历图库的循环。** 缺少向量的图片被切成块，依次交给每个模型嵌入。两个模型逐块交替，这样额度用完时，图库的前一部分两种向量都已齐备。
+**遍历图库的循环。** 缺少向量的图片被切成块，依次交给每个模型嵌入。两个模型逐块交替，这样运行被中途打断时，图库的前一部分两种向量都已齐备。
 
 <!-- code: index-library -->
 <details><summary>Python (python/embedder.py)</summary>
@@ -144,7 +145,7 @@ func indexLibrary(client *stackclient.Client, index *LibraryIndex, root string, 
 </details>
 <!-- /code -->
 
-**一个批处理。** 流中的每一项到达时即处理。一项的账本行就是该批处理标签下的最后一行。因可能恢复的原因失败的项（`image_not_found`、`model_busy`、过期项）进入下一次尝试；没有 summary 就结束的流，会把未完成的项重新发送；额度用完或达到额度上限则停止运行。批处理的幂等键由内容派生，因此重跑被中断的一块时，已完成的项会被重放，不再计费。
+**一个批处理。** 流中的每一项到达时即处理。一项的账本行就是该批处理标签下的最后一行。因可能恢复的原因失败的项（`image_not_found`、`model_busy`、过期项）进入下一次尝试；没有 summary 就结束的流，会把未完成的项重新发送；达到每日上限或额度上限则停止运行。批处理的幂等键由内容派生，因此重跑被中断的一块时，已完成的项会被重放，不再计费。
 
 <!-- code: embed-chunk -->
 <details><summary>Python (python/embedder.py)</summary>
@@ -786,7 +787,7 @@ if err == nil {
 </details>
 <!-- /code -->
 
-**文字查询。** 每条查询一次调用，使每条查询的费用和延迟落在各自的项里。文本也可以合并发送（每次最多 64 条），以少用每日额度的调用次数；两种方式的价格都按文本条数计。
+**文字查询。** 每条查询一次调用，使每条查询的费用和延迟落在各自的项里。文本也可以合并发送（每次最多 64 条），以少占用项目限额内的调用次数；两种方式的价格都按文本条数计。
 
 <!-- code: text-queries -->
 <details><summary>Python (python/main.py)</summary>
@@ -873,7 +874,7 @@ curl "127.0.0.1:8080/duplicates?threshold=0.90"         # 近重复分组（dino
 curl "127.0.0.1:8080/healthz"
 ```
 
-`/search` 通过客户端用 `siglip2` 嵌入文字，因此每次查询是一次计费调用（标价 0.01 credits；在包含的每日调用数用完之前，它计为其中一次）；服务启动时需要 `FOLDBUN_API_KEY`，缺少时只有 `/search` 关闭。`/similar` 和 `/duplicates` 读取已存的向量，不发出 API 调用。`k` 缺省为 10，超过 100 时按 100 处理；`k` 不合法、`q` 为空或过长、阈值不在 (0, 1] 内时返回 400，图片 id 不存在返回 404，GET 以外的方法返回 405，API 失败返回 502（每日额度、余额或额度上限用尽时为 429）。收到 SIGINT 或 SIGTERM 后，服务在处理中的请求结束后退出。
+`/search` 通过客户端用 `siglip2` 嵌入文字，因此每次查询是一次调用（标价 0.01 credits；没有设置 `FOLDBUN_API_KEY` 时服务使用免费层，不扣费；设置后按标价扣费）。`/similar` 和 `/duplicates` 读取已存的向量，不发出 API 调用。`k` 缺省为 10，超过 100 时按 100 处理；`k` 不合法、`q` 为空或过长、阈值不在 (0, 1] 内时返回 400，图片 id 不存在返回 404，GET 以外的方法返回 405，API 失败返回 502（项目限额、余额或额度上限用尽时为 429）。收到 SIGINT 或 SIGTERM 后，服务在处理中的请求结束后退出。
 
 路由表和服务器设置（超时、请求头上限、平滑停止）就是服务的全部：
 
@@ -966,7 +967,7 @@ func listenAndServe(ctx context.Context, ln net.Listener, h http.Handler) error 
 
 ## 成本 <!-- #cost -->
 
-`dinov3` 每张图 0.05 credits，`siglip2` 每张图 0.05 credits，每条文本 0.01 credits。smoke 数据集（25 张图片、5 条查询）按标价为 25 x 0.10 + 5 x 0.01 = 2.55 credits，共 55 次调用：`dinov3` 25 次、`siglip2` 25 次、文字查询 5 次。这在一个 UTC 日包含的 100 次调用之内，新账户不扣费。完整数据集（约 500 张图片、40 条查询）按标价为 50.4 credits，约 1,040 次调用：已充值账户的免费池按每个池内模型每个 UTC 日前 1,000 次调用免费；公共池账户需要约 11 天、每天 100 次，每次停止后建库可继续。
+`dinov3` 每张图 0.05 credits，`siglip2` 每张图 0.05 credits，每条文本 0.01 credits。smoke 数据集（25 张图片、5 条查询）按标价为 25 x 0.10 + 5 x 0.01 = 2.55 credits，共 55 次调用：`dinov3` 25 次、`siglip2` 25 次、文字查询 5 次。在免费层上 smoke 运行不扣费：运行时会打印这笔标价并标注“免费层，不扣费”。完整数据集（约 500 张图片、40 条查询）按标价为 50.4 credits，约 1,040 次调用，由密钥扣费；每次停止后建库可继续。
 
 每次运行记录各自的标价和实扣：
 
@@ -985,9 +986,9 @@ func listenAndServe(ctx context.Context, ln net.Listener, h http.Handler) error 
 - **近重复是对相似度设的阈值。** 默认值（0.90）只是起点。应在图库自己的带标注样本上选定，做法与 `evaluate.py` 相同；裁剪和重度重新压缩的得分通常低于缩放。连通分量会成链：A 与 B 相似、B 与 C 相似，三者就进入同一组。
 - **只有图像级语义。** 两个模型描述的是整张图片，没有物体位置。`siglip2` 的输入是 224 px，小物体会丢失。文字查询以英文效果最好，得分是很小的数，只有排序有意义，因此不使用固定的截断值。
 - **模型是索引的一部分。** 不同模型的向量不可比较，模型升级后旧向量与新向量也会不一致。索引记录每个模型的向量长度，遇到不同长度就拒绝；模型变化时需要重建索引。
-- **每日额度。** 公共池每个 UTC 日包含 100 次调用。共享的池可能对两个模型共用一份额度；代码依据每次响应报告的数字行事，不做假设。批处理中的各项依次执行，N 张图的批处理耗时约为单张处理时间的 N 倍；每块应远小于批处理 600 秒的上限。
+- **免费层限额。** 免费层按模型的重量级别，对每个项目分别限制每分钟和每日的调用数，而 Cookbook 的共享项目由所有读者共用，上限可能被别人用完。代码依据 `429` 和服务端返回的响应头行事，不假设具体数字。批处理中的各项依次执行，N 张图的批处理耗时约为单张处理时间的 N 倍；每块应远小于批处理 600 秒的上限。
 - **上传的图片由客户端保留。** 客户端文件在内存中保留已上传图片的字节，以便句柄被逐出时重新上传。图库很大时，请分多次运行建库。
-- 参考文档：[Embeddings and search](https://stack.foldbun.com/docs/use-cases/embeddings/)、[DINOv3](https://stack.foldbun.com/docs/models/dinov3/)、[SigLIP 2](https://stack.foldbun.com/docs/models/siglip2/) 和 [Rate limits and pools](https://stack.foldbun.com/docs/rate-limits/)。`dinov3` 的输出受 DINOv3 License 约束；基于它构建的产品应显示标签 "Built with DINOv3"。
+- 参考文档：[Embeddings and search](https://stack.foldbun.com/docs/use-cases/embeddings/)、[DINOv3](https://stack.foldbun.com/docs/models/dinov3/)、[SigLIP 2](https://stack.foldbun.com/docs/models/siglip2/) 和 [Rate limits](https://stack.foldbun.com/docs/rate-limits/)。`dinov3` 的输出受 DINOv3 License 约束；基于它构建的产品应显示标签 "Built with DINOv3"。
 
 ## 数据 <!-- #data -->
 

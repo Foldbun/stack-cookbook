@@ -36,8 +36,8 @@ This example is that workflow for the 60 images, 4 classes (Dog, Cat, Bird, Boat
 ```
 
 1. Scan the manifest and compute the sha256 of every file; refuse a file that does not match the manifest.
-2. Upload each distinct file once. This is free, and the handle is derived from the file contents, so uploading again is harmless.
-3. Cut the images into batches of at most 100 and send each as one `POST /v1/batch/segment` event stream. A batch takes one rate-limit token; the images in it run one after another on the server.
+2. With a key, upload each distinct file once. This is free, and the handle is derived from the file contents, so uploading again is harmless. On the free tier there is no upload and no handle: the image goes inline as base64.
+3. With a key, cut the images into batches of at most 100 and send each as one `POST /v1/batch/segment` event stream. A batch takes one rate-limit token; the images in it run one after another on the server. On the free tier there are no batch endpoints, so each image is its own request.
 4. Each image carries 4 text prompts (`dog`, `cat`, `bird`, `boat`). `filter.minScore` is the review threshold (0.3), so the API returns everything a reviewer might want and nothing below it.
 5. Route every instance by score, and every expected-but-empty class by the manifest's `expectedClasses`.
 6. Export what other tools read, and write the cost of every image.
@@ -47,16 +47,15 @@ Two more modes use the same pipeline. `--exemplar` is for a class that text does
 ## Run it <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY="fbs_..."
 cd use-cases/01-dataset-prelabelling/python
 uv run main.py --manifest ../../../datasets/smoke/01-dataset-prelabelling/manifest.json --out out
 ```
 
-The account needs a balance, because `sam3` is billed from it. The smoke set costs 2.8 credits at list price. Set `FOLDBUN_MAX_CREDITS` to make the client refuse any call that could pass your own limit.
+The smoke set needs no key and no sign-up: it runs on the free tier, one request per image with the image inline, and the run prints its list price (2.8 credits) labelled "free tier, not charged". The free tier is shared and limited per minute and per day, so when the server answers `429` the client waits for `Retry-After` and carries on. The full set needs `FOLDBUN_API_KEY`: it is large, and it uses uploads and batches, which the free tier does not offer. Without the key the program says so and exits with code 2. With a key every call is charged at the list price; set `FOLDBUN_MAX_CREDITS` to make the client refuse any call that could pass your own limit. Set `FOLDBUN_PROJECT_ID` to count the calls against your own project (see [how the recipes authenticate](../../README.md#authentication)).
 
 | Option | Default | Meaning |
 |---|---|---|
-| `--concurrency N` | 2 | batches in flight at once; an account may have 1 to 4 open batches, and a `429 too_many_batches` is waited out |
+| `--concurrency N` | 2 | batches in flight at once (requests in flight on the free tier); an account may have 1 to 4 open batches, and a `429 too_many_batches` is waited out |
 | `--batch-size N` | 100 | images per batch request (the API allows 1,000 items and 600 s per event stream) |
 | `--accept` / `--review` | 0.6 / 0.3 | accept from this score; between the two goes to review; below `--review` is not requested |
 | `--rounds N` | 3 | how often expired or failed items are sent again |
@@ -92,7 +91,7 @@ Box mode takes a CSV of boxes `x1,y1,x2,y2` in image pixels, with the class in `
 uv run main.py --manifest ... --out out-boxes --boxes detections.csv --model sam-lite
 ```
 
-The full set is a release asset. Extract `01-dataset-prelabelling-full.tar.gz` into `assets/` (see `assets/full.json`) and pass `assets/full.json`; `evaluate.py` then scores the run against `assets/truth.json`.
+The full set is a release asset. Extract `01-dataset-prelabelling-full.tar.gz` into `assets/` (see `assets/full.json`) and pass `assets/full.json` with `FOLDBUN_API_KEY` set; `evaluate.py` then scores the run against `assets/truth.json`.
 
 ### The Go version
 
@@ -113,7 +112,7 @@ The standard library is the only dependency, so review crops are written for JPE
 
 The files are small and meant to be copied: `main.py` (arguments, wiring, `result.json`), `batches.py` (scan, upload, batches, resume), `routing.py` (score bands), `exports.py` (COCO, YOLO, review queue, costs), plus the two client files. The Go version follows the same split (`main.go`, `batches.go`, `routing.go`, `exports.go`) and adds `crop.go` for the review crops.
 
-The client reads the key and base URL from the environment and never prints the key:
+The client reads the optional key, the project ID and the base URL from the environment and never prints the key:
 
 <!-- code: client -->
 <details><summary>Python (python/main.py)</summary>
@@ -188,7 +187,7 @@ func scan(items []manifestItem, base string) ([]*Unit, error) {
 </details>
 <!-- /code -->
 
-Uploads are free, and the handle is `img_` plus the sha256 of the image. The same file uploaded twice is one handle:
+With a key, uploads are free, and the handle is `img_` plus the sha256 of the image. The same file uploaded twice is one handle:
 
 <!-- code: upload -->
 <details><summary>Python (python/batches.py)</summary>
@@ -1088,7 +1087,7 @@ How the numbers are made (`evaluate.py`):
 
 ## Cost <!-- #cost -->
 
-An image with 4 text prompts costs one image encoding (0.5) and 4 prompts (4 x 0.05): 0.70 credits at list price, so about 700 credits per 1,000 images. The encoding fee is waived when the same image was encoded shortly before, for example when a run is repeated with other prompts; do not plan on it. In exemplar mode an image costs 0.55 (one prompt, however many boxes). In box mode with `sam-lite` it costs 0.2 plus 0.01 per box. Replayed items are not charged. Uploads are free.
+An image with 4 text prompts costs one image encoding (0.5) and 4 prompts (4 x 0.05): 0.70 credits at list price, so about 700 credits per 1,000 images. The encoding fee is waived when the same image was encoded shortly before, for example when a run is repeated with other prompts; do not plan on it. In exemplar mode an image costs 0.55 (one prompt, however many boxes). In box mode with `sam-lite` it costs 0.2 plus 0.01 per box. Replayed items are not charged. Uploads are free. These are the list prices a keyed run is charged; a smoke run on the free tier costs nothing.
 
 <!-- cost -->
 | Run | Calls | List price (credits) | Charged (credits) |

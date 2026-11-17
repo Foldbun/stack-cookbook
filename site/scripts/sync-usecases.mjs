@@ -150,16 +150,19 @@ function runBlock(uc, lang) {
   const clean = (cmd) => cmd.replaceAll('{dir}', '.').replace(/\s(--project|-C|--dir) \.(?=\s|$)/g, '')
   const smoke = uc.meta.sizes?.smoke
   const full = uc.meta.sizes?.full
-  const cap = smoke?.budget_credits
+  const cap = full?.budget_credits
   const tabs = uc.languages.map((l) => {
     const cfg = languagesToml[l] ?? {}
     const run = (m) => `${clean(cfg.run ?? '')} --manifest ../${m} --out out`
-    const lines = ['export FOLDBUN_API_KEY="fbs_..."']
-    if (cap) lines.push(`export FOLDBUN_MAX_CREDITS=${cap}`)
-    lines.push(`cd use-cases/${uc.id}/${l}`)
+    // The smoke set runs on the free tier without a key; the full set needs one.
+    const lines = [`cd use-cases/${uc.id}/${l}`]
     if (cfg.setup) lines.push(clean(cfg.setup))
     if (smoke?.manifest) lines.push(run(smoke.manifest))
-    if (full?.manifest) lines.push('', `# ${t['uc.fullSet']}: ${t['uc.fullSetNote']}`, run(full.manifest))
+    if (full?.manifest) {
+      lines.push('', `# ${t['uc.fullSet']}: ${t['uc.fullSetNote']}`, 'export FOLDBUN_API_KEY="fbs_..."')
+      if (cap) lines.push(`export FOLDBUN_MAX_CREDITS=${cap}`)
+      lines.push(run(full.manifest))
+    }
     const min = cfg.min ? `\n${t['uc.requires']}: ${cfg.min}\n` : ''
     return `<TabItem label="${langName(l)}">\n${min}\n\`\`\`bash\n${lines.join('\n')}\n\`\`\`\n\n</TabItem>`
   })

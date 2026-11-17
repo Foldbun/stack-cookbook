@@ -1,4 +1,4 @@
-<!-- en-sha: 351a3a803548 -->
+<!-- en-sha: 7771d786a522 -->
 # 把商家照片变成统一的商品目录图
 
 [English](README.md) | 简体中文
@@ -22,12 +22,12 @@
 ## 运行 <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY=...            # 付费账户：remove-background 是付费模型
+# 无需密钥：smoke 运行使用免费层。设置 FOLDBUN_API_KEY 后调用按标价扣费。
 cd use-cases/06-product-photo-pipeline/python
 uv run python main.py --manifest ../assets/smoke/manifest.json --out out --concurrency 4
 ```
 
-`--resume` 复用 `out/cutouts/` 里已有的抠图，不重复付费。退出码：0 完成（部分条目可能在 `review.csv` 里），1 失败，2 没有密钥，3 账户不能用该模型，4 额度上限（`FOLDBUN_MAX_CREDITS`）拒绝了调用。完整集（40 张，40 credits）是发布资产，见 `assets/full.json`。用 `uv run python evaluate.py --result out/result.json --truth assets/truth.json` 给一次运行打分。
+`--resume` 复用 `out/cutouts/` 里已有的抠图，不重复调用。服务端返回 `429` 时，客户端按 `Retry-After` 等待后继续。退出码：0 完成（部分条目可能在 `review.csv` 里），1 失败，2 没有密钥（完整集需要密钥），3 服务端以 `403` 拒绝了调用方，4 额度上限（`FOLDBUN_MAX_CREDITS`）拒绝了调用。完整集（40 张，按标价 40 credits）是发布资产，见 `assets/full.json`；它需要 `FOLDBUN_API_KEY`。用 `uv run python evaluate.py --result out/result.json --truth assets/truth.json` 给一次运行打分。
 
 ## 代码 <!-- #code -->
 
@@ -237,7 +237,7 @@ def encode_webp(page: Image.Image) -> bytes:
 
 ## 成本 <!-- #cost -->
 
-每张 1 credit（1,000 credits 折合 1 美元，即每张 0.001 美元），1,000 张是 1,000 credits。这个端点缓存不打折；质检和合成都在本地运行，不花钱。重跑会再次付费，除非用 `--resume`。
+每张 1 credit（1,000 credits 折合 1 美元，即每张 0.001 美元），1,000 张是 1,000 credits。这个端点缓存不打折；质检和合成都在本地运行，不花钱。smoke 运行在免费层上免费（运行时会打印标价并标注“免费层，不扣费”）；带密钥的运行按此扣费，重跑会再次扣费，除非用 `--resume`。
 
 <!-- cost -->
 | 运行 | 调用次数 | 标价（credits） | 实扣（credits） |
@@ -251,7 +251,7 @@ def encode_webp(page: Image.Image) -> bytes:
 - 一张照片里有多件商品时只能整体抠出。`multiple_pieces` 规则会把它送去复核；只要其中一件时，先用 `sam3` 加文字提示选出物体再抠。这个组合这里没有实现。
 - 透明和反光的商品（玻璃、抛光金属）边缘不稳定，预期会出现在 `review.csv` 里。
 - 被画面截断的商品无法修复，规则只负责发现。
-- 每张 1 credit，缓存不打折：积压量大时是一笔实打实的费用。
+- 每张 1 credit，缓存不打折：使用密钥时，积压量大是一笔实打实的费用。
 - 阈值只在 40 张家居物品照片上定过；用你自己的目录再核对一遍。
 
 ## 数据 <!-- #data -->

@@ -12,7 +12,7 @@ The constraints that shape the code:
 
 - **A wrong number is worse than a missing one.** The pipeline never guesses. Every result passes checks (items add up to the subtotal, subtotal minus discount plus tax is the total, the date exists and is not in the future, the lines it was read from were read with confidence). What fails is read again, and what still fails is written to `needs_review.jsonl`.
 - **The better model is 8 times the price.** `ppocr-v6` costs 0.25 credits per image and `paddleocr-vl` 2 credits per page. Using the second one for every document would make the expensive path the default, so it runs only for the items that fail.
-- **Rate limits.** The public pool allows 10 calls per minute and 100 per UTC day; on a funded account the free pool serves 60 included calls per minute and 1,000 per day, and calls above that are billed. `paddleocr-vl` is in the paid pool only. The client paces calls by the `perMinute` of `GET /v1/models`, so included calls stay free.
+- **Rate limits.** The free tier limits each project per minute and per day by the weight of the model, and `paddleocr-vl` is the heaviest class, with the smallest limits. When the server answers `429`, the client waits for `Retry-After` (or for `X-RateLimit-Reset` when `X-RateLimit-Remaining` is 0) and carries on; it does not pace itself. The smoke documents fit the free tier, the full set needs a key.
 - **Reruns must not cost twice.** A crashed or repeated run should not pay for documents it already read.
 - **Amounts are printed in several ways**: `6.000` and `1,250.00` and `1.250,00`, with `Rp`, `$` or no mark, and negatives as `-23.56`, `(23.56)` or `23.56-`.
 
@@ -21,7 +21,7 @@ The constraints that shape the code:
 <!-- figure: assets/pipeline.svg -->
 ![Pipeline: ppocr-v6, rules, validation, fallback to paddleocr-vl, needs_review.jsonl](assets/pipeline.svg)
 
-1. Upload the image once (`POST /v1/images`, free) and keep the handle.
+1. With a key, upload the image once (`POST /v1/images`, free) and keep the handle. On the free tier there is no upload: the image goes inline as base64 on each call.
 2. `POST /v1/ocr` with `ppocr-v6`: lines with boxes and confidence.
 3. Group the lines into rows by vertical position, then read the fields from the rows: merchant, date, currency, line items, subtotal, discount, service, tax, total. Each value keeps its provenance: the model, the line indices and the box it was read from.
 4. Validate. All checks must pass.
@@ -33,10 +33,10 @@ The output of one item is described by `output.schema.json`. It keeps the receip
 ## Run it <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY="fbs_..."
-export FOLDBUN_MAX_CREDITS=5           # optional: the client refuses calls that could pass it
+# no key needed: the smoke run uses the free tier. With FOLDBUN_API_KEY set the calls are charged at list price;
+# FOLDBUN_MAX_CREDITS=5 (optional) makes the client refuse calls that could pass it
 cd use-cases/03-receipts-to-json/python
-uv run main.py --out out               # the 4 smoke documents: about 3 credits at list price
+uv run main.py --out out               # the 4 smoke documents: about 3 credits at list price, free on the free tier
 uv run main.py --out out --resume      # after an interruption: finished items are not read again
 uv run main.py --out out --no-fallback # OCR only
 # or: cd ../typescript && pnpm install && node main.ts --out out   # the same pipeline in TypeScript
@@ -45,11 +45,11 @@ uv run main.py --out out --no-fallback # OCR only
 
 Arguments: `--manifest`, `--out`, `--concurrency` (default 4), `--limit`, `--resume`, `--no-fallback`. Outputs: `result.json` (format of `contract/result.schema.json`), `receipts.jsonl`, `needs_review.jsonl`, and `items/` with one file per finished item (used by `--resume`).
 
-The `paddleocr-vl` fallback needs a funded account. On a new account the fallback call answers `403 model_locked`; the item then stays with what `ppocr-v6` read and goes to review, and the run still completes.
+The `paddleocr-vl` fallback runs on the free tier too, within its heavy-class limits. If the server refuses it (a `429` that outlasts the retries, or a `403`), the item stays with what `ppocr-v6` read and goes to review, and the run still completes.
 
 To score a run: `python evaluate.py --result out/result.json --truth assets/smoke/truth.json`.
 
-The full set (60 CORD receipts and 20 synthetic invoices, 11 MB) is a release asset of the repository (see `datasets/README.md`). Its manifest is committed as `assets/full.json`; the images and the ground truth are in the archive. Extract it into `assets/`, then run the reference implementation on it from the repository root. Reading all 80 documents is at most 180 credits at list price (every document read by `ppocr-v6` and again by `paddleocr-vl`), usually about 60, and the fallback needs a funded account:
+The full set (60 CORD receipts and 20 synthetic invoices, 11 MB) is a release asset of the repository (see `datasets/README.md`). Its manifest is committed as `assets/full.json`; the images and the ground truth are in the archive. Extract it into `assets/`, then run the reference implementation on it from the repository root. Reading all 80 documents is at most 180 credits at list price (every document read by `ppocr-v6` and again by `paddleocr-vl`), usually about 60. The full run needs `FOLDBUN_API_KEY` (it exits with code 2 without one):
 
 ```bash
 tar xzf 03-receipts-to-json-full.tar.gz -C use-cases/03-receipts-to-json/assets
@@ -1070,7 +1070,7 @@ attempts = append(attempts, attempt(ocrModel, extractReceipt(rowsFromOCR(ocr.Lin
 </details>
 <!-- /code -->
 
-The second call reads the same handle: no second upload and no second image on the wire.
+With a key the second call reads the same handle: no second upload and no second image on the wire. On the free tier the image is sent inline in both calls.
 
 <!-- code: fallback-call -->
 <details><summary>Python (python/main.py)</summary>
@@ -1579,11 +1579,11 @@ Full set (80 documents), live run; filled in from `expected/full-summary.json` o
 | `heldout_hybrid_cost_per_1000_charged` | 850 |
 <!-- /metrics -->
 
-Metric names: `*_accuracy` are the share of documents whose field matches the ground truth (total exact; date exact where the truth has one; line-item count exact); with no prefix, the receipts the pipeline delivered, with `accepted_` only those that passed validation, with `ocr_only_` what `ppocr-v6` alone produced. `validation_pass_rate` is the share accepted without review; `fallback_rate` the share read again; `needs_review_rate` the share that still failed. Costs are per 1,000 documents at list price (`charged` excludes what the daily allowance covered).
+Metric names: `*_accuracy` are the share of documents whose field matches the ground truth (total exact; date exact where the truth has one; line-item count exact); with no prefix, the receipts the pipeline delivered, with `accepted_` only those that passed validation, with `ocr_only_` what `ppocr-v6` alone produced. `validation_pass_rate` is the share accepted without review; `fallback_rate` the share read again; `needs_review_rate` the share that still failed. Costs are per 1,000 documents at list price (`charged` is what the recorded run was debited; plan with the list price).
 
 ## Cost <!-- #cost -->
 
-One `ppocr-v6` call is 0.25 credits and one `paddleocr-vl` call is 2 credits at list price. For N documents with a fallback rate f the list price is `0.25 N + 2 f N`: 250 credits per 1,000 documents for OCR only, and 250 + 2,000 f for the hybrid, so f = 0.1 gives 450. Inside the daily allowance the `ppocr-v6` calls are not charged; `paddleocr-vl` is always billed. Idempotent replays are not charged.
+One `ppocr-v6` call is 0.25 credits and one `paddleocr-vl` call is 2 credits at list price. For N documents with a fallback rate f the list price is `0.25 N + 2 f N`: 250 credits per 1,000 documents for OCR only, and 250 + 2,000 f for the hybrid, so f = 0.1 gives 450. A smoke run is free on the free tier (the run prints its list price labelled "free tier, not charged"); a keyed run is charged these list prices. Idempotent replays, which need a key, are not charged.
 
 <!-- cost -->
 | Run | Calls | List price (credits) | Charged (credits) |
@@ -1602,7 +1602,7 @@ One `ppocr-v6` call is 0.25 credits and one `paddleocr-vl` call is 2 credits at 
 - **Two readings of the same image can differ slightly.** Between two runs of the 80-document set, 2 documents came back with a different text in one place (a title block, one digit of an amount). Results are stable enough to compare runs, not to expect them identical; the idempotency key is what makes a repeated run return the stored answer.
 - **Handwriting, faded thermal paper and creased photos** reduce the quality of both models; the validation then sends more items to review.
 - **No tax or accounting judgement.** The checks are arithmetic, not compliance.
-- The handle of an uploaded image is kept for 7 days at most; on `404 image_not_found` the client uploads again by itself.
+- With a key, the handle of an uploaded image is kept for 7 days at most; on `404 image_not_found` the client uploads again by itself.
 
 See [Text recognition](https://stack.foldbun.com/docs/use-cases/text-recognition/), [Document parsing](https://stack.foldbun.com/docs/use-cases/document-parsing/), [Rate limits](https://stack.foldbun.com/docs/rate-limits/) and [Billing](https://stack.foldbun.com/docs/billing/) in the documentation.
 

@@ -1,4 +1,4 @@
-<!-- en-sha: 7bd616cded1a -->
+<!-- en-sha: 5a4351c2f373 -->
 # 扫描文档转为可入索引的 Markdown 切块
 
 [English](README.md) | 简体中文
@@ -16,7 +16,7 @@
 - **切块边界决定检索质量。** 标题应当开启新块；表格绝不能从中间切开（半张表答不了任何问题）；过长的段落在句末切开。
 - **页眉页脚是噪声。** 每页都有的「Wealth of Nations, Book I」和「Page 2 of 3」会被反复索引，还会匹配到不该匹配的查询。它们跨页重复，所以可以通过比较同一文档的各页找出来。
 - **每个命中都要能注明出处。** 每个切块保留页码、其中各块的合并框、块的类型和页面文件的 sha256。
-- **成本按页计。** `paddleocr-vl` 每页 2 credits，按标价 1,000 页是 2,000 credits。
+- **成本按页计。** `paddleocr-vl` 每页 2 credits，按标价 1,000 页是 2,000 credits。它属于最重的模型级别，所以免费层每分钟只允许处理几页：跑 smoke 页面够用，处理整批文档则不够。
 
 ## 流程 <!-- #pipeline -->
 
@@ -24,7 +24,7 @@
 ![流程：页面图片、paddleocr-vl 版面块、去掉重复页眉页脚、切块、chunks.jsonl 与 document.md](assets/pipeline.svg)
 
 1. 取页面图片（数据集就是图片；PDF 要先逐页渲染，见「改成自己的数据」）。
-2. 每页上传一次（`POST /v1/images`，免费），再用 `paddleocr-vl` 和 `options.blocks: true` 调用 `POST /v1/documents/parse`：按阅读顺序返回带框的版面块（`title`、`text`、`table`、`formula`、`header`、`footer` 等），表格为 HTML，公式为 LaTeX。
+2. 使用密钥时，每页上传一次（`POST /v1/images`，免费）；免费层则把页面以 base64 内联发送。然后用 `paddleocr-vl` 和 `options.blocks: true` 调用 `POST /v1/documents/parse`：按阅读顺序返回带框的版面块（`title`、`text`、`table`、`formula`、`header`、`footer` 等），表格为 HTML，公式为 LaTeX。
 3. 按 `order` 给块排序。对每份文档，找出文本（数字替换为占位符后）至少在两页出现的 `header` 和 `footer` 块，并去掉。
 4. 逐页切块：标题开启新块；正文累积到约 800 个字符，某个块更长时在句末切开；表格和公式绝不切开；一个块不跨页。
 5. 写出 `chunks.jsonl`（每行一个切块）、`documents/` 下每份文档一个 Markdown 文件，以及 `result.json`。
@@ -40,17 +40,17 @@
 ## 运行 <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY="fbs_..."
-export FOLDBUN_MAX_CREDITS=4           # 可选：客户端会拒绝可能超出该额度的调用
+# 无需密钥：smoke 运行使用免费层。设置 FOLDBUN_API_KEY 后调用按标价扣费；
+# FOLDBUN_MAX_CREDITS=4（可选）让客户端拒绝可能超出该额度的调用
 cd use-cases/04-documents-to-rag-chunks/python
-uv run main.py --out out               # 2 张 smoke 页面：按标价 4 credits
+uv run main.py --out out               # 2 张 smoke 页面：按标价 4 credits，在免费层上免费
 uv run main.py --out out --resume      # 中断之后：已读过的页面不再重读
 uv run main.py --out out --chunk-size 1200   # 换一个目标块大小
 ```
 
 参数：`--manifest`、`--out`、`--concurrency`（默认 2）、`--limit`、`--resume`、`--chunk-size`（默认 800）、`--pdf FILE`。输出：`result.json`（格式见 `contract/result.schema.json`）、`chunks.jsonl`、`documents/<document>.md`，以及 `items/`（每读完一页存一个小文件，`--resume` 用它）。
 
-没有密钥时程序以退出码 2 退出并打印标准提示。新账户调用 `paddleocr-vl` 会得到 `403 model_locked`（它在付费池）：运行以退出码 3 停止。
+smoke 页面无需密钥即可运行。服务端返回 `429` 时，客户端按 `Retry-After` 等待后继续。完整集需要 `FOLDBUN_API_KEY`：没有密钥时程序以退出码 2 退出并打印标准提示。如果服务端以 `403` 拒绝调用方（并非所有地区都提供免费层），运行以退出码 3 停止。
 
 给一次运行打分：`python evaluate.py --result out/result.json --truth assets/smoke/truth.json`。
 
@@ -58,7 +58,7 @@ uv run main.py --out out --chunk-size 1200   # 换一个目标块大小
 
 ```bash
 tar xzf 04-documents-to-rag-chunks-full.tar.gz -C use-cases/04-documents-to-rag-chunks/assets
-export FOLDBUN_API_KEY="fbs_..."
+export FOLDBUN_API_KEY="fbs_..."          # 完整运行需要密钥
 uv run python -m harness live --size full --uc 04 --max-credits 60 --dry-run   # 只看计划，不发任何请求
 uv run python -m harness refresh --size full --uc 04 --max-credits 60          # 运行、打分，写出 expected/full.json 和 expected/full-summary.json
 ```
@@ -410,7 +410,7 @@ smoke 集（2 页）：
 
 ## 成本 <!-- #cost -->
 
-一页就是一次 `paddleocr-vl` 调用，2 credits，页面内容是什么都一样：按标价 1,000 页 2,000 credits。表中每 1,000 页成本按每页都是标价计算。大批量纯文本可以考虑 `ppocr-v6`，每张图 0.25 credits（见用例 03），但它只返回文字行，没有版面、表格和阅读顺序。
+一页就是一次 `paddleocr-vl` 调用，2 credits，页面内容是什么都一样：按标价 1,000 页 2,000 credits。表中每 1,000 页成本按每页都是标价计算。smoke 运行在免费层上免费（运行时会打印标价并标注“免费层，不扣费”）；带密钥的运行按此扣费。大批量纯文本可以考虑 `ppocr-v6`，每张图 0.25 credits（见用例 03），但它只返回文字行，没有版面、表格和阅读顺序。
 
 <!-- cost -->
 | 运行 | 调用次数 | 标价（credits） | 实扣（credits） |
@@ -419,7 +419,7 @@ smoke 集（2 页）：
 | full | 30 | 56 | 56 |
 <!-- /cost -->
 
-- 失败的调用不扣费；24 小时内重复的幂等键只回放、不扣费，所以 `--resume` 和重跑不会为已读过的页面再付钱。
+- 失败的调用不扣费；`--resume` 直接读取 `items/` 里已保存的页面、不再调用，所以重跑不会为已读过的页面再付钱。使用密钥时，24 小时内重复的幂等键同样只回放、不扣费。
 - 切块在本机运行，不花钱；页面存入 `items/` 之后，改 `--chunk-size` 不需要新的调用（配合 `--resume`）。
 
 参见文档里的[文档解析](https://stack.foldbun.com/docs/use-cases/document-parsing/)、[速率限制](https://stack.foldbun.com/docs/rate-limits/)和[计费](https://stack.foldbun.com/docs/billing/)。
