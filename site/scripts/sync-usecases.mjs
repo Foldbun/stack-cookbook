@@ -15,6 +15,7 @@ import { dirname, join, relative, resolve, extname, basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parse } from 'smol-toml'
 import { T } from '../src/i18n.ts'
+import { lastCommitTime } from './lastmod.mjs'
 import { BASE, REPO, docsUrl, localizeDocsLinks, playgroundUrl } from '../src/lib/site.ts'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -235,6 +236,18 @@ function mdxSafe(text, uc, lang) {
     .join('\n')
 }
 
+// ---- last modification times (git) --------------------------------------------------------------------------------
+// A use case page: the commits touching its directory. The home pages: the use case directories plus the home page sources.
+// The map (page path with the base -> time) goes to src/generated/lastmod.json for the sitemap; the time is also written into
+// each page's front matter (`lastmod`) for dateModified in the JSON-LD. A page without a time is left out of both.
+const LASTMOD = {}
+function lastmodOf(path, lang) {
+  const paths = path === '/' ? ['use-cases', 'site/src/i18n.ts', 'site/src/components/HomeMatrix.astro'] : [`use-cases/${path.split('/')[2]}`]
+  const time = lastCommitTime(ROOT, paths)
+  if (time) LASTMOD[`${BASE}${lang === 'zh' ? '/zh' : ''}${path}`] = time
+  return time
+}
+
 function pageFromReadme(uc, lang) {
   const file = join(uc.dir, lang === 'en' ? 'README.md' : 'README.zh-CN.md')
   let text = readFileSync(file, 'utf8').replace(/^<!-- en-sha: [0-9a-f]{12} -->\n/, '')
@@ -257,14 +270,20 @@ function pageFromReadme(uc, lang) {
   text = `${text.slice(0, firstSection).trim()}\n\n${metaRow(uc, lang)}\n\n${text.slice(firstSection)}`
   // the generated "Run it" tabs come first in that section; the README text stays below them
   text = text.replace(/^(## .*\\\{#run\\\}\n)/m, (h) => `${h}\n${runBlock(uc, lang)}\n\n`)
-  const fm = ['---', `title: ${JSON.stringify(uc.meta.title[lang])}`, `description: ${JSON.stringify(uc.meta.summary[lang])}`, `sidebar:`, `  order: ${uc.meta.order ?? 0}`, '---']
+  const fm = ['---', `title: ${JSON.stringify(uc.meta.title[lang])}`, `seoTitle: ${JSON.stringify((uc.meta.seo_title ?? uc.meta.title)[lang])}`, `description: ${JSON.stringify(uc.meta.summary[lang])}`]
+  const lastmod = lastmodOf(`/use-cases/${uc.id}/`, lang)
+  if (lastmod) fm.push(`lastmod: ${JSON.stringify(lastmod)}`)
+  fm.push(`sidebar:`, `  order: ${uc.meta.order ?? 0}`, '---')
   return `${fm.join('\n')}\nimport { Tabs, TabItem } from '@astrojs/starlight/components'\n\n${text.replace(/\n{3,}/g, '\n\n').trim()}\n`
 }
 
 function homePage(lang) {
   const t = T[lang]
   const rel = lang === 'en' ? '../../components/HomeMatrix.astro' : '../../../components/HomeMatrix.astro'
-  const fm = ['---', `title: ${JSON.stringify(t['site.title'])}`, `description: ${JSON.stringify(t['site.description'])}`, 'template: splash', '---']
+  const fm = ['---', `title: ${JSON.stringify(t['site.title'])}`, `seoTitle: ${JSON.stringify(t['site.seoTitle'])}`, `description: ${JSON.stringify(t['site.description'])}`]
+  const lastmod = lastmodOf('/', lang)
+  if (lastmod) fm.push(`lastmod: ${JSON.stringify(lastmod)}`)
+  fm.push('template: splash', '---')
   return `${fm.join('\n')}\nimport HomeMatrix from '${rel}'\n\n<div class="home">\n\n${t['home.intro']}\n\n## ${t['home.matrixTitle']}\n\n${t['home.matrixIntro']}\n\n<HomeMatrix locale="${lang}" />\n\n## ${t['home.linksTitle']}\n\n- [${t['home.linkDocs']}](${docsUrl(lang)})\n- [${t['home.linkPlayground']}](${playgroundUrl()})\n- [${t['home.linkRepo']}](${REPO})\n\n</div>\n`
 }
 
@@ -281,6 +300,8 @@ for (const uc of useCases) {
   for (const lang of ['en', 'zh']) write(join(OUT_DOCS, lang === 'zh' ? 'zh' : '', 'use-cases', `${uc.id}.mdx`), pageFromReadme(uc, lang))
 }
 for (const lang of ['en', 'zh']) write(join(OUT_DOCS, lang === 'zh' ? 'zh' : '', 'index.mdx'), homePage(lang))
+
+write(join(OUT_DATA, 'lastmod.json'), JSON.stringify(LASTMOD, null, 2) + '\n')
 
 const usedLanguages = LANG_ORDER.filter((l) => useCases.some((uc) => uc.languages.includes(l)))
 write(
