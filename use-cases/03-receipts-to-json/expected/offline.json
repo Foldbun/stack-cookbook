@@ -1,9 +1,9 @@
 {
   "usecase": "03-receipts-to-json",
   "language": "python",
-  "client": "stack_client 1.0.0",
-  "startedAt": "2026-11-12T04:45:36Z",
-  "elapsedMs": 36,
+  "client": "stack_client 1.1.0",
+  "startedAt": "2026-11-17T07:18:36Z",
+  "elapsedMs": 46,
   "items": [
     {
       "id": "cord-001",
@@ -13,7 +13,7 @@
           "endpoint": "/v1/ocr",
           "model": "ppocr-v6",
           "list": 0.25,
-          "charged": 0,
+          "charged": 0.25,
           "cache": null,
           "queueMs": 0,
           "processingMs": 346,
@@ -203,7 +203,7 @@
           "endpoint": "/v1/ocr",
           "model": "ppocr-v6",
           "list": 0.25,
-          "charged": 0,
+          "charged": 0.25,
           "cache": null,
           "queueMs": 0,
           "processingMs": 216,
@@ -465,7 +465,7 @@
           "endpoint": "/v1/ocr",
           "model": "ppocr-v6",
           "list": 0.25,
-          "charged": 0,
+          "charged": 0.25,
           "cache": null,
           "queueMs": 0,
           "processingMs": 174,
@@ -622,7 +622,7 @@
           "endpoint": "/v1/ocr",
           "model": "ppocr-v6",
           "list": 0.25,
-          "charged": 0,
+          "charged": 0.25,
           "cache": null,
           "queueMs": 0,
           "processingMs": 731,
@@ -1226,6 +1226,6 @@
   "ledger": {
     "calls": 5,
     "listTotal": 3.0,
-    "chargedTotal": 2.0
+    "chargedTotal": 3.0
   }
 }

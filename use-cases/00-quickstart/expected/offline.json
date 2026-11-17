@@ -1,9 +1,9 @@
 {
   "usecase": "00-quickstart",
   "language": "python",
-  "client": "stack_client 1.0.0",
-  "startedAt": "2026-11-12T04:45:35Z",
-  "elapsedMs": 202,
+  "client": "stack_client 1.1.0",
+  "startedAt": "2026-11-17T07:18:31Z",
+  "elapsedMs": 260,
   "items": [
     {
       "id": "settings",
@@ -13,7 +13,7 @@
           "endpoint": "/v1/ocr",
           "model": "ppocr-v6",
           "list": 0.25,
-          "charged": 0,
+          "charged": 0.25,
           "cache": null,
           "queueMs": 0,
           "processingMs": 753,
@@ -383,6 +383,6 @@
   "ledger": {
     "calls": 1,
     "listTotal": 0.25,
-    "chargedTotal": 0.0
+    "chargedTotal": 0.25
   }
 }

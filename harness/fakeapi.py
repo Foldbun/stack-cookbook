@@ -550,6 +550,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def send_json(self, status, body, extra=None):
         data = json.dumps(body).encode()
+        self.status = status
+        self.record()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
@@ -558,7 +560,6 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header(k, v)
         self.end_headers()
         self.wfile.write(data)
-        self.status = status
 
     def send_error_body(self, err: ApiError):
         extra = dict(err.headers)
@@ -588,7 +589,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def handle_any(self, method):
         path = self.path.split("?")[0]
-        self.status, replayed, arrived, self.free_request = 0, False, time.monotonic(), False
+        self.status, replayed, self.free_request = 0, False, False
+        self.logged, self.arrived, self.replayed, self.method, self.req_path = False, time.monotonic(), False, method, path
         length = int(self.headers.get("Content-Length") or 0)
         raw = self.rfile.read(length) if length else b""
         if path.startswith("/_fake/"):
@@ -668,6 +670,7 @@ class Handler(BaseHTTPRequestHandler):
             if rule and rule.get("responseHeaders"):
                 extra.update(rule["responseHeaders"])
             status, out, replayed = self.fake.infer(who, path, body, idem, rule)
+            self.replayed = replayed
             if replayed:
                 extra["Idempotent-Replayed"] = "true"
             self.check_response(status, out)
@@ -675,22 +678,29 @@ class Handler(BaseHTTPRequestHandler):
         except ApiError as err:
             self.send_error_body(err)
         finally:
-            with self.fake.lock:
-                self.fake.log.append(
-                    {
-                        "method": method,
-                        "path": path,
-                        "status": self.status,
-                        "replayed": replayed,
-                        "userAgent": self.headers.get("User-Agent"),
-                        "idempotencyKey": self.headers.get("Idempotency-Key"),
-                        "accept": self.headers.get("Accept"),
-                        "contentType": self.headers.get("Content-Type"),
-                        "project": self.headers.get("X-Foldbun-Project"),
-                        "hasAuthorization": "Authorization" in self.headers,
-                        "t": arrived,
-                    }
-                )
+            self.record()
+
+    def record(self):
+        """Write the log entry of this request (once). It goes in before the response is sent, never after."""
+        if self.logged or self.req_path.startswith("/_fake/"):
+            return
+        self.logged = True
+        with self.fake.lock:
+            self.fake.log.append(
+                {
+                    "method": self.method,
+                    "path": self.req_path,
+                    "status": self.status,
+                    "replayed": self.replayed,
+                    "userAgent": self.headers.get("User-Agent"),
+                    "idempotencyKey": self.headers.get("Idempotency-Key"),
+                    "accept": self.headers.get("Accept"),
+                    "contentType": self.headers.get("Content-Type"),
+                    "project": self.headers.get("X-Foldbun-Project"),
+                    "hasAuthorization": "Authorization" in self.headers,
+                    "t": self.arrived,
+                }
+            )
 
     def batch(self, key, path, body, idem, rule):
         endpoint = path[len("/v1/batch/") :]
@@ -712,6 +722,8 @@ class Handler(BaseHTTPRequestHandler):
             start, items, n = time.monotonic(), [], len(body["items"])
             sse = "text/event-stream" in (self.headers.get("Accept") or "")
             if sse:
+                self.status = 200
+                self.record()
                 self.send_response(200)
                 self.send_header("Content-Type", "text/event-stream")
                 self.send_header("Cache-Control", "no-cache")

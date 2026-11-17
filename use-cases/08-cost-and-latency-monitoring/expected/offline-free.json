@@ -2,8 +2,8 @@
   "usecase": "08-cost-and-latency-monitoring",
   "language": "python",
   "client": "stack_client 1.1.0",
-  "startedAt": "2026-11-17T07:05:59Z",
-  "elapsedMs": 535,
+  "startedAt": "2026-11-17T07:18:48Z",
+  "elapsedMs": 513,
   "items": [
     {
       "id": "c01",
