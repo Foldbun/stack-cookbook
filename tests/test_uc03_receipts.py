@@ -252,3 +252,36 @@ def test_expected_summary_matches_expected_offline():
     result = json.loads((UC / "expected" / "offline.json").read_text())
     truth = json.loads((UC / "assets" / "smoke" / "truth.json").read_text())
     assert ev.evaluate(result, truth, timing=False) == json.loads((UC / "expected" / "smoke-summary.json").read_text())
+
+
+def load_main():
+    spec = importlib.util.spec_from_file_location("uc03_main", UC / "python" / "main.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_image_input_free_is_inline_and_keyed_is_a_handle():
+    main = load_main()
+    free = main.sc.StackClient(api_key=None)
+    assert free.free
+    assert main.image_input(free, b"abc", "a.jpg") == {"base64": "YWJj"}  # no upload: that needs a key
+
+    class Keyed:
+        free = False
+
+        def upload(self, data, content_type):
+            assert (data, content_type) == (b"abc", "image/png")
+            return {"id": "img_1"}
+
+    assert main.image_input(Keyed(), b"abc", "a.png") == {"id": "img_1"}
+
+
+def test_cost_line_labels_the_free_tier():
+    main = load_main()
+    free = main.sc.StackClient(api_key=None)
+    free.ledger.append((None, {"list": 0.25, "charged": 0, "replayed": False}))
+    assert main.cost_line(free) == "list price 0.25 credits (free tier, not charged)"
+    keyed = main.sc.StackClient(api_key="fbs_test")
+    keyed.ledger.append((None, {"list": 0.25, "charged": 0.25, "replayed": False}))
+    assert main.cost_line(keyed) == "list price 0.25 credits, charged 0.25"

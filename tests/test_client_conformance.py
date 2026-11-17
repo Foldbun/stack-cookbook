@@ -18,7 +18,8 @@ TS, GO = ROOT / "clients" / "typescript", ROOT / "clients" / "go"
 def run(cmd, cwd, env=None, timeout=600):
     if not shutil.which(cmd[0]):
         pytest.fail(f"`{cmd[0]}` is not on PATH (see harness/languages.toml)")
-    p = subprocess.run(cmd, cwd=cwd, env=dict(os.environ, **(env or {})), capture_output=True, text=True, timeout=timeout)
+    clean = {k: v for k, v in os.environ.items() if k not in ("FOLDBUN_API_KEY", "FOLDBUN_PROJECT_ID", "FOLDBUN_API_BASE", "FOLDBUN_MAX_CREDITS")}
+    p = subprocess.run(cmd, cwd=cwd, env=dict(clean, **(env or {})), capture_output=True, text=True, timeout=timeout)
     assert p.returncode == 0, f"{' '.join(cmd)}:\n{(p.stdout + p.stderr)[-4000:]}"
     return p.stdout
 

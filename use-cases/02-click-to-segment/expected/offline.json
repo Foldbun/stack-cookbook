@@ -1,9 +1,9 @@
 {
   "usecase": "02-click-to-segment",
   "language": "typescript",
-  "client": "stackClient 1.0.0",
-  "startedAt": "2026-11-12T10:22:11.261708Z",
-  "elapsedMs": 668,
+  "client": "stackClient 1.1.0",
+  "startedAt": "2026-11-17T07:18:34.190209Z",
+  "elapsedMs": 509,
   "items": [
     {
       "id": "77bfbbef28ac344c-207f2013",
@@ -13,7 +13,7 @@
           "endpoint": "/v1/refine",
           "model": "sam-lite",
           "list": 0.21,
-          "charged": 0,
+          "charged": 0.21,
           "cache": "miss",
           "queueMs": 0,
           "processingMs": 131,
@@ -34,7 +34,7 @@
             "iou": 0.9077,
             "score": 0.95703125,
             "cache": "miss",
-            "costCredits": 0,
+            "costCredits": 0.21,
             "listCredits": 0.21
           }
         ],
@@ -51,7 +51,7 @@
           "endpoint": "/v1/refine",
           "model": "sam-lite",
           "list": 0.21,
-          "charged": 0,
+          "charged": 0.21,
           "cache": "miss",
           "queueMs": 0,
           "processingMs": 189,
@@ -72,7 +72,7 @@
             "iou": 0.9374,
             "score": 0.98046875,
             "cache": "miss",
-            "costCredits": 0,
+            "costCredits": 0.21,
             "listCredits": 0.21
           }
         ],
@@ -89,7 +89,7 @@
           "endpoint": "/v1/refine",
           "model": "sam-lite",
           "list": 0.21,
-          "charged": 0,
+          "charged": 0.21,
           "cache": "miss",
           "queueMs": 0,
           "processingMs": 377,
@@ -99,7 +99,7 @@
           "endpoint": "/v1/refine",
           "model": "sam-lite",
           "list": 0.01,
-          "charged": 0,
+          "charged": 0.01,
           "cache": "hit",
           "queueMs": 0,
           "processingMs": 57,
@@ -120,7 +120,7 @@
             "iou": 0.8099,
             "score": 0.828125,
             "cache": "miss",
-            "costCredits": 0,
+            "costCredits": 0.21,
             "listCredits": 0.21
           },
           {
@@ -130,7 +130,7 @@
             "iou": 0.9822,
             "score": 0.93359375,
             "cache": "hit",
-            "costCredits": 0,
+            "costCredits": 0.01,
             "listCredits": 0.01
           }
         ],
@@ -143,6 +143,6 @@
   "ledger": {
     "calls": 4,
     "listTotal": 0.64,
-    "chargedTotal": 0
+    "chargedTotal": 0.64
   }
 }

@@ -86,11 +86,11 @@ def idempotency_key(image_sha256: str) -> str:
 <details><summary>Python (python/main.py)</summary>
 
 ```python
-def parse_page(client: sc.StackClient, handle: str, sha: str, tag: str) -> dict:
-    """One page, one call: layout blocks in reading order and the page as Markdown (2 credits)."""
+def parse_page(client: sc.StackClient, image: dict, sha: str, tag: str) -> dict:
+    """One page, one call: layout blocks in reading order and the page as Markdown (2 credits at list price)."""
     return client.post(
         "/v1/documents/parse",
-        {"model": MODEL, "image": sc.image_handle(handle), "options": {"blocks": True}},
+        {"model": MODEL, "image": image, "options": {"blocks": True}},
         idempotency_key=idempotency_key(sha),
         tag=tag,
     )
@@ -113,10 +113,11 @@ def read_page(client: sc.StackClient, item: dict, base: Path) -> dict:
     (the same image gives the same failure): it is recorded as the page's error and the page is skipped."""
     data = (base / item["image"]).read_bytes()
     sha = hashlib.sha256(data).hexdigest()
-    handle = client.upload(data, content_type(item["image"]))["id"]  # free
+    # With a key the page is uploaded once and every attempt reuses the handle; the free tier takes the bytes inline.
+    image = sc.image_base64(data) if client.free else sc.image_handle(client.upload(data, content_type(item["image"]))["id"])
     for attempt in range(1, PAGE_ATTEMPTS + 1):
         try:
-            page = parse_page(client, handle, sha, item["id"])
+            page = parse_page(client, image, sha, item["id"])
             blocks = [{k: b[k] for k in ("type", "order", "bbox", "text", "markdown") if k in b} for b in page.get("blocks", [])]
             return {
                 "id": item["id"],
@@ -141,7 +142,7 @@ def read_page(client: sc.StackClient, item: dict, base: Path) -> dict:
 <details><summary>Python (python/main.py)</summary>
 
 ```python
-# `--concurrency` pages are in flight (default 2); the client also spaces calls by the model's per-minute limit.
+# `--concurrency` pages are in flight (default 2); the client waits out a 429 by itself.
 code, lock = 0, threading.Lock()
 with ThreadPoolExecutor(max_workers=args.concurrency) as pool:
     futures = {pool.submit(read_page, client, item, base): item for item in todo}

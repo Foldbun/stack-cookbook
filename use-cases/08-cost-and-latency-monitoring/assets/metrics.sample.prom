@@ -1,4 +1,4 @@
-# HELP stack_credits_total Credits of every priced line; charged=true was debited, false was covered by a daily allowance.
+# HELP stack_credits_total Credits of every priced line; charged=true was debited, false was a free-tier call (list price, not charged).
 # TYPE stack_credits_total counter
 stack_credits_total{charged="false",model="ppocr-v6",unit="image"} 1.5
 stack_credits_total{charged="false",model="sam-lite",unit="encode_image"} 0.2
@@ -125,14 +125,16 @@ stack_balance_credits 999.25
 # HELP stack_balance_updated_timestamp_seconds When stack_balance_credits was last set.
 # TYPE stack_balance_updated_timestamp_seconds gauge
 stack_balance_updated_timestamp_seconds 1.7945633875930517e+09
-# HELP stack_daily_allowance_used Included daily calls used today (UTC) per pool.
-# TYPE stack_daily_allowance_used gauge
-stack_daily_allowance_used{pool="public"} 0.0
-stack_daily_allowance_used{pool="free"} 16.0
-# HELP stack_daily_allowance_limit Included daily calls per pool.
-# TYPE stack_daily_allowance_limit gauge
-stack_daily_allowance_limit{pool="public"} 100.0
-stack_daily_allowance_limit{pool="free"} 1000.0
+# HELP stack_free_used_today Free-tier calls used today (UTC) by this project, per weight class.
+# TYPE stack_free_used_today gauge
+stack_free_used_today{class="light"} 10.0
+stack_free_used_today{class="medium"} 11.0
+stack_free_used_today{class="heavy"} 0.0
+# HELP stack_free_daily_limit Free-tier calls allowed per day for this project, per weight class.
+# TYPE stack_free_daily_limit gauge
+stack_free_daily_limit{class="light"} 200.0
+stack_free_daily_limit{class="medium"} 100.0
+stack_free_daily_limit{class="heavy"} 50.0
 # HELP stack_spend_window_credits Spend inside the guard's window (what the guard compares with its limit).
 # TYPE stack_spend_window_credits gauge
 stack_spend_window_credits 0.75

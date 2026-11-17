@@ -188,8 +188,8 @@ func TestSearchErrors(t *testing.T) {
 		status int
 		code   string
 	}{
-		{"no key", nil, 503, "text_search_off"},
-		{"allowance used up", func(string) ([]float32, error) {
+		{"no embedder", nil, 503, "text_search_off"},
+		{"daily limit reached", func(string) ([]float32, error) {
 			return nil, &stackclient.Error{Status: 429, Code: "daily_limit_reached", Message: "used up"}
 		}, 429, "daily_limit_reached"},
 		{"credit cap", func(string) ([]float32, error) {
@@ -215,19 +215,21 @@ func TestEmbedQuery(t *testing.T) {
 	var posted []map[string]any
 	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case "/v1/models":
-			w.Write([]byte(`{"data":[{"id":"siglip2","available":true,"pool":"free","perMinute":6000,"prices":[{"unit":"text","price":0.01}]}]}`))
 		case "/v1/embeddings":
+			if r.Header.Get("Authorization") != "" || r.Header.Get("X-Foldbun-Project") == "" {
+				t.Errorf("a keyless request carries only the project header: %v", r.Header)
+			}
 			var body map[string]any
 			json.NewDecoder(r.Body).Decode(&body)
 			posted = append(posted, body)
-			w.Write([]byte(`{"model":"siglip2","dimensions":2,"embeddings":[{"index":0,"vector":[0,1]}],"cost":0,"billing":{"total":0.01},"timing":{"queueMs":1,"processingMs":2}}`))
+			w.Write([]byte(`{"model":"siglip2","dimensions":2,"embeddings":[{"index":0,"vector":[0,1]}],"cost":0,"billing":{"tier":"free","total":0.01,"listPrice":0.01,"charged":false},"timing":{"queueMs":1,"processingMs":2}}`))
 		default:
 			http.NotFound(w, r)
 		}
 	}))
 	defer api.Close()
-	client, err := stackclient.New(stackclient.Config{APIKey: "fbs_test", BaseURL: api.URL, NoThrottle: true})
+	t.Setenv("FOLDBUN_API_KEY", "")
+	client, err := stackclient.New(stackclient.Config{BaseURL: api.URL}) // no key: the free tier, so no /v1/models call either
 	if err != nil {
 		t.Fatal(err)
 	}

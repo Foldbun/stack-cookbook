@@ -11,6 +11,7 @@ import pytest
 import stack_client as sc
 from conftest import ROOT, png, scenario
 
+PROJECT = "fbp_testProject0001"
 UC = ROOT / "use-cases" / "08-cost-and-latency-monitoring"
 sys.path.insert(0, str(UC / "python"))
 
@@ -21,19 +22,24 @@ evaluate = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(evaluate)
 
 
-def answer(model="sam3", cost=0.55, cache="miss", lines=None, charged=True, pool=None, allowance=None, balance=90.0, queue=4, processing=600):
-    """An answer in the shape of a real one: id, model, cost, balance, timing, billing{lines, total, charged, pool}."""
+def answer(model="sam3", cost=0.55, cache="miss", lines=None, charged=True, balance=90.0, queue=4, processing=600):
+    """An answer in the shape of a real keyed one: id, model, cost, balance, timing, billing{lines, total, charged}."""
     lines = lines or [
         {"unit": "encode_image", "quantity": 1, "unitPrice": 0.5, "amount": 0 if cache == "hit" else 0.5, "waived": cache == "hit"},
         {"unit": "prompt", "quantity": 1, "unitPrice": 0.05, "amount": 0.05, "waived": False},
     ]
-    billing = {"lines": lines, "total": round(sum(ln["amount"] for ln in lines), 6), "charged": charged, "pool": pool}
-    if allowance:
-        billing["allowance"] = allowance
+    billing = {"lines": lines, "total": round(sum(ln["amount"] for ln in lines), 6), "charged": charged}
     body = {"id": "call_x", "model": model, "cost": cost, "balance": balance, "timing": {"queueMs": queue, "processingMs": processing}, "billing": billing}
     if cache:
         body["cache"] = cache
     return body
+
+
+def free_answer(model="ppocr-v6", total=0.25):
+    """An answer of the free tier: cost 0, no balance, billing{tier, project, listPrice, lines, total, charged: false, pool: null}."""
+    lines = [{"unit": "image", "quantity": 1, "unitPrice": total, "amount": total, "waived": False}]
+    billing = {"tier": "free", "project": PROJECT, "listPrice": total, "lines": lines, "total": total, "charged": False, "pool": None}
+    return {"id": "call_x", "model": model, "cost": 0, "timing": {"queueMs": 2, "processingMs": 300}, "billing": billing}
 
 
 class Stub:
@@ -51,13 +57,7 @@ class Stub:
         return item
 
     def get(self, path):
-        return {
-            "balance": 12.5,
-            "dailyAllowances": [{"pool": "free", "used": 130, "limit": 1000, "resetsAt": "2026-11-13T00:00:00Z"}],
-            "keyId": "k",
-            "accountId": "a",
-            "scopes": [],
-        }
+        return {"balance": 12.5, "keyId": "k", "accountId": "a", "scopes": []}
 
 
 def value(monitor, name, **labels):
@@ -70,15 +70,7 @@ def test_metrics_labels_and_values():
         Stub(
             answer(cost=0.55, cache="miss"),
             answer(cost=0.05, cache="hit"),
-            answer(
-                "ppocr-v6",
-                cost=0,
-                cache=None,
-                charged=False,
-                pool="public",
-                lines=[{"unit": "image", "quantity": 1, "unitPrice": 0.25, "amount": 0.25, "waived": False}],
-                allowance={"used": 7, "limit": 100},
-            ),
+            free_answer(),
         ),
         m,
     )
@@ -86,14 +78,13 @@ def test_metrics_labels_and_values():
         c.post("/v1/segment", {"model": "sam3", "prompts": [{"text": "x"}]}, tag="t")
     assert value(m, "stack_credits_total", model="sam3", unit="encode_image", charged="true") == 0.5  # the hit's fee was waived: amount 0
     assert value(m, "stack_credits_total", model="sam3", unit="prompt", charged="true") == pytest.approx(0.1)
-    assert value(m, "stack_credits_total", model="ppocr-v6", unit="image", charged="false") == 0.25  # inside the allowance: list price, not charged
+    assert value(m, "stack_credits_total", model="ppocr-v6", unit="image", charged="false") == 0.25  # a free-tier call: list price, not charged
     assert value(m, "stack_cache_hits_total", model="sam3") == 1 and value(m, "stack_cache_misses_total", model="sam3") == 1
     assert value(m, "stack_cache_saved_credits_total", model="sam3") == 0.5
     assert value(m, "stack_calls_total", model="sam3", status="ok", code="none") == 2
     assert value(m, "stack_latency_ms_count", model="sam3", phase="queue") == 2 and value(m, "stack_latency_ms_sum", model="sam3", phase="processing") == 1200
     assert value(m, "stack_latency_ms_count", model="sam3", phase="client_total") == 2
     assert value(m, "stack_balance_credits") == 90.0 and value(m, "stack_balance_updated_timestamp_seconds") > 0
-    assert (value(m, "stack_daily_allowance_used", pool="public"), value(m, "stack_daily_allowance_limit", pool="public")) == (7, 100)
     text = m.exposition()
     assert 'stack_credits_total{charged="true",model="sam3",unit="prompt"}' in text and "stack_latency_ms_bucket" in text
     snap = m.snapshot(skip=lambda n, lab: lab.get("phase") == "client_total")
@@ -146,23 +137,15 @@ def test_guard_reject_mode_refuses_until_the_window_slides():
     assert value(m, "stack_spend_guard_tripped") == 1 and value(m, "stack_spend_window_credits") == pytest.approx(0.55)
 
 
-def test_guard_basis_list_counts_covered_calls():
-    free = answer(
-        "ppocr-v6",
-        cost=0,
-        cache=None,
-        charged=False,
-        pool="public",
-        lines=[{"unit": "image", "quantity": 1, "unitPrice": 0.25, "amount": 0.25, "waived": False}],
-    )
+def test_guard_basis_list_counts_free_calls():
     for basis, tripped in (("charged", False), ("list", True)):
         m = Monitor(guard=SpendGuard(0.2, basis=basis))
-        MonitoredClient(Stub(dict(free)), m).post("/v1/ocr", {"image": {"id": "img_x"}})
+        MonitoredClient(Stub(free_answer()), m).post("/v1/ocr", {"image": {"base64": "AAAA"}})
         assert m.guard.tripped is tripped
 
 
 def test_batch_items_are_counted_one_by_one(server):
-    client = sc.StackClient("fbs_fake", server.url, throttle=False)
+    client = sc.StackClient("fbs_fake", server.url)
     scenario(server, {"rules": [{"path": "/v1/batch/ocr", "itemErrors": {"1": "invalid_image"}}]})
     handles = [client.upload(png(i), "image/png")["id"] for i in range(3)]
     m = Monitor(guard=SpendGuard(10))
@@ -171,15 +154,17 @@ def test_batch_items_are_counted_one_by_one(server):
     assert events.count("item") == 3 and events[-1] == "summary"
     assert value(m, "stack_calls_total", model="ppocr-v6", status="ok", code="none") == 2
     assert value(m, "stack_calls_total", model="ppocr-v6", status="error", code="invalid_image") == 1
-    assert value(m, "stack_credits_total", model="ppocr-v6", unit="image", charged="false") == 0.5  # two ok items at 0.25 each, inside the allowance
+    assert value(m, "stack_credits_total", model="ppocr-v6", unit="image", charged="true") == 0.5  # two ok items at 0.25 each
     assert value(m, "stack_latency_ms_count", model="ppocr-v6", phase="processing") == 2
     assert value(m, "stack_latency_ms_count", model="ppocr-v6", phase="client_total") == 0  # a batch has no per-item client time
     assert m.guard.records == 3
-    assert client.summary()["listTotal"] == 0.5 and m.samples("stack_credits_total")  # the ledger and the metrics see the same two items
+    assert (
+        client.summary()["listTotal"] == 0.5 and client.summary()["chargedTotal"] == 0.5 and m.samples("stack_credits_total")
+    )  # the ledger and the metrics see the same two items
 
 
 def test_wrapped_client_against_the_fake_api(server):
-    client = sc.StackClient("fbs_fake", server.url, throttle=False)
+    client = sc.StackClient("fbs_fake", server.url)
     m = Monitor()
     c = MonitoredClient(client, m)
     image = c.upload(png(), "image/png")["id"]  # forwarded to the wrapped client
@@ -194,18 +179,37 @@ def test_wrapped_client_against_the_fake_api(server):
     assert value(m, "stack_calls_total", model="ppocr-v6", status="error", code="bad_model_output") == 1
 
 
-def test_whoami_refresh(server):
-    client = sc.StackClient("fbs_fake", server.url, throttle=False)
+def test_whoami_refresh_keyed(server):
+    client = sc.StackClient("fbs_fake", server.url)
     m = Monitor()
     info = MonitoredClient(client, m).whoami()
     assert info["balance"] == 1000 and value(m, "stack_balance_credits") == 1000
-    assert (value(m, "stack_daily_allowance_used", pool="free"), value(m, "stack_daily_allowance_limit", pool="free")) == (0, 1000)
-    image = client.upload(png(), "image/png")["id"]
-    client.post("/v1/ocr", {"image": {"id": image}})  # a call that the wrapper never saw: only a refresh knows about it
-    MonitoredClient(client, m).whoami()
-    assert value(m, "stack_daily_allowance_used", pool="free") == 1
+    assert m.samples("stack_free_used_today") == [] and m.samples("stack_free_daily_limit") == []  # no free-tier gauges with a key
     stub = MonitoredClient(Stub(), Monitor())
-    assert stub.whoami()["balance"] == 12.5 and value(stub.monitor, "stack_daily_allowance_limit", pool="free") == 1000
+    assert stub.whoami()["balance"] == 12.5 and value(stub.monitor, "stack_balance_credits") == 12.5
+
+
+def test_free_mode_calls_and_whoami_gauges(server):
+    client = sc.StackClient(None, server.url, project=PROJECT)
+    assert client.free
+    m = Monitor(guard=SpendGuard(10, basis="list"))
+    c = MonitoredClient(client, m)
+    info = c.whoami()
+    assert info["tier"] == "free" and m.samples("stack_balance_credits") == []  # no balance on the free tier, so no balance gauge
+    assert value(m, "stack_free_daily_limit", **{"class": "medium"}) == info["limits"]["medium"]["daily"] > 0
+    assert value(m, "stack_free_used_today", **{"class": "medium"}) == 0
+    result = c.post("/v1/ocr", {"image": sc.image_base64(png())}, tag="f")
+    assert result["cost"] == 0 and "balance" not in result
+    assert value(m, "stack_credits_total", model="ppocr-v6", unit="image", charged="false") == 0.25  # list price counted, not charged
+    assert not any(lab["charged"] == "true" for lab, _ in m.samples("stack_credits_total"))
+    assert m.guard.spent() == 0.25  # basis "list"
+    assert c.summary()["listTotal"] == 0.25 and c.summary()["chargedTotal"] == 0
+    c.whoami()  # a refresh sees today's use: the counts come from the API, not from this process
+    assert value(m, "stack_free_used_today", **{"class": "medium"}) == 1
+    with pytest.raises(sc.MissingApiKey):  # nothing is sent: no uploads and no batches on the free tier
+        c.upload(png(), "image/png")
+    with pytest.raises(sc.MissingApiKey):
+        list(c.batch("ocr", {"items": []}))
 
 
 def test_metrics_are_served(server):
@@ -226,10 +230,15 @@ def test_middleware_overhead_is_small():
 
 
 def test_whoami_of_the_fake_api_matches_the_contract(server):
-    req = urllib.request.Request(server.url + "/v1/whoami", headers={"Authorization": "Bearer fbs_fake_public"})
+    req = urllib.request.Request(server.url + "/v1/whoami", headers={"X-Foldbun-Project": PROJECT})
     with urllib.request.urlopen(req) as r:
         info = json.loads(r.read())
-    assert info["balance"] == 0 and [a["pool"] for a in info["dailyAllowances"]] == ["public"] and info["scopes"] == []
+    assert info["tier"] == "free" and info["project"]["id"] == PROJECT and "balance" not in info
+    assert set(info["limits"]) == set(info["usedToday"]) == {"light", "medium", "heavy"} and all("daily" in v for v in info["limits"].values())
+    req = urllib.request.Request(server.url + "/v1/whoami", headers={"Authorization": "Bearer fbs_fake"})
+    with urllib.request.urlopen(req) as r:
+        info = json.loads(r.read())
+    assert info["balance"] == 1000 and info["scopes"] == [] and "usedToday" not in info
 
 
 def test_evaluate_and_quality_floors_on_the_recorded_offline_run():
@@ -237,7 +246,9 @@ def test_evaluate_and_quality_floors_on_the_recorded_offline_run():
     m = evaluate.metrics(result)
     assert m["ledger_consistent"] == 1 and m["credits_charged_gap"] == 0 and m["calls_total"] == 21
     assert m["cache_hits.sam3"] == 4 and m["cache_hits.sam-lite"] == 9 and m["cache_saved_credits"] == pytest.approx(3.8)
-    assert m["guard_triggered"] == 1 and m["guard_trigger_call"] == 8  # the first sam3 call: its encoding alone is over 0.2 credits
+    assert (
+        m["guard_triggered"] == 1 and m["guard_trigger_call"] == 8
+    )  # the first sam3 call: the 8 calls so far are 1.3 credits at list price, over the default limit of 1.0
     for name, bound in tomllib.loads((UC / "usecase.toml").read_text())["quality"].items():
         assert bound.get("min", float("-inf")) <= m[name] <= bound.get("max", float("inf")), name
     broken = json.loads(json.dumps(result))

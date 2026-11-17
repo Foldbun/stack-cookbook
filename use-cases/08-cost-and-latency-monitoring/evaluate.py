@@ -61,7 +61,7 @@ def metrics(result):
 def overhead_us(n=3000, repeats=5):
     """Microseconds per call that MonitoredClient adds to a client whose `post` returns a canned answer at once.
 
-    Measured with the guard on, a SAM-shaped answer (3 billing lines, timing, balance, allowance) and the best of `repeats`
+    Measured with the guard on, a SAM-shaped answer (3 billing lines, timing, balance) and the best of `repeats`
     rounds of `n` calls, which leaves out scheduler noise. Everything else (network, JSON, retries) is the same with and without."""
     sys.path.insert(0, str(Path(__file__).parent / "python"))
     from monitoring import Monitor, MonitoredClient, SpendGuard
@@ -76,7 +76,6 @@ def overhead_us(n=3000, repeats=5):
         "billing": {
             "total": 0.05,
             "charged": True,
-            "pool": None,
             "lines": [
                 {"unit": "encode_image", "quantity": 1, "unitPrice": 0.5, "amount": 0, "waived": True},
                 {"unit": "prompt", "quantity": 1, "unitPrice": 0.05, "amount": 0.05, "waived": False},

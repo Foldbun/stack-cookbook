@@ -1,7 +1,11 @@
 """Replay a workload against the Foldbun Stack API with monitoring on: Prometheus metrics at /metrics, a spend guard, and a summary.
 
 python main.py --manifest ../assets/manifest.json --out out [--concurrency N] [--limit N] [--resume]
-               [--metrics-port 9108] [--hold SECONDS] [--guard-max 0.2] [--guard-mode alert|reject] [--guard-basis charged|list]
+               [--metrics-port 9108] [--hold SECONDS] [--guard-max 1.0] [--guard-mode alert|reject] [--guard-basis charged|list]
+
+With no FOLDBUN_API_KEY the replay runs on the free tier: every call is a single call with an inline base64 image (no uploads, no
+batches), nothing is charged, and the spend guard counts the list price. With a key the images are uploaded once and every call
+names a handle; every call is charged at list price.
 
 The manifest lists the images and names a workload file (JSON lines: id, endpoint, model, image, request). The replay runs
 the calls in order, one at a time by default, so "the call that tripped the guard" has a stable number.
@@ -19,6 +23,7 @@ import stack_client as sc
 from monitoring import Monitor, MonitoredClient, SpendGuard
 
 EXIT_FAILED, EXIT_NO_KEY, EXIT_TIER, EXIT_BUDGET = 1, 2, 3, 4
+FREE_MAX_ITEMS = 10  # the free tier is for trying a recipe on a few items; a bigger manifest needs an API key
 CONTENT_TYPES = {".webp": "image/webp", ".png": "image/png"}
 
 
@@ -31,14 +36,18 @@ def parse_args(argv=None):
     ap.add_argument("--resume", action="store_true", help="accepted for the common interface; a replay measures one session, so it always starts over")
     ap.add_argument("--metrics-port", type=int, default=9108, help="serve GET /metrics here while the replay runs (0: do not serve; default 9108)")
     ap.add_argument("--hold", type=float, default=0.0, help="keep serving /metrics this many seconds after the replay, so that a scrape can see the end state")
-    ap.add_argument("--guard-max", type=float, default=0.2, help="spend limit in credits per sliding hour (default 0.2)")
+    ap.add_argument("--guard-max", type=float, default=1.0, help="spend limit in credits per sliding hour (default 1.0)")
     ap.add_argument(
         "--guard-mode",
         choices=["alert", "reject"],
         default="alert",
         help="alert: call back and carry on (default); reject: refuse new calls while over the limit",
     )
-    ap.add_argument("--guard-basis", choices=["charged", "list"], default="charged", help="count what is debited (default) or the list price")
+    ap.add_argument(
+        "--guard-basis",
+        choices=["charged", "list"],
+        help="count what is debited or the list price (default: charged with an API key, list on the free tier, where nothing is debited)",
+    )
     return ap.parse_args(argv)
 
 
@@ -58,7 +67,7 @@ def timing_stats(rows):
 
 def summarise(monitor, client, guard, alerts, balance_spent):
     """The `output` of the last item: everything the monitoring layer saw, from its own metrics and the client's ledger."""
-    snap = monitor.snapshot(skip=lambda name, labels: labels.get("phase") == "client_total" or name.startswith(("stack_balance_", "stack_daily_allowance_")))
+    snap = monitor.snapshot(skip=lambda name, labels: labels.get("phase") == "client_total" or name.startswith(("stack_balance_", "stack_free_")))
     by_model_unit = {}
     for labels, value in monitor.samples("stack_credits_total"):
         row = by_model_unit.setdefault((labels["model"], labels["unit"]), {"model": labels["model"], "unit": labels["unit"], "list": 0.0, "charged": 0.0})
@@ -113,9 +122,9 @@ def summarise(monitor, client, guard, alerts, balance_spent):
 
 
 # region replay
-def run_call(mc, entry, handles):
+def run_call(mc, entry, images):
     """One workload line -> one result item. Failures are data (status `error`); only a locked model or the credit cap stop the run."""
-    body = {"model": entry["model"], "image": sc.image_handle(handles[entry["image"]]), **entry["request"]}
+    body = {"model": entry["model"], "image": images[entry["image"]], **entry["request"]}
     try:
         result = mc.post(entry["endpoint"], body, tag=entry["id"])
     except sc.StackError as err:
@@ -148,15 +157,15 @@ def main(argv=None):
     started, t0 = datetime.now(UTC), time.monotonic()
     # region wire
     try:
-        client = sc.StackClient(max_concurrency=args.concurrency)  # FOLDBUN_API_KEY, FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
-        client.models()  # free: checks the key
+        client = sc.StackClient(max_concurrency=args.concurrency)  # FOLDBUN_API_KEY (optional), FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
+        if len(manifest["items"]) > FREE_MAX_ITEMS:
+            client.require_key(f"the free tier is meant for trying a recipe on a few items, and this manifest has {len(manifest['items'])}")
     except sc.MissingApiKey as err:
         print(err.message, file=sys.stderr)
         return EXIT_NO_KEY
     alerts = []
-    guard = SpendGuard(
-        args.guard_max, mode=args.guard_mode, basis=args.guard_basis, on_alert=lambda info: (alerts.append(info), print(f"ALERT: {info}", file=sys.stderr))
-    )
+    basis = args.guard_basis or ("list" if client.free else "charged")
+    guard = SpendGuard(args.guard_max, mode=args.guard_mode, basis=basis, on_alert=lambda info: (alerts.append(info), print(f"ALERT: {info}", file=sys.stderr)))
     monitor = Monitor(guard=guard)
     mc = MonitoredClient(client, monitor)
     if args.metrics_port:
@@ -167,16 +176,19 @@ def main(argv=None):
             print(f"metrics not served: {err}", file=sys.stderr)
     # endregion
     start_balance = account_balance(mc)
-    handles = {}
+    images = {}
     for item in manifest["items"]:
         path = base / item["image"]
-        handles[item["id"]] = mc.upload(path.read_bytes(), CONTENT_TYPES.get(path.suffix, "image/jpeg"))["id"]  # free
+        if client.free:
+            images[item["id"]] = sc.image_base64(path.read_bytes())  # inline: no upload, no handle on the free tier
+        else:
+            images[item["id"]] = sc.image_handle(mc.upload(path.read_bytes(), CONTENT_TYPES.get(path.suffix, "image/jpeg"))["id"])  # free
     items, code = {}, 0
 
     def one(entry):
         nonlocal code
         try:
-            items[entry["id"]] = run_call(mc, entry, handles)
+            items[entry["id"]] = run_call(mc, entry, images)
         except sc.StackError as err:
             code = EXIT_TIER if err.code == "model_locked" else EXIT_BUDGET
 
@@ -209,10 +221,12 @@ def main(argv=None):
     (args.out / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
     (args.out / "metrics.prom").write_text(monitor.exposition())
     s = ordered[-1]["output"]
-    print(
-        f"{s['calls']['total']} calls, list {s['credits']['list']:g}, charged {s['credits']['charged']:g}, "
-        f"cache hits {s['cache']['hits']}, guard triggered at call {s['guard']['triggeredAtCall']}"
+    money = (
+        f"list price {s['credits']['list']:g} credits (free tier, not charged)"
+        if client.free
+        else f"list {s['credits']['list']:g}, charged {s['credits']['charged']:g}"
     )
+    print(f"{s['calls']['total']} calls, {money}, cache hits {s['cache']['hits']}, guard triggered at call {s['guard']['triggeredAtCall']}")
     if args.hold and args.metrics_port:
         print(f"serving /metrics for {args.hold:g} more seconds")
         time.sleep(args.hold)
@@ -220,9 +234,10 @@ def main(argv=None):
 
 
 def account_balance(mc):
-    """Balance from GET /v1/whoami, which also fills the balance and allowance gauges. None when the API has no such endpoint."""
+    """Balance from GET /v1/whoami, which also fills the balance gauge (with a key) or the free-tier gauges (without).
+    None on the free tier, which has no balance, and when the API has no such endpoint."""
     try:
-        return mc.whoami()["balance"]
+        return mc.whoami().get("balance")
     except sc.StackError as err:
         print(f"whoami: {err.status} {err.code}: {err.message}", file=sys.stderr)
         return None

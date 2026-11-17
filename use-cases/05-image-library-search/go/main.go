@@ -3,7 +3,11 @@
 // This is the entry point the cookbook harness runs (--manifest, --out). Next to result.json it writes:
 //
 //	index/        the vector index (format described in index.go; the Python implementation reads and writes the same one)
-//	stats.json    timing, what was embedded, what the second (no-op) indexing pass did, the daily allowance
+//	stats.json    timing, what was embedded, what the second (no-op) indexing pass did
+//
+// Without FOLDBUN_API_KEY the run uses the free tier: images go inline as base64, one call each, and the library may
+// hold at most freeMaxImages images (the smoke library has 25). With a key the images are uploaded and embedded in
+// batches, charged at list price.
 //
 // `serve` starts the search service over such an index instead: see serve.go.
 package main
@@ -103,9 +107,9 @@ type stats struct {
 		UniqueImages    int `json:"uniqueImages"`
 		VectorsEmbedded int `json:"vectorsEmbedded"`
 	} `json:"library"`
-	Stopped   *Stopped                  `json:"stopped"`
-	Allowance map[string]map[string]any `json:"allowance"`
-	Failed    int                       `json:"failed"`
+	Stopped *Stopped `json:"stopped"`
+	Tier    string   `json:"tier"`
+	Failed  int      `json:"failed"`
 }
 
 func r4(scores []float64) []float64 {
@@ -225,6 +229,24 @@ func fail(err error) int {
 	return exitFailed
 }
 
+// limitOrAll is the number of items a --limit of n keeps out of total (n <= 0: all).
+func limitOrAll(n, total int) int {
+	if n > 0 {
+		return min(n, total)
+	}
+	return total
+}
+
+// failNoKey prints err; the exit code is 2 when the reason is a missing API key.
+func failNoKey(err error) int {
+	var apiErr *stackclient.Error
+	if errors.As(err, &apiErr) && apiErr.Code == "missing_api_key" {
+		fmt.Fprintln(os.Stderr, apiErr.Message)
+		return exitNoKey
+	}
+	return fail(err)
+}
+
 func run() int {
 	manifestPath := flag.String("manifest", "../assets/smoke/manifest.json", "manifest.json of the run")
 	out := flag.String("out", "out", "directory for result.json")
@@ -232,7 +254,6 @@ func run() int {
 	limit := flag.Int("limit", 0, "only the first N items (0: all)")
 	resume := flag.Bool("resume", false, "continue from the index in <out>/index (without it the index is rebuilt from scratch)")
 	batchSize := flag.Int("batch-size", 50, "images per batch request")
-	freeOnly := flag.Bool("free-only", false, "stop when the included daily calls are used up instead of paying for more")
 	flag.Parse()
 	raw, err := os.ReadFile(*manifestPath)
 	if err != nil {
@@ -244,16 +265,15 @@ func run() int {
 	}
 	base := filepath.Dir(*manifestPath) // not resolved: the images are found next to it, also behind a symlink
 	started, t0 := time.Now().UTC(), time.Now()
-	client, err := stackclient.New(stackclient.Config{MaxConcurrency: *concurrency}) // FOLDBUN_API_KEY, FOLDBUN_API_BASE
-	if stackclient.Code(err) == "missing_api_key" {
-		fmt.Fprintln(os.Stderr, stackclient.MissingKey)
-		return exitNoKey
-	}
+	client, err := stackclient.New(stackclient.Config{MaxConcurrency: *concurrency}) // FOLDBUN_API_KEY (optional), FOLDBUN_API_BASE
 	if err != nil {
 		return fail(err)
 	}
-	if _, err := client.Models(); err != nil { // free: checks the key
+	if _, err := client.WhoAmI(); err != nil { // works with and without a key: confirms the credentials and the project
 		return fail(err)
+	}
+	if err := checkFreeSize(client, len(mf.Items[:limitOrAll(*limit, len(mf.Items))])); err != nil { // a big library needs a key
+		return failNoKey(err)
 	}
 
 	indexDir := filepath.Join(*out, "index")
@@ -285,14 +305,14 @@ func run() int {
 	{
 		// region run-index
 		tIndex := time.Now()
-		report, err = indexLibrary(client, index, base, models, *batchSize, *freeOnly, 0, *concurrency, func(s string) { fmt.Println(s) })
+		report, err = indexLibrary(client, index, base, models, *batchSize, *concurrency, func(s string) { fmt.Println(s) })
 		st.IndexSeconds = round3(time.Since(tIndex).Seconds())
 		// endregion
 		if err == nil {
 			// region reindex-check
 			callsBefore := len(client.Calls(""))
 			var again *Report
-			again, err = indexLibrary(client, index, base, models, *batchSize, *freeOnly, 0, *concurrency, func(string) {})
+			again, err = indexLibrary(client, index, base, models, *batchSize, *concurrency, func(string) {})
 			if err == nil {
 				st.Reindex.APICalls, st.Reindex.Embedded = len(client.Calls(""))-callsBefore, again.Embedded // nothing is missing, so nothing is sent
 			}
@@ -307,6 +327,9 @@ func run() int {
 		var apiErr *stackclient.Error
 		if !errors.As(err, &apiErr) { // not an API error: the index or the disk
 			return fail(err)
+		}
+		if apiErr.Code == "missing_api_key" {
+			return failNoKey(err)
 		}
 		fmt.Fprintln(os.Stderr, " ", apiErr) // model_locked, or a failure no retry helps
 		if apiErr.Code == "model_locked" {
@@ -392,7 +415,10 @@ func run() int {
 		unique[it.Sha256] = true
 	}
 	st.Library.Images, st.Library.UniqueImages, st.Library.VectorsEmbedded = len(index.Items), len(unique), report.Embedded
-	st.Stopped, st.Allowance, st.Failed = report.Stopped, report.Allowance, len(report.Failed)
+	st.Stopped, st.Tier, st.Failed = report.Stopped, "key", len(report.Failed)
+	if client.Free() {
+		st.Tier = "free"
+	}
 
 	res := result{
 		Usecase:   mf.Usecase,
@@ -412,8 +438,9 @@ func run() int {
 	if err := writeJSON(filepath.Join(*out, "stats.json"), st); err != nil {
 		return fail(err)
 	}
+	fmt.Println(costLine(client))
 	if report.Stopped != nil {
-		fmt.Fprintf(os.Stderr, "stopped early: %s; run again with --resume after 00:00 UTC\n", report.Stopped.Message)
+		fmt.Fprintf(os.Stderr, "stopped early: %s; run again with --resume to continue where it stopped\n", report.Stopped.Message)
 	}
 	return code
 }

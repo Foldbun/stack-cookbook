@@ -1,4 +1,4 @@
-// Key-holding backend of the click-to-segment component. The HTTP contract is contract/02-backend.yaml; the browser
+// Backend of the click-to-segment component (it holds the API key, if there is one). The HTTP contract is contract/02-backend.yaml; the browser
 // talks only to this backend, and only this backend talks to the Foldbun Stack API.
 import { createHash, randomUUID } from "node:crypto";
 import { lstat, readFile } from "node:fs/promises";
@@ -9,6 +9,8 @@ import * as sc from "./stackClient.ts";
 
 /** The part of StackClient the backend uses (the tests pass a stand-in). */
 export interface Stack {
+  /** True without an API key: the free tier, which has no uploads. */
+  readonly free?: boolean;
   upload(data: Uint8Array, contentType?: string): Promise<sc.Json>;
   post(path: string, body: sc.Json, opts?: sc.CallOptions): Promise<sc.Json>;
   calls(tag?: string): sc.LedgerRow[];
@@ -27,6 +29,7 @@ export interface BackendOptions {
 export const LANGUAGE = "typescript";
 export const LIMITS = {
   imageBytes: 20 * 1024 * 1024, // the Stack upload limit
+  freeImageBytes: 4 * 1024 * 1024, // the largest image the free tier takes inline
   refineBytes: 64 * 1024,
   points: 20, // the Stack limit of POST /v1/refine
   images: 256,
@@ -77,11 +80,22 @@ export class ApiError extends Error {
   }
 }
 
+// What the backend says when the free tier refuses for good: its own text, never Stack's.
+const FREE_REFUSED: Record<string, string> = {
+  daily_limit_reached: "the daily limit of the free tier is used up (it resets at 00:00 UTC); start the backend with FOLDBUN_API_KEY to continue now",
+  free_tier_unavailable: "the free tier is not available; start the backend with FOLDBUN_API_KEY",
+};
+const RETRY_CODES = new Set(["rate_limited", "free_busy"]); // the free tier's waits
+
 /** Map an error of the client file (after its own retries) to the backend's error. Stack's message is not forwarded. */
 export function fromStack(err: unknown): ApiError {
   if (err instanceof sc.BudgetExceeded) return new ApiError(503, "credit_cap", "the backend's credit cap is reached");
-  if (err instanceof sc.StackError && !err.retryable) {
-    return new ApiError(502, "upstream_refused", "Foldbun Stack refused the call", false, 0, err.code, err.requestId);
+  if (err instanceof sc.MissingApiKey) {
+    // a call that only a key can make
+    return new ApiError(502, "upstream_refused", "this needs an API key: start the backend with FOLDBUN_API_KEY", false, 0, err.code);
+  }
+  if (err instanceof sc.StackError && !err.retryable && !RETRY_CODES.has(err.code)) {
+    return new ApiError(502, "upstream_refused", FREE_REFUSED[err.code] ?? "Foldbun Stack refused the call", false, 0, err.code, err.requestId);
   }
   if (!(err instanceof sc.StackError)) {
     const internal = new ApiError(500, "internal", "internal error"); // not an answer or a network failure: a bug, no detail for the caller
@@ -130,10 +144,94 @@ interface Session {
 // #endregion
 
 interface Image {
-  handle: string;
+  handle: string | null; // the Stack handle; null in free mode, which has no uploads
   width: number;
   height: number;
+  data?: Uint8Array; // free mode keeps the bytes and sends them inline with every click
 }
+
+// #region image-size
+/**
+ * [width, height] of a PNG, JPEG or WebP image as the API counts them (JPEG: EXIF orientation applied), else null.
+ * Free mode has no upload that answers with the size, and the points are checked against it.
+ */
+export function imageSize(data: Uint8Array): [number, number] | null {
+  const b = Buffer.from(data.buffer, data.byteOffset, data.byteLength);
+  let w = 0;
+  let h = 0;
+  if (b.length >= 24 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
+    w = b.readUInt32BE(16);
+    h = b.readUInt32BE(20);
+  } else if (b.length >= 30 && b.toString("latin1", 0, 4) === "RIFF" && b.toString("latin1", 8, 12) === "WEBP") {
+    const kind = b.toString("latin1", 12, 16);
+    if (kind === "VP8 ") {
+      w = b.readUInt16LE(26) & 0x3fff;
+      h = b.readUInt16LE(28) & 0x3fff;
+    } else if (kind === "VP8L") {
+      const bits = b.readUInt32LE(21);
+      w = (bits & 0x3fff) + 1;
+      h = ((bits >>> 14) & 0x3fff) + 1;
+    } else if (kind === "VP8X") {
+      w = 1 + b.readUIntLE(24, 3);
+      h = 1 + b.readUIntLE(27, 3);
+    }
+  } else if (b.length >= 2 && b[0] === 0xff && b[1] === 0xd8) {
+    const [fw, fh, turned] = jpegSize(b);
+    [w, h] = turned ? [fh, fw] : [fw, fh];
+  }
+  return w > 0 && h > 0 ? [w, h] : null;
+}
+
+const JPEG_FRAMES = new Set([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf]);
+
+/** Walk the marker segments: the size from the frame header, and whether the EXIF orientation (5 to 8) turns the image. */
+function jpegSize(b: Buffer): [number, number, boolean] {
+  let w = 0;
+  let h = 0;
+  let turned = false;
+  let i = 2;
+  while (i + 4 <= b.length && b[i] === 0xff) {
+    const marker = b[i + 1];
+    if (marker === 0xff) {
+      i += 1; // fill byte
+      continue;
+    }
+    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd8)) {
+      i += 2; // markers without a length
+      continue;
+    }
+    const length = b.readUInt16BE(i + 2);
+    const body = b.subarray(i + 4, i + 2 + length);
+    if (marker === 0xe1 && body.toString("latin1", 0, 6) === "Exif\0\0") turned = exifTurns(body.subarray(6));
+    if (JPEG_FRAMES.has(marker) && body.length >= 5) {
+      h = body.readUInt16BE(1);
+      w = body.readUInt16BE(3);
+      break;
+    }
+    if (marker === 0xda) break; // the scan starts: no frame header came first
+    i += 2 + length;
+  }
+  return [w, h, turned];
+}
+
+/** True when the orientation tag of the first IFD turns the image by a quarter (values 5 to 8). */
+function exifTurns(tiff: Buffer): boolean {
+  if (tiff.length < 8) return false;
+  const order = tiff.toString("latin1", 0, 2);
+  if (order !== "II" && order !== "MM") return false;
+  const le = order === "II";
+  const u16 = (at: number) => (le ? tiff.readUInt16LE(at) : tiff.readUInt16BE(at));
+  const offset = le ? tiff.readUInt32LE(4) : tiff.readUInt32BE(4);
+  if (offset + 2 > tiff.length) return false;
+  const count = u16(offset);
+  for (let k = 0; k < count; k++) {
+    const at = offset + 2 + 12 * k;
+    if (at + 12 > tiff.length) return false;
+    if (u16(at) === 0x0112) return [5, 6, 7, 8].includes(u16(at + 8));
+  }
+  return false;
+}
+// #endregion
 
 interface Point {
   x: number;
@@ -149,6 +247,7 @@ export class Backend {
   private readonly staticDir: string | undefined;
   private readonly sessions = new Map<string, Session>(); // least recently used first
   private readonly images = new Map<string, Promise<Image>>(); // least recently used first
+  private readonly free: boolean;
 
   constructor(stack: Stack, opts: BackendOptions = {}) {
     this.stack = stack;
@@ -156,6 +255,7 @@ export class Backend {
     this.now = opts.now ?? Date.now;
     this.log = opts.log ?? ((line) => console.log(line));
     this.staticDir = opts.staticDir;
+    this.free = Boolean(stack.free); // the client decides: no key, no uploads
   }
 
   /** The request listener for http.createServer. */
@@ -270,13 +370,25 @@ export class Backend {
     if (!IMAGE_TYPES.has(type)) throw new ApiError(415, "unsupported_media_type", "send the raw bytes as image/jpeg, image/png or image/webp");
     const data = await readBody(req, LIMITS.imageBytes);
     if (data.length === 0) throw invalid("the body is empty: send the raw bytes of the image");
+    let size: [number, number] | null = null;
+    if (this.free) {
+      // no upload will answer with the size, so read it from the bytes
+      if (data.length > LIMITS.freeImageBytes) {
+        throw new ApiError(413, "payload_too_large", `at most ${LIMITS.freeImageBytes} bytes without an API key (the free tier takes images up to 4 MiB)`);
+      }
+      size = imageSize(data);
+      if (!size) throw invalid("the body is not a readable jpeg, png or webp image");
+    }
     const imageId = "im_" + createHash("sha256").update(data).digest("hex").slice(0, 32);
     let pending = this.images.get(imageId);
     if (pending) {
       this.images.delete(imageId); // most recently used goes last
     } else {
-      // one Stack upload per distinct content; the client file keeps the bytes and uploads again if Stack evicts them
-      pending = this.stack.upload(data, type).then((u) => ({ handle: u.id, width: u.width, height: u.height }));
+      // With a key: one Stack upload per distinct content; the client file keeps the bytes and uploads again if Stack
+      // evicts them. Free tier: there are no uploads; this cache keeps the bytes and every click sends them inline.
+      pending = size
+        ? Promise.resolve({ handle: null, width: size[0], height: size[1], data })
+        : this.stack.upload(data, type).then((u) => ({ handle: u.id, width: u.width, height: u.height }));
       pending.catch(() => this.images.delete(imageId));
     }
     this.images.set(imageId, pending);
@@ -312,7 +424,8 @@ export class Backend {
     });
     checkBounds(points, box, img);
     // Stateless: every click sends all points of the object. The body is the same in every language.
-    const call: sc.Json = { model, image: sc.imageHandle(img.handle), points };
+    const image = img.handle === null ? sc.imageBase64(img.data!) : sc.imageHandle(img.handle);
+    const call: sc.Json = { model, image, points };
     if (box) call.box = box;
     const t = performance.now();
     let result: sc.Json;

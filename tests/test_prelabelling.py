@@ -30,8 +30,10 @@ def api():
         assert fake_log(srv)["violations"] == []
 
 
-def run(srv, out, *args, check=True):
+def run(srv, out, *args, check=True, manifest=MANIFEST, free=False):
     env = dict(os.environ, FOLDBUN_API_BASE=srv.url, FOLDBUN_API_KEY="fbs_fake", FOLDBUN_MAX_CREDITS="10")
+    if free:  # no key at all: the free tier
+        env.pop("FOLDBUN_API_KEY"), env.pop("FOLDBUN_MAX_CREDITS")
     cmd = [
         "uv",
         "run",
@@ -41,7 +43,7 @@ def run(srv, out, *args, check=True):
         "python",
         "main.py",
         "--manifest",
-        str(MANIFEST),
+        str(manifest),
         "--out",
         str(out),
         "--retry-wait",
@@ -145,3 +147,27 @@ def test_exemplar_and_boxes_modes(api, tmp_path):
     assert [i["status"] for i in result["items"]] == ["ok", "ok", "error", "error"]
     assert result["items"][0]["calls"][0]["model"] == "sam-lite" and len(result["items"][0]["output"]["instances"]) == 2
     assert Path(tmp_path / "boxes" / "coco-review.json").exists()
+
+
+def test_free_tier_sends_each_image_inline(api, tmp_path):
+    p, result = run(api, tmp_path, free=True)
+    assert [i["status"] for i in result["items"]] == ["ok"] * 4 and "free tier, not charged" in p.stdout
+    # same labels and exports as the keyed run, but single calls with inline images: no upload, no batch, no model list
+    assert result["ledger"] == {"calls": 4, "listTotal": 2.8, "chargedTotal": 0}
+    paths = [e["path"] for e in fake_log(api)["log"]]
+    assert paths.count("/v1/segment") == 4 and not {"/v1/images", "/v1/batch/segment", "/v1/models"} & set(paths)
+    assert len(json.loads((tmp_path / "coco.json").read_text())["annotations"]) == 4
+    assert len(list(csv.DictReader((tmp_path / "review" / "queue.csv").open()))) == 6
+
+
+def test_free_tier_refuses_a_large_manifest_and_needs_a_key(api, tmp_path):
+    items = json.loads(MANIFEST.read_text())
+    items["items"] = [dict(items["items"][0], id=f"img{n}") for n in range(11)]
+    big = tmp_path / "manifest.json"
+    big.write_text(json.dumps(items))
+    for rel in {i["image"] for i in items["items"]}:
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_bytes((MANIFEST.parent / rel).read_bytes())
+    p, result = run(api, tmp_path / "out", check=False, manifest=big, free=True)
+    assert p.returncode == 2 and "this manifest has 11" in p.stderr and result is None
+    assert [e for e in fake_log(api)["log"] if e["path"].startswith("/v1/")] == []

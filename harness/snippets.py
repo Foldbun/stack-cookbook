@@ -130,15 +130,16 @@ def metrics_block(uc_dir, arg, lang):
 
 def usecases_block(lang):
     langs = ["curl", "python", "typescript", "go"]
-    tier = {"public": ("Public pool", "公共池"), "funded": ("Funded", "已充值"), "billed": ("Billed", "按量扣费")}
-    head = ("Use case", "Tier") if lang == "en" else ("用例", "层级")
+    # What runs on the free tier (no key): the smoke run of every use case; a use case that also has a full run needs a key for it.
+    free = {False: ("Everything", "全部"), True: ("Smoke run", "冒烟运行")}
+    head = ("Use case", "Without a key") if lang == "en" else ("用例", "无需密钥")
     rows = [f"| {head[0]} | {head[1]} | " + " | ".join(LANG_NAME[x] for x in langs) + " |", "|---|---|" + "---|" * len(langs)]
     for uc in use_cases():
         meta = load_meta(uc)
         title = meta["title"]["en" if lang == "en" else "zh"]
         link = f"use-cases/{uc.name}/" + ("README.md" if lang == "en" else "README.zh-CN.md")
         marks = " | ".join("✓" if x in meta["languages"] else "" for x in langs)
-        rows.append(f"| [{uc.name[:2]} {title}]({link}) | {tier[meta['tier']][0 if lang == 'en' else 1]} | {marks} |")
+        rows.append(f"| [{uc.name[:2]} {title}]({link}) | {free['full' in meta['sizes']][0 if lang == 'en' else 1]} | {marks} |")
     return "\n".join(rows) + "\n"
 
 

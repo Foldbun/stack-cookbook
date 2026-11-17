@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,6 +30,9 @@ import (
 //   - items that came back `expired`, or failed with a retryable error, go into a new batch in the next round;
 //   - every finished item is appended to `<out>/checkpoint.jsonl`, so `--resume` does not even ask the API again.
 //
+// Without an API key (the free tier) there are no uploads, handles or batches: each image goes inline as base64 in its
+// own `POST /v1/segment` call, with the same prompts, model and options, and the same checkpoint and rounds.
+//
 // Shutdown. The run takes a context. When it is cancelled (SIGINT or SIGTERM) no new batch is started, the batches
 // in flight finish and are checkpointed, and the program writes its result with what it has.
 
@@ -38,7 +42,12 @@ const (
 )
 
 var retryableItemErrors = map[string]bool{"model_busy": true, "model_unavailable": true, "upstream_error": true, "upstream_timeout": true,
-	"internal_error": true, "unavailable": true, "rate_limited": true, "no_result": true}
+	"internal_error": true, "unavailable": true, "rate_limited": true, "free_busy": true, "no_result": true}
+
+// fatalCodes end the run instead of being recorded on one item: the tier, the budget, the balance, the free tier's
+// daily limit, or a feature that needs a key.
+var fatalCodes = map[string]bool{"model_locked": true, "budget_exceeded": true, "insufficient_balance": true,
+	"daily_limit_reached": true, "free_tier_unavailable": true, "missing_api_key": true}
 
 var contentTypes = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
 
@@ -147,6 +156,29 @@ func uploadAll(client *stackclient.Client, units []*Unit, workers int) error {
 
 // endregion
 
+// region inline
+// measureAll: the free tier uploads nothing, so read each size locally (EXIF rotation applied, as the API does).
+// JPEG and PNG only: the Go standard library has no WebP decoder.
+func measureAll(units []*Unit) error {
+	for _, u := range units {
+		data, err := os.ReadFile(u.Path)
+		if err != nil {
+			return err
+		}
+		cfg, _, err := image.DecodeConfig(bytes.NewReader(data))
+		if err != nil {
+			return fmt.Errorf("%s: cannot read the size of %s (JPEG and PNG only): %w", u.ID(), u.Item.Image, err)
+		}
+		u.Width, u.Height = cfg.Width, cfg.Height
+		if exifOrientation(data) >= 5 {
+			u.Width, u.Height = u.Height, u.Width
+		}
+	}
+	return nil
+}
+
+// endregion
+
 // canonical is the JSON of a request body with sorted keys and no insignificant whitespace (maps are sorted by encoding/json).
 func canonical(v any) []byte {
 	var buf bytes.Buffer
@@ -174,6 +206,10 @@ func batchKey(round, index int, body any) string {
 // endregion
 
 func localError(code, message string) *itemError { return &itemError{Code: code, Message: message} }
+
+func apiItemError(e *stackclient.Error) *itemError {
+	return &itemError{Status: e.Status, Code: e.Code, Message: e.Message}
+}
 
 // batchEvent is the payload of an `item` event; progress events carry done and remaining.
 type batchEvent struct {
@@ -239,10 +275,7 @@ func runBatch(client *stackclient.Client, model string, units []*Unit, key, tag 
 		})
 		var apiErr *stackclient.Error
 		if errors.As(err, &apiErr) {
-			switch {
-			case apiErr.Code == "model_locked" || apiErr.Code == "budget_exceeded" || apiErr.Code == "insufficient_balance":
-				return nil, err
-			case !(apiErr.Retryable || apiErr.Code == "batch_timeout"):
+			if fatalCodes[apiErr.Code] || !(apiErr.Retryable || apiErr.Code == "batch_timeout") {
 				return nil, err
 			}
 			logf("  batch %s: %s, attempt %d of %d", tag, apiErr.Code, attempt, streamAttempts)
@@ -345,6 +378,9 @@ func (c *checkpoint) save(u *Unit, o *outcome) error {
 // runRound sends `pending` as batches, up to cfg.Concurrency at a time. A cancelled context stops new batches from
 // starting; a fatal error (tier, budget, balance) stops them too and is returned.
 func runRound(ctx context.Context, client *stackclient.Client, cfg *config, pending []*Unit, round int, ckpt *checkpoint) (map[string]*outcome, error) {
+	if client != nil && client.Free() {
+		return runSingles(ctx, client, cfg, pending, round, ckpt)
+	}
 	var chunks [][]*Unit
 	for i := 0; i < len(pending); i += cfg.BatchSize {
 		chunks = append(chunks, pending[i:min(i+cfg.BatchSize, len(pending))])
@@ -392,6 +428,72 @@ func runRound(ctx context.Context, client *stackclient.Client, cfg *config, pend
 	wg.Wait()
 	return outcomes, firstErr
 }
+
+// runSingles is the free-tier round: one `POST /v1/segment` per image, up to cfg.Concurrency at a time. The client
+// waits out 429s itself. A cancelled context or a fatal error starts nothing new.
+func runSingles(ctx context.Context, client *stackclient.Client, cfg *config, pending []*Unit, round int, ckpt *checkpoint) (map[string]*outcome, error) {
+	logf("round %d: %d images, one call each (up to %d at once)", round, len(pending), cfg.Concurrency)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	var firstErr error
+	outcomes := map[string]*outcome{}
+	jobs := make(chan *Unit)
+	for w := 0; w < cfg.Concurrency; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for u := range jobs {
+				if ctx.Err() != nil {
+					continue
+				}
+				o, err := sendOne(client, cfg.Model, u, fmt.Sprintf("r%d-%s", round, u.ID()), ckpt)
+				mu.Lock()
+				if err != nil {
+					if firstErr == nil {
+						firstErr = err
+					}
+					cancel()
+				} else {
+					outcomes[u.ID()] = o
+				}
+				mu.Unlock()
+			}
+		}()
+	}
+	for _, u := range pending {
+		jobs <- u
+	}
+	close(jobs)
+	wg.Wait()
+	return outcomes, firstErr
+}
+
+// region single-run
+// sendOne segments one image. An error that belongs to this image is recorded on it; a fatal one is returned.
+func sendOne(client *stackclient.Client, model string, u *Unit, tag string, ckpt *checkpoint) (*outcome, error) {
+	body := map[string]any{"model": model}
+	for k, v := range u.Body {
+		body[k] = v
+	}
+	raw, err := client.Post("/v1/segment", body, stackclient.Opts{Tag: tag})
+	var apiErr *stackclient.Error
+	if errors.As(err, &apiErr) && !fatalCodes[apiErr.Code] {
+		return &outcome{Status: "error", Err: apiItemError(apiErr), Calls: []stackclient.Row{}}, nil
+	} else if err != nil {
+		return nil, err
+	}
+	var res segResult
+	if err := json.Unmarshal(raw, &res); err != nil {
+		return nil, err
+	}
+	rows := client.Calls(tag)
+	o := &outcome{Status: "ok", Result: &res, Calls: rows[len(rows)-1:]}
+	return o, ckpt.save(u, o)
+}
+
+// endregion
 
 // sleep waits for d or until ctx is cancelled; it reports whether the full time passed.
 func sleep(ctx context.Context, d time.Duration) bool {

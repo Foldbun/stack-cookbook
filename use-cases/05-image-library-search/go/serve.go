@@ -3,7 +3,7 @@ package main
 // `serve` mode: a read-only HTTP search service over an index that an earlier run wrote (this program's or the Python
 // one's: the format is shared). Nothing is indexed over HTTP.
 //
-//	GET /search?q=<text>&k=10         images that match a text; embeds the text with siglip2: one billed call per query
+//	GET /search?q=<text>&k=10         images that match a text; embeds the text with siglip2: one API call per query
 //	GET /similar?id=<image id>&k=10   the images that look most like a library image (dinov3); no API call
 //	GET /duplicates?threshold=0.90    groups of near-duplicate images (dinov3); no API call
 //	GET /healthz                      what the service holds
@@ -122,7 +122,7 @@ func (s *service) search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.embed == nil {
-		apiError(w, http.StatusServiceUnavailable, "text_search_off", "text search needs FOLDBUN_API_KEY, which was not set when the service started")
+		apiError(w, http.StatusServiceUnavailable, "text_search_off", "text search is not set up in this service")
 		return
 	}
 	vector, err := s.embed(text)
@@ -131,7 +131,7 @@ func (s *service) search(w http.ResponseWriter, r *http.Request) {
 	case errors.As(err, &apiErr):
 		status := http.StatusBadGateway
 		if stopCodes[apiErr.Code] {
-			status = http.StatusTooManyRequests // the daily allowance, the balance or the credit cap is used up
+			status = http.StatusTooManyRequests // the free tier's daily limit, the balance or the credit cap is used up
 		}
 		apiError(w, status, apiErr.Code, apiErr.Message)
 		return
@@ -252,13 +252,12 @@ func runServe(args []string) int {
 	if err != nil {
 		return fail(err)
 	}
-	var embed func(string) ([]float32, error)
-	if client, err := stackclient.New(stackclient.Config{}); err == nil {
-		embed = embedQuery(client)
-	} else if stackclient.Code(err) == "missing_api_key" {
-		fmt.Fprintln(os.Stderr, "FOLDBUN_API_KEY is not set: /search is off, /similar and /duplicates work")
-	} else {
+	client, err := stackclient.New(stackclient.Config{}) // FOLDBUN_API_KEY is optional: without it a text query is a free-tier call
+	if err != nil {
 		return fail(err)
+	}
+	if client.Free() {
+		fmt.Fprintln(os.Stderr, "no FOLDBUN_API_KEY: text queries use the free tier, whose limits are shared by every reader")
 	}
 	ln, err := net.Listen("tcp", *addr)
 	if err != nil {
@@ -266,7 +265,7 @@ func runServe(args []string) int {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	svc := newService(index, embed)
+	svc := newService(index, embedQuery(client))
 	fmt.Printf("serving %d images on http://%s\n", len(svc.images), ln.Addr())
 	if err := listenAndServe(ctx, ln, svc.handler()); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fail(err)

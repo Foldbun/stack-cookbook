@@ -1,10 +1,14 @@
 """Local fake of the Foldbun Stack API, for developing and testing every implementation offline.
 
-Run it with `uv run python -m harness fakeapi --port 8787` and point FOLDBUN_API_BASE at it. Any API key that
-starts with `fbs_` is accepted; a key ending in `_public` behaves like a new account (public pool only), any other
-like a funded account. Behaviour follows harness/vendor/openapi.yaml: auth, prices and billing, pools and daily
-allowances, the SAM encoding cache, idempotency with replay, image handles with eviction, batch as Server-Sent
-Events or JSON, and the error envelope with `retryAfterMs` and `Retry-After`. Inference results come from fixtures
+Run it with `uv run python -m harness fakeapi --port 8787` and point FOLDBUN_API_BASE at it. Two kinds of caller:
+a request with `Authorization: Bearer fbs_...` is a funded account (every call is charged at list price; an
+`X-Foldbun-Project` header names its source project), and a request with only `X-Foldbun-Project: fbp_...` is the
+free tier: nothing is charged, images must be inline base64 (up to 4 MiB), and uploads, image handles, batches,
+`GET /v1/models` and `Idempotency-Key` are refused. Free calls carry `X-RateLimit-*` headers; a scenario with
+`"free": {"enforce": true}` also enforces the per-class limits (GCRA per project and per client address, daily caps).
+Behaviour follows harness/vendor/openapi.yaml: prices and billing, the SAM encoding cache, idempotency with replay,
+image handles with eviction, batch as Server-Sent Events or JSON, and the error envelope with `retryAfterMs` and
+`Retry-After`. Inference results come from fixtures
 (use-cases/*/fixtures/*.json) or are synthesised deterministically. Scripted scenarios inject errors, delays,
 evictions, per-item batch failures, expiry and dropped streams. Test-only control paths live under `/_fake/`.
 """
@@ -22,28 +26,30 @@ import time
 import urllib.error
 import urllib.request
 import zlib
+from datetime import UTC, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-# id, name, task, endpoints, license, prices, lowest pool that serves it
+# id, name, task, endpoints, license, prices
 MODELS = [
-    ("sam3", "SAM 3", "segment", ["/v1/segment", "/v1/refine"], "SAM License", {"encode_image": 0.5, "prompt": 0.05, "point": 0.02, "refine": 0.02}, "paid"),
-    (
-        "sam-lite",
-        "SAM 2.1 Hiera-S",
-        "segment",
-        ["/v1/segment", "/v1/refine"],
-        "Apache-2.0",
-        {"encode_image": 0.2, "point": 0.01, "box": 0.01, "refine": 0.01},
-        "free",
-    ),
-    ("ppocr-v6", "PP-OCRv6 small", "ocr", ["/v1/ocr"], "Apache-2.0", {"image": 0.25}, "public"),
-    ("paddleocr-vl", "PaddleOCR-VL", "parse", ["/v1/documents/parse"], "Apache-2.0", {"page": 2}, "paid"),
-    ("dinov3", "DINOv3", "embed", ["/v1/embeddings"], "DINOv3 License", {"image": 0.05}, "public"),
-    ("siglip2", "SigLIP2", "embed", ["/v1/embeddings"], "Apache-2.0", {"image": 0.05, "text": 0.01}, "public"),
-    ("birefnet", "BiRefNet", "remove-background", ["/v1/remove-background"], "MIT", {"image": 1}, "paid"),
+    ("sam3", "SAM 3", "segment", ["/v1/segment", "/v1/refine"], "SAM License", {"encode_image": 0.5, "prompt": 0.05, "point": 0.02, "refine": 0.02}),
+    ("sam-lite", "SAM 2.1 Hiera-S", "segment", ["/v1/segment", "/v1/refine"], "Apache-2.0", {"encode_image": 0.2, "point": 0.01, "box": 0.01, "refine": 0.01}),
+    ("ppocr-v6", "PP-OCRv6 small", "ocr", ["/v1/ocr"], "Apache-2.0", {"image": 0.25}),
+    ("paddleocr-vl", "PaddleOCR-VL", "parse", ["/v1/documents/parse"], "Apache-2.0", {"page": 2}),
+    ("dinov3", "DINOv3", "embed", ["/v1/embeddings"], "DINOv3 License", {"image": 0.05}),
+    ("siglip2", "SigLIP2", "embed", ["/v1/embeddings"], "Apache-2.0", {"image": 0.05, "text": 0.01}),
+    ("birefnet", "BiRefNet", "remove-background", ["/v1/remove-background"], "MIT", {"image": 1}),
 ]
 MODEL = {m[0]: m for m in MODELS}
+# Free tier: weight class of each model and the limits of the Cookbook's project (requests per minute, burst, per day).
+WEIGHT = {"siglip2": "light", "dinov3": "light", "sam-lite": "light", "sam3": "medium", "birefnet": "medium", "ppocr-v6": "medium", "paddleocr-vl": "heavy"}
+FREE_LIMITS = {
+    "light": {"rpm": 300, "burst": 3, "daily": 50000},
+    "medium": {"rpm": 120, "burst": 2, "daily": 10000},
+    "heavy": {"rpm": 20, "burst": 2, "daily": 1000},
+}
+FREE_MAX_IMAGE = 4 * 1024 * 1024  # decoded size of an inline image on the free tier
+PROJECT_ID = re.compile(r"fbp_[A-Za-z0-9]{8,64}")
 DEFAULT_MODEL = {"/v1/ocr": "ppocr-v6", "/v1/documents/parse": "paddleocr-vl", "/v1/remove-background": "birefnet", "/v1/refine": "sam3"}
 INFERENCE = {"/v1/segment", "/v1/refine", "/v1/ocr", "/v1/documents/parse", "/v1/embeddings", "/v1/remove-background"}
 BATCHABLE = {"segment", "ocr", "documents/parse", "embeddings", "remove-background"}
@@ -54,6 +60,7 @@ STATUS = {
     "unauthorized": 401,
     "insufficient_balance": 402,
     "model_locked": 403,
+    "free_tier_unavailable": 403,
     "not_found": 404,
     "image_not_found": 404,
     "idempotency_conflict": 409,
@@ -61,6 +68,7 @@ STATUS = {
     "payload_too_large": 413,
     "rate_limited": 429,
     "daily_limit_reached": 429,
+    "free_busy": 429,
     "too_many_batches": 429,
     "internal_error": 500,
     "upstream_error": 502,
@@ -70,16 +78,16 @@ STATUS = {
     "unavailable": 503,
     "upstream_timeout": 504,
 }
-RETRYABLE = {"rate_limited", "too_many_batches", "upstream_error", "model_unavailable", "model_busy", "unavailable", "upstream_timeout"}
+RETRYABLE = {"rate_limited", "free_busy", "too_many_batches", "upstream_error", "model_unavailable", "model_busy", "unavailable", "upstream_timeout"}
 PROCESSING_MS = {"segment": 600, "ocr": 700, "parse": 3000, "embed": 80, "remove-background": 900}
 EMBED_DIMS = 16  # the real models return longer vectors; implementations must read `dimensions`
 MAX_BODY = 28 * 1024 * 1024
 
 
 class ApiError(Exception):
-    def __init__(self, code, message, retry_after_ms=0, status=None, retryable=None):
+    def __init__(self, code, message, retry_after_ms=0, status=None, retryable=None, headers=None):
         super().__init__(message)
-        self.code, self.message, self.retry_after_ms = code, message, retry_after_ms
+        self.code, self.message, self.retry_after_ms, self.headers = code, message, retry_after_ms, headers or {}
         self.status = status or STATUS.get(code, 400)
         self.retryable = code in RETRYABLE if retryable is None else retryable
 
@@ -161,7 +169,11 @@ class Fake:
         with self.lock:
             sc = scenario or {}
             self.rules = [dict(r, _seen=0, _used=0) for r in sc.get("rules", [])]
-            self.balance = {"funded": float(sc.get("balance", 1000)), "public": 0.0}
+            self.balance = {"funded": float(sc.get("balance", 1000))}
+            free = sc.get("free") or {}
+            self.free_enforce, self.ip_share = bool(free.get("enforce")), max(1, int(free.get("ipShare", 4)))
+            self.free_limits = {c: dict(v, **(free.get("classes") or {}).get(c, {})) for c, v in FREE_LIMITS.items()}
+            self.tat, self.free_used = {}, {}
             self.images, self.encoded, self.idem, self.running = {}, set(), {}, set()
             self.daily, self.open_batches, self.log, self.violations = {}, {}, [], []
             self.recorded, self.upstream_ids, self.calls = [], {}, 0
@@ -183,39 +195,91 @@ class Fake:
                     return r
         return None
 
-    # ---- accounts, pools, billing ----
+    # ---- accounts, free tier, billing ----
     @staticmethod
-    def tier(key):
-        return "public" if key.endswith("_public") else "funded"
+    def tier(who):
+        """`who` is the API key of a funded account or the project ID of a free caller."""
+        return "free" if who.startswith("fbp_") else "funded"
 
-    def model_info(self, mid, tier):
-        _, name, task, endpoints, lic, prices, lowest = MODEL[mid]
-        info = {"id": mid, "name": name, "task": task, "endpoints": endpoints, "license": lic, "prices": [{"unit": u, "price": p} for u, p in prices.items()]}
-        if tier == "public":
-            ok = lowest == "public"
-            info.update(
-                available=ok,
-                pool="public" if ok else None,
-                freeDailyCalls=100 if ok else None,
-                perMinute=10 if ok else None,
-                unlockedBy=None if ok else "top-up",
-            )
-        elif lowest == "paid":
-            info.update(available=True, pool="paid", freeDailyCalls=None, perMinute=None, unlockedBy=None)
-        else:
-            info.update(available=True, pool="free", freeDailyCalls=1000, perMinute=60, unlockedBy=None)
-        return info
+    def model_info(self, mid):
+        _, name, task, endpoints, lic, prices = MODEL[mid]
+        return {
+            "id": mid,
+            "name": name,
+            "task": task,
+            "endpoints": endpoints,
+            "license": lic,
+            "prices": [{"unit": u, "price": p} for u, p in prices.items()],
+            "available": True,
+            "pool": "paid",
+            "freeDailyCalls": None,
+            "perMinute": None,
+            "unlockedBy": None,
+        }
 
-    def whoami(self, key):
-        """GET /v1/whoami: the key's account, its balance and today's use of the included daily calls of each pool."""
-        tier = self.tier(key)
-        pools = [("public", 100)] if tier == "public" else [("public", 100), ("free", 1000)]
+    def whoami(self, who):
+        """GET /v1/whoami: the account behind a key, or the project of a free caller."""
+        if self.tier(who) == "free":
+            with self.lock:
+                used = {c: self.free_used.get((who, c), 0) for c in FREE_LIMITS}
+                limits = {c: dict(v) for c, v in self.free_limits.items()}
+            tomorrow = (datetime.now(UTC) + timedelta(days=1)).strftime("%Y-%m-%dT00:00:00Z")
+            return {
+                "tier": "free",
+                "project": {"id": who, "name": "Default project", "freeTier": "featured"},
+                "limits": limits,
+                "usedToday": used,
+                "resetsAt": tomorrow,
+            }
         with self.lock:
-            allowances = [{"pool": p, "used": self.daily.get((key, p), 0), "limit": n, "resetsAt": "2099-01-01T00:00:00Z"} for p, n in pools]
-            balance = self.balance[tier]
-        d = hashlib.sha256(key.encode()).hexdigest()
+            balance = self.balance["funded"]
+        d = hashlib.sha256(who.encode()).hexdigest()
         account = f"{d[:8]}-{d[8:12]}-7{d[13:16]}-8{d[17:20]}-{d[20:32]}"
-        return {"keyId": f"key_{account}", "accountId": account, "scopes": [], "balance": balance, "dailyAllowances": allowances}
+        return {"keyId": f"key_{account}", "accountId": account, "scopes": [], "balance": balance, "dailyAllowances": []}
+
+    def free_gate(self, project, ip, mid):
+        """The limits of the free tier for one call: raises 429 `rate_limited` / `daily_limit_reached` when a scenario
+        enforces them, and returns the X-RateLimit-* headers of the response."""
+        cls = WEIGHT[mid]
+        with self.lock:
+            lim = self.free_limits[cls]
+            now = time.monotonic()
+            if self.free_enforce and self.free_used.get((project, cls), 0) >= lim["daily"]:
+                midnight = (datetime.now(UTC) + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+                wait_ms = int((midnight - datetime.now(UTC)).total_seconds() * 1000)
+                raise ApiError(
+                    "daily_limit_reached",
+                    "the daily limit of this project is used up",
+                    wait_ms,
+                    headers=self.rate_headers(lim["rpm"], 0, wait_ms / 1000, "project"),
+                )
+            scopes = [("project", (project, cls), lim["rpm"]), ("ip", (project, ip, cls), max(1, lim["rpm"] // self.ip_share))]
+            seen = []
+            for scope, k, rpm in scopes:
+                t = 60 / rpm
+                tat = max(self.tat.get(k, now), now)
+                new = tat + t
+                allow_in = new - lim["burst"] * t - now
+                if self.free_enforce and allow_in > 0:
+                    raise ApiError(
+                        "rate_limited", f"too many requests for this {scope}", math.ceil(allow_in * 1000), headers=self.rate_headers(rpm, 0, allow_in, scope)
+                    )
+                if self.free_enforce:
+                    self.tat[k] = new
+                remaining = max(0, int((lim["burst"] * t - (new - now)) / t + 1e-9))
+                seen.append((remaining, scope, rpm, 0 if remaining else new - now - (lim["burst"] - 1) * t))
+            self.free_used[(project, cls)] = self.free_used.get((project, cls), 0) + 1
+            remaining, scope, rpm, reset = min(seen, key=lambda x: x[0])
+            return self.rate_headers(rpm, remaining, reset, scope)
+
+    @staticmethod
+    def rate_headers(limit, remaining, reset_s, scope):
+        return {
+            "X-RateLimit-Limit": str(limit),
+            "X-RateLimit-Remaining": str(remaining),
+            "X-RateLimit-Reset": str(math.ceil(reset_s)),
+            "X-RateLimit-Scope": scope,
+        }
 
     def price_lines(self, path, body, mid, cache_hit):
         prices, units = MODEL[mid][5], []
@@ -241,27 +305,15 @@ class Fake:
                 lines.append({"unit": unit, "quantity": q, "unitPrice": prices[unit], "amount": 0 if waived else r6(prices[unit] * q), "waived": waived})
         return lines
 
-    def bill(self, key, mid, lines):
-        """Reserve and settle one call; returns (cost, billing) or raises 402 / 429."""
-        tier, info = self.tier(key), self.model_info(mid, self.tier(key))
+    def bill(self, who, mid, lines):
+        """Settle one call; returns (cost, billing) or raises 402. A free call is priced but not charged."""
         total = r6(sum(ln["amount"] for ln in lines))
+        if self.tier(who) == "free":
+            return 0, {"tier": "free", "project": who, "listPrice": total, "lines": lines, "total": total, "charged": False, "pool": None}
         with self.lock:
-            if info["freeDailyCalls"]:
-                used = self.daily.get((key, info["pool"]), 0)
-                if used < info["freeDailyCalls"]:
-                    self.daily[(key, info["pool"])] = used + 1
-                    return 0, {
-                        "lines": lines,
-                        "total": total,
-                        "charged": False,
-                        "pool": info["pool"],
-                        "allowance": {"used": used + 1, "limit": info["freeDailyCalls"]},
-                    }
-                if tier == "public":
-                    raise ApiError("daily_limit_reached", "the daily allowance of the public pool is used up", 3_600_000)
-            if self.balance[tier] < total:
+            if self.balance["funded"] < total:
                 raise ApiError("insufficient_balance", f"insufficient balance: this call can cost up to {total:g} credits")
-            self.balance[tier] = r6(self.balance[tier] - total)
+            self.balance["funded"] = r6(self.balance["funded"] - total)
             return total, {"lines": lines, "total": total, "charged": True, "pool": None}
 
     # ---- images ----
@@ -275,7 +327,9 @@ class Fake:
             self.images[handle] = {"id": handle, "width": size[0], "height": size[1], "bytes": len(data), "contentType": size[2]}
         return self.images[handle], new
 
-    def resolve(self, ref):
+    def resolve(self, ref, free=False):
+        if free and "base64" not in ref:
+            raise ApiError("unsupported", "the free tier takes inline base64 images only: no image handles or URLs")
         if "url" in ref:
             raise ApiError("unsupported", "image.url is not available yet; upload the image or send base64")
         if "id" in ref:
@@ -285,7 +339,10 @@ class Fake:
                 return self.images[ref["id"]]
         b64 = ref["base64"].split(",", 1)[1] if ref["base64"].startswith("data:") else ref["base64"]
         try:
-            return self.store_image(base64.b64decode(b64, validate=True))[0]
+            data = base64.b64decode(b64, validate=True)
+            if free and len(data) > FREE_MAX_IMAGE:
+                raise ApiError("payload_too_large", "an inline image on the free tier can be 4 MiB at most")
+            return self.store_image(data)[0]
         except ValueError as exc:
             raise ApiError("invalid_request", "image.base64 is not valid base64") from exc
 
@@ -299,8 +356,6 @@ class Fake:
             raise ApiError("invalid_request", "give exactly one of image and texts")
         if path == "/v1/embeddings" and "texts" in body and mid != "siglip2":
             raise ApiError("invalid_request", f"{mid} embeds images only")
-        if not self.model_info(mid, self.tier(key))["available"]:
-            raise ApiError("model_locked", f"model {mid} is not available to this account; unlocked by top-up")
         if rule and rule.get("error"):
             e = rule["error"]
             raise ApiError(e["code"], e.get("message", f"scripted {e['code']}"), e.get("retryAfterMs", 0), e.get("status"), e.get("retryable"))
@@ -334,7 +389,7 @@ class Fake:
                     self.running.discard(ik)
 
     def run_call(self, key, path, body, mid, rule):
-        image = self.resolve(body["image"]) if "image" in body else None
+        image = self.resolve(body["image"], self.tier(key) == "free") if "image" in body else None
         family = MODEL[mid][2] == "segment"
         cache_key = (key, mid, image["id"]) if image else None
         sha = image["id"][4:] if image else ""
@@ -362,7 +417,7 @@ class Fake:
         timing.setdefault("serverMs", timing["queueMs"] + timing["processingMs"] + 6)
         with self.lock:
             self.calls += 1
-            n, balance = self.calls, self.balance[self.tier(key)]
+            n = self.calls
         meta = {"id": f"call_00000000-0000-7000-8000-{n:012d}", "model": mid}
         if image:
             meta["image"] = image
@@ -370,7 +425,10 @@ class Fake:
             out["cache"] = "hit" if hit else "miss"
             out["imageFee"] = next((ln["amount"] for ln in lines if ln["unit"] == "encode_image"), 0)
         meta.update(out)
-        meta.update(cost=cost, balance=balance, timing=timing, billing=billing)
+        meta.update(cost=cost, timing=timing, billing=billing)
+        if self.tier(key) == "funded":  # a free call has no balance
+            with self.lock:
+                meta["balance"] = self.balance["funded"]
         return meta
 
     @staticmethod
@@ -492,6 +550,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def send_json(self, status, body, extra=None):
         data = json.dumps(body).encode()
+        self.status = status
+        self.record()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
@@ -500,10 +560,9 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header(k, v)
         self.end_headers()
         self.wfile.write(data)
-        self.status = status
 
     def send_error_body(self, err: ApiError):
-        extra = {}
+        extra = dict(err.headers)
         if err.status in (429, 503):
             extra["Retry-After"] = str(max(1, math.ceil(err.retry_after_ms / 1000)))
         self.check_response(err.status, err.body())
@@ -513,7 +572,12 @@ class Handler(BaseHTTPRequestHandler):
         if self.fake.validate:
             from harness import openapi
 
-            for e in openapi.response_errors(self.path.split("?")[0], status, body):
+            path = self.path.split("?")[0]
+            if self.free_request and path == "/v1/whoami":
+                return  # the published description knows the account form only
+            for e in openapi.response_errors(path, status, body):
+                if self.free_request and "'balance' is a required property" in e:
+                    continue  # a free call has no balance
                 with self.fake.lock:
                     self.fake.violations.append(f"response {self.command} {self.path} {status}: {e}")
 
@@ -525,7 +589,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def handle_any(self, method):
         path = self.path.split("?")[0]
-        self.status, replayed, arrived = 0, False, time.monotonic()
+        self.status, replayed, self.free_request = 0, False, False
+        self.logged, self.arrived, self.replayed, self.method, self.req_path = False, time.monotonic(), False, method, path
         length = int(self.headers.get("Content-Length") or 0)
         raw = self.rfile.read(length) if length else b""
         if path.startswith("/_fake/"):
@@ -540,21 +605,31 @@ class Handler(BaseHTTPRequestHandler):
                 with self.fake.lock:
                     self.fake.images.clear()
                     self.fake.encoded.clear()
-            auth = self.headers.get("Authorization", "")
+            auth, project = self.headers.get("Authorization", ""), self.headers.get("X-Foldbun-Project")
             key = auth[7:] if auth.startswith("Bearer fbs_") else None
-            if not key:
-                raise ApiError("unauthorized", "missing or invalid API key")
+            if (auth and not key) or (project is not None and not PROJECT_ID.fullmatch(project)):
+                raise ApiError("unauthorized", "invalid API key or project ID")
+            if not key and not project:
+                raise ApiError("unauthorized", "missing API key or project ID")
+            who = key or project
+            self.free_request = not key
+            if self.free_request and self.headers.get("Idempotency-Key") is not None:
+                raise ApiError("unsupported", "the free tier does not take an Idempotency-Key")
             if method == "GET" and path == "/v1/models":
+                if self.free_request:
+                    raise ApiError("free_tier_unavailable", "the free tier is not available yet")
                 if rule and rule.get("error"):
                     raise ApiError(rule["error"]["code"], "scripted", rule["error"].get("retryAfterMs", 0))
-                body = {"data": [self.fake.model_info(m[0], Fake.tier(key)) for m in MODELS]}
+                body = {"data": [self.fake.model_info(m[0]) for m in MODELS]}
                 self.check_response(200, body)
                 return self.send_json(200, body)
             if method == "GET" and path == "/v1/whoami":
-                body = self.fake.whoami(key)
+                body = self.fake.whoami(who)
                 self.check_response(200, body)
                 return self.send_json(200, body)
             if method == "POST" and path == "/v1/images":
+                if self.free_request:
+                    raise ApiError("unsupported", "the free tier takes inline base64 images only: no uploads")
                 if rule and rule.get("error"):
                     raise ApiError(rule["error"]["code"], "scripted", rule["error"].get("retryAfterMs", 0))
                 ctype = self.headers.get("Content-Type", "")
@@ -585,27 +660,47 @@ class Handler(BaseHTTPRequestHandler):
             if idem is not None and not re.fullmatch(r"[\x21-\x7e]{1,128}", idem):
                 raise ApiError("invalid_request", "Idempotency-Key must be 1 to 128 printable ASCII characters")
             if path.startswith("/v1/batch/"):
+                if self.free_request:
+                    raise ApiError("unsupported", "the free tier does not have batch requests")
                 return self.batch(key, path, body, idem, rule)
-            status, out, replayed = self.fake.infer(key, path, body, idem, rule)
+            extra = {}
+            mid = body.get("model") or DEFAULT_MODEL.get(path)
+            if self.free_request and mid in MODEL and path in MODEL[mid][3] and not (rule and rule.get("error")):
+                extra.update(self.fake.free_gate(project, self.client_address[0], mid))
+            if rule and rule.get("responseHeaders"):
+                extra.update(rule["responseHeaders"])
+            status, out, replayed = self.fake.infer(who, path, body, idem, rule)
+            self.replayed = replayed
+            if replayed:
+                extra["Idempotent-Replayed"] = "true"
             self.check_response(status, out)
-            self.send_json(status, out, {"Idempotent-Replayed": "true"} if replayed else None)
+            self.send_json(status, out, extra)
         except ApiError as err:
             self.send_error_body(err)
         finally:
-            with self.fake.lock:
-                self.fake.log.append(
-                    {
-                        "method": method,
-                        "path": path,
-                        "status": self.status,
-                        "replayed": replayed,
-                        "userAgent": self.headers.get("User-Agent"),
-                        "idempotencyKey": self.headers.get("Idempotency-Key"),
-                        "accept": self.headers.get("Accept"),
-                        "contentType": self.headers.get("Content-Type"),
-                        "t": arrived,
-                    }
-                )
+            self.record()
+
+    def record(self):
+        """Write the log entry of this request (once). It goes in before the response is sent, never after."""
+        if self.logged or self.req_path.startswith("/_fake/"):
+            return
+        self.logged = True
+        with self.fake.lock:
+            self.fake.log.append(
+                {
+                    "method": self.method,
+                    "path": self.req_path,
+                    "status": self.status,
+                    "replayed": self.replayed,
+                    "userAgent": self.headers.get("User-Agent"),
+                    "idempotencyKey": self.headers.get("Idempotency-Key"),
+                    "accept": self.headers.get("Accept"),
+                    "contentType": self.headers.get("Content-Type"),
+                    "project": self.headers.get("X-Foldbun-Project"),
+                    "hasAuthorization": "Authorization" in self.headers,
+                    "t": self.arrived,
+                }
+            )
 
     def batch(self, key, path, body, idem, rule):
         endpoint = path[len("/v1/batch/") :]
@@ -615,12 +710,10 @@ class Handler(BaseHTTPRequestHandler):
         for i, item in enumerate(body["items"]):
             if "model" in item or "id" not in (item.get("image") or {"id": 1}):
                 raise ApiError("invalid_request", f"items[{i}]: no model inside items, and images only as handles")
-        if not self.fake.model_info(model, Fake.tier(key))["available"]:
-            raise ApiError("model_locked", f"model {model} is not available to this account; unlocked by top-up")
         if rule and rule.get("error"):
             e = rule["error"]
             raise ApiError(e["code"], e.get("message", "scripted"), e.get("retryAfterMs", 0))
-        limit = 1 if Fake.tier(key) == "public" else 4
+        limit = 4
         with self.fake.lock:
             if self.fake.open_batches.get(key, 0) >= limit:
                 raise ApiError("too_many_batches", "too many open batch requests", 5000)
@@ -629,6 +722,8 @@ class Handler(BaseHTTPRequestHandler):
             start, items, n = time.monotonic(), [], len(body["items"])
             sse = "text/event-stream" in (self.headers.get("Accept") or "")
             if sse:
+                self.status = 200
+                self.record()
                 self.send_response(200)
                 self.send_header("Content-Type", "text/event-stream")
                 self.send_header("Cache-Control", "no-cache")
@@ -647,7 +742,7 @@ class Handler(BaseHTTPRequestHandler):
             counts = {s: sum(1 for e in items if e["status"] == s) for s in ("ok", "error", "expired")}
             cost = r6(sum(e["result"]["cost"] for e in items if e["status"] == "ok" and not e.get("replayed")))
             with self.fake.lock:
-                balance = self.fake.balance[Fake.tier(key)]
+                balance = self.fake.balance["funded"]
             summary = {"counts": counts, "cost": cost, "balance": balance, "elapsedMs": int((time.monotonic() - start) * 1000)}
             if sse:
                 self.event(path, "summary", summary)
@@ -688,14 +783,27 @@ class Handler(BaseHTTPRequestHandler):
     # ---- record mode: forward to the real API and keep what it answered as fixtures ----
     def proxy(self, method, path, raw):
         f = self.fake
-        headers = {k: v for k, v in self.headers.items() if k.lower() in ("authorization", "content-type", "accept", "idempotency-key", "user-agent")}
+        headers = {
+            k: v
+            for k, v in self.headers.items()
+            if k.lower() in ("authorization", "x-foldbun-project", "content-type", "accept", "idempotency-key", "user-agent")
+        }
         req = urllib.request.Request(f.upstream + path, data=raw if method == "POST" else None, headers=headers, method=method)
         try:
             resp = urllib.request.urlopen(req, timeout=120)
         except urllib.error.HTTPError as err:
             resp = err
         self.send_response(resp.status)
-        for k in ("Content-Type", "Retry-After", "X-Request-Id", "Idempotent-Replayed"):
+        for k in (
+            "Content-Type",
+            "Retry-After",
+            "X-Request-Id",
+            "Idempotent-Replayed",
+            "X-RateLimit-Limit",
+            "X-RateLimit-Remaining",
+            "X-RateLimit-Reset",
+            "X-RateLimit-Scope",
+        ):
             if resp.headers.get(k):
                 self.send_header(k, resp.headers[k])
         self.send_header("Connection", "close")

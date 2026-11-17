@@ -85,36 +85,45 @@ def validate_result(uc, meta, lang, result):
 
 
 def offline(ucs=None, langs=None, write=False, log=print):
-    """Run every selected implementation's smoke set against the fake API; compare with expected/offline.json."""
+    """Run every selected implementation's smoke set against the fake API, twice: with a key (paid, compared with
+    expected/offline.json) and without any key or project ID (the free tier with the Cookbook's project, compared with
+    expected/offline-free.json). Languages are also compared with each other."""
     problems = []
     fixtures = [str(p) for p in sorted(ROOT.glob("use-cases/*/fixtures"))]
     with FakeServer(fixtures=fixtures, validate=True) as srv:
-        results = {}
-        for uc, meta, lang in selected(ucs, langs):
-            key = "fbs_fake_public" if meta["tier"] == "public" else "fbs_fake"
-            env = dict(os.environ, FOLDBUN_API_BASE=srv.url, FOLDBUN_API_KEY=key, FOLDBUN_MAX_CREDITS=str(budget.size_budget(meta, "smoke")))
-            t = time.monotonic()
-            with srv.fake.lock:
-                srv.fake.encoded.clear()  # every implementation starts with a cold image-encoding cache, whatever ran before it
-            code, tail, result, _ = run_impl(uc, meta, lang, "smoke", env)
-            tag = f"{uc.name}/{lang}"
-            if code or result is None:
-                problems.append(f"{tag}: exit {code}\n{tail}")
-                continue
-            errs = validate_result(uc, meta, lang, result)
-            expected = uc / "expected" / "offline.json"
-            rules = meta.get("compare", {})
-            if lang == meta["reference"] and write:
-                expected.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
-            if expected.exists():
-                errs += compare(json.loads(expected.read_text()), result, rules, ("expected", lang))
-            else:
-                errs.append("expected/offline.json is missing: run `harness check --write-offline`")
-            if uc.name in results:
-                errs += compare(results[uc.name], result, rules, (meta["reference"], lang))
-            results.setdefault(uc.name, result)
-            problems += [f"{tag}: {e}" for e in errs]
-            log(f"  {tag}: {'ok' if not errs else 'FAILED'} ({time.monotonic() - t:.1f} s)")
+        for mode, expected_name in (("keyed", "offline.json"), ("free", "offline-free.json")):
+            results = {}
+            for uc, meta, lang in selected(ucs, langs):
+                env = dict(os.environ, FOLDBUN_API_BASE=srv.url, FOLDBUN_MAX_CREDITS=str(budget.size_budget(meta, "smoke")))
+                env.pop("FOLDBUN_PROJECT_ID", None)
+                if mode == "keyed":
+                    env["FOLDBUN_API_KEY"] = "fbs_fake"
+                else:
+                    env.pop("FOLDBUN_API_KEY", None)
+                t = time.monotonic()
+                with srv.fake.lock:
+                    srv.fake.encoded.clear()  # every implementation starts with a cold image-encoding cache, whatever ran before it
+                code, tail, result, _ = run_impl(uc, meta, lang, "smoke", env)
+                tag = f"{uc.name}/{lang}/{mode}"
+                if code or result is None:
+                    problems.append(f"{tag}: exit {code}\n{tail}")
+                    continue
+                errs = validate_result(uc, meta, lang, result)
+                if mode == "free" and result["ledger"]["chargedTotal"] != 0:
+                    errs.append(f"a free run was charged {result['ledger']['chargedTotal']:g} credits")
+                expected = uc / "expected" / expected_name
+                rules = meta.get("compare", {})
+                if lang == meta["reference"] and write:
+                    expected.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
+                if expected.exists():
+                    errs += compare(json.loads(expected.read_text()), result, rules, ("expected", lang))
+                else:
+                    errs.append(f"expected/{expected_name} is missing: run `harness check --write-offline`")
+                if uc.name in results:
+                    errs += compare(results[uc.name], result, rules, (meta["reference"], lang))
+                results.setdefault(uc.name, result)
+                problems += [f"{tag}: {e}" for e in errs]
+                log(f"  {tag}: {'ok' if not errs else 'FAILED'} ({time.monotonic() - t:.1f} s)")
         violations = json.loads(_get(srv.url + "/_fake/log"))["violations"]
         problems += [f"API description: {v}" for v in violations]
     return problems

@@ -20,5 +20,5 @@
   "ocr_only_needs_review_rate": 0.25,
   "ocr_only_cost_per_1000_list": 250.0,
   "hybrid_cost_per_1000_list": 750.0,
-  "hybrid_cost_per_1000_charged": 500.0
+  "hybrid_cost_per_1000_charged": 750.0
 }

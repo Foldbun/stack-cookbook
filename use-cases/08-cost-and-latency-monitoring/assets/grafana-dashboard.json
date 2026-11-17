@@ -64,11 +64,11 @@
       "targets": [{ "refId": "A", "expr": "sum by (model, status, code) (rate(stack_calls_total[5m])) * 60", "legendFormat": "{{model}} {{status}} {{code}}" }]
     },
     {
-      "id": 10, "type": "timeseries", "title": "Included daily calls used / limit", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
+      "id": 10, "type": "timeseries", "title": "Free-tier daily calls used / limit by weight class (free tier only)", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
       "datasource": "${DS_PROMETHEUS}", "fieldConfig": { "defaults": { "unit": "none" }, "overrides": [] },
       "targets": [
-        { "refId": "A", "expr": "stack_daily_allowance_used", "legendFormat": "{{pool}} used" },
-        { "refId": "B", "expr": "stack_daily_allowance_limit", "legendFormat": "{{pool}} limit" }
+        { "refId": "A", "expr": "stack_free_used_today", "legendFormat": "{{class}} used" },
+        { "refId": "B", "expr": "stack_free_daily_limit", "legendFormat": "{{class}} limit" }
       ]
     }
   ]

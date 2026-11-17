@@ -91,7 +91,7 @@ def metrics_of(entries, truth, timing, elapsed_ms):
         ocr_only_needs_review_rate=rate(not f for f in first),
     )
 
-    # Cost: list price of every call of the run, per 1,000 documents. `charged` leaves out what the daily allowance covered.
+    # Cost: list price of every call of the run, per 1,000 documents. `charged` is what the balance was debited (nothing on the free tier).
     calls = [c for i in entries for c in i["calls"]]
     ocr_list = sum(c["list"] for c in calls if c["model"] == "ppocr-v6")
     all_list = sum(c["list"] for c in calls)

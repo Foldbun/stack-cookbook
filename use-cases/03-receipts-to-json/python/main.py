@@ -21,6 +21,7 @@ from validate import passed, validate
 
 EXIT_FAILED, EXIT_NO_KEY, EXIT_TIER, EXIT_BUDGET = 1, 2, 3, 4
 OCR_MODEL, FALLBACK_MODEL = "ppocr-v6", "paddleocr-vl"
+FREE_MAX_ITEMS = 10  # the free tier is for trying a recipe on a few items; a bigger run needs a key
 PIPELINE = "2"  # changes when extraction or validation rules change; a resumed run only reuses items of the same version
 
 
@@ -38,6 +39,25 @@ def idempotency_key(image_sha256: str, model: str) -> str:
 
 def content_type(name: str) -> str:
     return {".png": "image/png", ".webp": "image/webp"}.get(Path(name).suffix.lower(), "image/jpeg")
+
+
+def cost_line(client: sc.StackClient) -> str:
+    """What this run cost, at list price; the free tier does not charge."""
+    s = client.summary()
+    if client.free:
+        return f"list price {s['listTotal']:g} credits (free tier, not charged)"
+    return f"list price {s['listTotal']:g} credits, charged {s['chargedTotal']:g}"
+
+
+# region image-input
+def image_input(client: sc.StackClient, data: bytes, name: str) -> dict:
+    """With a key the image is uploaded once and both models read the same handle; the free tier takes the bytes inline on every call."""
+    if client.free:
+        return sc.image_base64(data)
+    return sc.image_handle(client.upload(data, content_type(name))["id"])
+
+
+# endregion
 
 
 # region attempt
@@ -59,27 +79,27 @@ def process_item(client: sc.StackClient, item: dict, base: Path, use_fallback: b
     """One image through the whole pipeline. Returns the item entry of result.json plus a private `_sha256`."""
     data = (base / item["image"]).read_bytes()
     sha = hashlib.sha256(data).hexdigest()
-    handle = client.upload(data, content_type(item["image"]))["id"]  # free; both models read the same handle
+    image = image_input(client, data, item["image"])
     attempts = []
 
-    # 1. ppocr-v6: 0.25 credits, inside the public pool's daily allowance.
+    # 1. ppocr-v6: 0.25 credits at list price.
     # region ocr-call
     ocr = client.post(
         "/v1/ocr",
-        {"model": OCR_MODEL, "image": sc.image_handle(handle), "options": {"words": False}},
+        {"model": OCR_MODEL, "image": image, "options": {"words": False}},
         idempotency_key=idempotency_key(sha, OCR_MODEL),
         tag=item["id"],
     )
     attempts.append(attempt(OCR_MODEL, extract_receipt(rows_from_ocr(ocr["lines"]), OCR_MODEL, ocr["image"]["width"]), today))
     # endregion
 
-    # 2. Only an item that failed validation is read again, by paddleocr-vl on the same handle: 2 credits, paid models only.
+    # 2. Only an item that failed validation is read again, by paddleocr-vl on the same image: 2 credits at list price.
     # region fallback-call
     if use_fallback and not attempts[0]["passed"]:
         try:
             page = client.post(
                 "/v1/documents/parse",
-                {"model": FALLBACK_MODEL, "image": sc.image_handle(handle), "options": {"blocks": True}},
+                {"model": FALLBACK_MODEL, "image": image, "options": {"blocks": True}},
                 idempotency_key=idempotency_key(sha, FALLBACK_MODEL),
                 tag=item["id"],
             )
@@ -87,7 +107,7 @@ def process_item(client: sc.StackClient, item: dict, base: Path, use_fallback: b
         except sc.StackError as err:
             if err.code == "budget_exceeded":
                 raise
-            # An account without the paid pool (model_locked) or a failed call: the item stays with what ppocr-v6 read.
+            # A key without access to the model (model_locked) or a failed call: the item stays with what ppocr-v6 read.
             attempts.append({"model": FALLBACK_MODEL, "receipt": None, "passed": False, "checks": [], "note": err.code})
     # endregion
 
@@ -154,8 +174,10 @@ def main():
     base, today = args.manifest.parent, date.today()
     started, t0 = datetime.now(UTC), time.monotonic()
     try:
-        client = sc.StackClient(max_concurrency=args.concurrency)  # FOLDBUN_API_KEY, FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
-        client.models()  # free: checks the key and loads prices and the per-minute limits the client paces itself by
+        client = sc.StackClient(max_concurrency=args.concurrency)  # FOLDBUN_API_KEY (optional), FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
+        client.whoami()  # checks the project (free tier) or the key
+        if client.free and len(manifest["items"][: args.limit]) > FREE_MAX_ITEMS:
+            client.require_key(f"the free tier is meant for trying a recipe on a few items, and this manifest has {len(manifest['items'][: args.limit])}")
     except sc.MissingApiKey as err:
         print(err.message, file=sys.stderr)
         return EXIT_NO_KEY
@@ -174,8 +196,8 @@ def main():
             todo.append(item)
 
     # region concurrency
-    # The client allows `--concurrency` requests in flight and spaces calls by the per-minute limit of the model's pool,
-    # so the worker threads here only keep it busy. One item is one thread: its calls are sequential (OCR, then maybe parse).
+    # The client allows `--concurrency` requests in flight and waits out a 429 by itself, so the worker threads here only
+    # keep it busy. One item is one thread: its calls are sequential (OCR, then maybe parse).
     code, lock = 0, threading.Lock()
     with ThreadPoolExecutor(max_workers=args.concurrency) as pool:
         futures = {pool.submit(process_item, client, item, base, use_fallback, today): item for item in todo}
@@ -229,6 +251,7 @@ def main():
         "ledger": ledger_of(done),
     }
     (args.out / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
+    print(cost_line(client))
     return code
 
 
