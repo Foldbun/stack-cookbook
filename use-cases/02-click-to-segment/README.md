@@ -2,16 +2,16 @@
 
 English | [简体中文](README.zh-CN.md)
 
-Segment one object with a few clicks in the browser. A small backend holds the API key, uploads each image to Foldbun Stack once, and sends every click to `sam-lite` together with all earlier clicks; the browser gets a polygon back and never sees the key. A click simulator drives the backend the way a person would and measures how many clicks an object needs, how well the polygon fits and what it costs.
+Segment one object with a few clicks in the browser. A small backend holds the credentials (an API key, or on the free tier only a project ID), keeps each image once, and sends every click to `sam-lite` together with all earlier clicks; the browser gets a polygon back and never sees the key. A click simulator drives the backend the way a person would and measures how many clicks an object needs, how well the polygon fits and what it costs.
 
 ## Problem <!-- #problem -->
 
 An annotation tool, a photo editor or a product catalogue wants "click on the thing, get its outline". The model call is easy; the parts around it decide whether it can go on a public page:
 
 - **The key must not reach the browser.** Anything in the page can be read by its visitors, so a backend makes the calls and the page talks only to that backend.
-- **Every click is a paid call.** `sam-lite` lists 0.01 credits per refinement plus 0.2 for encoding the image. Stack caches the encoding, so the clicks after the first one are usually 0.01, but the cache is not guaranteed and a budget has to plan for a miss on every click.
+- **Every click is a call with a list price.** `sam-lite` lists 0.01 credits per refinement plus 0.2 for encoding the image. Stack caches the encoding, so the clicks after the first one are usually 0.01, but the cache is not guaranteed and a budget has to plan for a miss on every click. On the free tier the calls are not charged, but they count against the project's limits.
 - **The model keeps no state.** `POST /v1/refine` takes all points of the object every time. The backend does the same: it stores images, not clicks, so a reload or a second tab cannot get out of step.
-- **Visitors share one account.** The account's free pool serves 60 calls per minute. The backend limits each session and the client file paces all calls at the pool's rate, so one busy visitor cannot use up the minute for everyone.
+- **Visitors share one project or account.** Whatever limit applies to it (the free tier's per-minute and daily limits, or an account's rate limit) is shared by everyone who uses the page. The backend limits each session, and the client file waits when the server answers `429`, so one busy visitor cannot use up the minute for everyone.
 - **Click latency is felt.** An interactive call that has not finished within 2 s fails with a retryable `504`, and the backend reports the time of each Stack call so that the page can show it. Latency seen from a client depends on its network path to the API, so the measurements of this use case do not include it.
 
 ## How it works <!-- #design -->
@@ -20,7 +20,7 @@ The backend implements one HTTP contract in every language, `contract/02-backend
 
 | Request | Answer |
 |---|---|
-| `POST /api/images` (raw image bytes) | `{imageId, width, height}`; the image is uploaded to Stack once per content and its handle cached |
+| `POST /api/images` (raw image bytes) | `{imageId, width, height}`; with a key the image is uploaded to Stack once per content and its handle cached; on the free tier the backend keeps the bytes (up to 4 MiB) and sends them inline with each click |
 | `POST /api/refine {imageId, points, box?}` | `{polygon, bbox, area, score, model, costCredits, listCredits, cache, latencyMs}` |
 | `GET /api/usage` | clicks, credits, cache hits and the ledger rows of the session |
 | `GET /api/health` | readiness, language and client version |
@@ -82,7 +82,7 @@ Style it with CSS custom properties on the element: `--seg-accent`, `--seg-posit
 
 ### Why the key never reaches the browser
 
-The component calls only the three routes of this backend, `POST /api/images`, `POST /api/refine` and `GET /api/usage`. The backend holds the Foldbun Stack API key, uploads each image once, calls Stack and returns the result without account details. The page therefore cannot leak the key, and the backend is the place for limits (per-session rate limits, `SEGMENTER_MODELS`, `FOLDBUN_MAX_CREDITS`). A session is an accounting unit, not authentication: put the backend behind the site's own login when the page is public.
+The component calls only the three routes of this backend, `POST /api/images`, `POST /api/refine` and `GET /api/usage`. The backend holds the Foldbun Stack API key (or, on the free tier, the project ID), uploads each image once when it has a key, calls Stack and returns the result without account details. The page therefore cannot leak the key, and the backend is the place for limits (per-session rate limits, `SEGMENTER_MODELS`, `FOLDBUN_MAX_CREDITS`). A session is an accounting unit, not authentication: put the backend behind the site's own login when the page is public.
 
 ### Same origin
 
@@ -91,8 +91,8 @@ The backend sends no CORS headers, so the page and the backend must share one or
 ## Run it <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY="fbs_..."
-export FOLDBUN_MAX_CREDITS=2           # optional: the client refuses calls that could pass it
+# no key needed: the backend runs on the free tier. To charge a key instead, set FOLDBUN_API_KEY="fbs_..."
+# and optionally FOLDBUN_MAX_CREDITS=2 (the client refuses calls that could pass it)
 cd use-cases/02-click-to-segment/typescript
 pnpm install
 node main.ts --port 8080               # listening on http://127.0.0.1:8080
@@ -113,9 +113,9 @@ curl -s -H "X-Session-Id: $S" http://127.0.0.1:8080/api/usage
 
 Options, the same in the three languages: `--port` (default 8080), `--host` (default 127.0.0.1) and `--static DIR` (default `../web/dist`), the directory of the page: its `index.html` is answered at `/` and the files directly inside it at `/<name>`. `SEGMENTER_MODELS` is the comma-separated list of models a request may name (default `sam-lite`; add `sam3` to compare). The backend sends no CORS headers: serve the page and the backend from the same origin.
 
-To measure a backend, the harness starts it on a free port and runs the click simulator: `uv run python -m harness live --uc 02` with a key, or `uv run python -m harness check --uc 02` against the offline fake API.
+To measure a backend, the harness starts it on a free port and runs the click simulator: `uv run python -m harness live --uc 02` against the real API, or `uv run python -m harness check --uc 02` against the offline fake API.
 
-The full set (30 objects, each with a ground-truth mask, 5 MB) is a release asset of the repository (see `datasets/README.md`). Its manifest is committed as `assets/full.json` with a limit of 10 clicks per object; the images, masks and ground truth are in the archive. Extract it into `assets/` and run the reference backend (TypeScript) through the simulator from the repository root. At most 63 credits at list price (30 objects x 10 clicks x 0.21 if no click ever hit the cache), about 9 when the cache works. The run takes a few minutes because the simulator clicks at most once per second against the real API.
+The full set (30 objects, each with a ground-truth mask, 5 MB) is a release asset of the repository (see `datasets/README.md`). Its manifest is committed as `assets/full.json` with a limit of 10 clicks per object; the images, masks and ground truth are in the archive. Extract it into `assets/` and run the reference backend (TypeScript) through the simulator from the repository root. The full run needs `FOLDBUN_API_KEY` (the harness exits without one). At most 63 credits at list price (30 objects x 10 clicks x 0.21 if no click ever hit the cache), about 9 when the cache works. The run takes a few minutes because the simulator clicks at most once per second against the real API.
 
 ```bash
 tar xzf 02-click-to-segment-full.tar.gz -C use-cases/02-click-to-segment/assets
@@ -130,7 +130,7 @@ uv run python -m harness refresh --size full --uc 02 --max-credits 63          #
 
 ### Upload once <!-- #code-upload -->
 
-The `imageId` is derived from the bytes, so the same file has the same id in every session and every language, and a second upload costs nothing.
+The `imageId` is derived from the bytes, so the same file has the same id in every session and every language, and a second upload costs nothing. With a key the bytes are also uploaded to Stack once; on the free tier there is no upload, and the backend sends the image inline with each click.
 
 <!-- code: upload-once -->
 <details><summary>TypeScript (typescript/backend.ts)</summary>
@@ -443,7 +443,7 @@ func (b *Backend) refine(r *http.Request, s *session) (any, error) {
 
 ### Sessions and limits <!-- #code-limits -->
 
-Each session has two token buckets: 60 refinements per minute with a burst of 10, and 10 uploads per minute with a burst of 5. Over the limit the answer is `429 rate_limited` with `Retry-After`.
+Each session has two token buckets: 60 refinements per minute with a burst of 10, and 10 uploads per minute with a burst of 5. Over the limit the answer is `429 rate_limited` with `Retry-After`. These are the backend's own limits; if Stack itself answers `429`, the backend's client waits for the `Retry-After` it sends and the page sees at most a retryable error.
 
 <!-- code: session-limit -->
 <details><summary>TypeScript (typescript/backend.ts)</summary>
@@ -968,7 +968,7 @@ Full set (30 objects, at most 10 clicks), live run; filled in from `expected/ful
 
 ## Cost <!-- #cost -->
 
-With `sam-lite`, one object segmented in k clicks costs 0.2 + 0.01 k credits at list price when only the first click misses the encoding cache, and at most 0.21 k when every click misses. Uploads are free. On a funded account the free pool covers up to 1,000 calls a day, which are listed but not charged.
+With `sam-lite`, one object segmented in k clicks costs 0.2 + 0.01 k credits at list price when only the first click misses the encoding cache, and at most 0.21 k when every click misses. Uploads are free. A smoke run is free on the free tier: the run prints the list price labelled "free tier, not charged". A keyed run is charged this much.
 
 <!-- cost -->
 | Run | Calls | List price (credits) | Charged (credits) |

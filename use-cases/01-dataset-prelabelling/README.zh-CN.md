@@ -1,4 +1,4 @@
-<!-- en-sha: 238692d93498 -->
+<!-- en-sha: bd59a5dbe32e -->
 # 用文字提示词预标注图像数据集
 
 [English](README.md) | 简体中文
@@ -37,8 +37,8 @@
 ```
 
 1. 扫描 manifest，计算每个文件的 sha256；与 manifest 不符的文件会被拒绝。
-2. 每个不同的文件上传一次。上传免费，handle 由文件内容派生，重复上传无害。
-3. 把图片切成每批最多 100 张，每批作为一个 `POST /v1/batch/segment` 事件流发送。一批只占一个限速令牌；批内的图片在服务端依次处理。
+2. 使用密钥时，每个不同的文件上传一次。上传免费，handle 由文件内容派生，重复上传无害。免费层没有上传，也没有 handle：图片以 base64 内联发送。
+3. 使用密钥时，把图片切成每批最多 100 张，每批作为一个 `POST /v1/batch/segment` 事件流发送。一批只占一个限速令牌；批内的图片在服务端依次处理。免费层没有批处理端点，每张图是一个独立请求。
 4. 每张图带 4 个文字提示（`dog`、`cat`、`bird`、`boat`）。`filter.minScore` 取复核阈值（0.3），因此 API 返回复核者可能需要的全部结果，低于该阈值的不返回。
 5. 每个实例按分数分流；manifest 的 `expectedClasses` 中预期存在却为空的类别也进入复核。
 6. 导出其他工具要读的文件，并写出每张图的成本。
@@ -48,16 +48,15 @@
 ## 运行 <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY="fbs_..."
 cd use-cases/01-dataset-prelabelling/python
 uv run main.py --manifest ../../../datasets/smoke/01-dataset-prelabelling/manifest.json --out out
 ```
 
-账户需要有余额，因为 `sam3` 从余额扣费。smoke 集按标价需要 2.8 credits。设置 `FOLDBUN_MAX_CREDITS` 后，客户端会拒绝任何可能超出该上限的调用。
+smoke 集不需要密钥，也不需要注册：它在免费层上运行，每张图一个请求、图片内联发送，运行结束时会打印标价（2.8 credits）并标注“免费层，不扣费”。免费层是共享的，按分钟和按天限额；服务端返回 `429` 时，客户端按 `Retry-After` 等待后继续。完整数据集需要 `FOLDBUN_API_KEY`：它规模大，而且用到上传和批处理，免费层不提供这些。没有密钥时程序会说明原因并以退出码 2 结束。使用密钥时每次调用按标价扣费；设置 `FOLDBUN_MAX_CREDITS` 后，客户端会拒绝任何可能超出该上限的调用。设置 `FOLDBUN_PROJECT_ID` 可把调用记在自己的项目名下（见[示例如何认证](../../README.zh-CN.md#authentication)）。
 
 | 选项 | 默认值 | 含义 |
 |---|---|---|
-| `--concurrency N` | 2 | 同时进行的批数；账户同时可开 1 到 4 个批，遇到 `429 too_many_batches` 会等待后重试 |
+| `--concurrency N` | 2 | 同时进行的批数（免费层下是同时进行的请求数）；账户同时可开 1 到 4 个批，遇到 `429 too_many_batches` 会等待后重试 |
 | `--batch-size N` | 100 | 每个批请求的图片数（API 允许每批 1,000 项、事件流最长 600 s） |
 | `--accept` / `--review` | 0.6 / 0.3 | 达到前者的直接接受；介于两者之间的进入复核；低于 `--review` 的不请求 |
 | `--rounds N` | 3 | 过期或失败的项最多重发几轮 |
@@ -93,7 +92,7 @@ manifest 的每一项除 `id` 和 `image` 外，还可以带 `prompts`（默认�
 uv run main.py --manifest ... --out out-boxes --boxes detections.csv --model sam-lite
 ```
 
-完整数据集是 release 附件。把 `01-dataset-prelabelling-full.tar.gz` 解压到 `assets/`（见 `assets/full.json`），再传入 `assets/full.json`；`evaluate.py` 随后按 `assets/truth.json` 给这次运行打分。
+完整数据集是 release 附件。把 `01-dataset-prelabelling-full.tar.gz` 解压到 `assets/`（见 `assets/full.json`），设置好 `FOLDBUN_API_KEY` 后传入 `assets/full.json`；`evaluate.py` 随后按 `assets/truth.json` 给这次运行打分。
 
 ### Go 版本
 
@@ -114,7 +113,7 @@ go run . --manifest ../../../datasets/smoke/01-dataset-prelabelling/manifest.jso
 
 文件都很小，便于复制：`main.py`（参数、串联、`result.json`）、`batches.py`（扫描、上传、批次、续跑）、`routing.py`（分数档）、`exports.py`（COCO、YOLO、复核队列、成本），以及两个客户端文件。Go 版按同样的方式拆分（`main.go`、`batches.go`、`routing.go`、`exports.go`），另有 `crop.go` 负责复核裁剪图。
 
-客户端从环境变量读取密钥和基础 URL，从不打印密钥：
+客户端从环境变量读取可选的密钥、项目 ID 和基础 URL，从不打印密钥：
 
 <!-- code: client -->
 <details><summary>Python (python/main.py)</summary>
@@ -188,7 +187,7 @@ func scan(items []manifestItem, base string) ([]*Unit, error) {
 </details>
 <!-- /code -->
 
-上传免费，handle 是 `img_` 加图像的 sha256。同一个文件上传两次得到同一个 handle：
+使用密钥时，上传免费，handle 是 `img_` 加图像的 sha256。同一个文件上传两次得到同一个 handle：
 
 <!-- code: upload -->
 <details><summary>Python (python/batches.py)</summary>
@@ -1080,7 +1079,7 @@ func writeCosts(path string, items []itemResult) error {
 
 ## 成本 <!-- #cost -->
 
-带 4 个文字提示的一张图，费用是一次图像编码（0.5）加 4 个提示（4 x 0.05）：按标价 0.70 credits，每 1,000 张约 700 credits。如果同一张图刚被编码过（例如换提示词重跑），编码费会被免除，但规划时不要依赖。示例框模式下一张图 0.55（一个提示，不论多少个框）。`sam-lite` 的框模式下为 0.2 加每框 0.01。重放的项不扣费。上传免费。
+带 4 个文字提示的一张图，费用是一次图像编码（0.5）加 4 个提示（4 x 0.05）：按标价 0.70 credits，每 1,000 张约 700 credits。如果同一张图刚被编码过（例如换提示词重跑），编码费会被免除，但规划时不要依赖。示例框模式下一张图 0.55（一个提示，不论多少个框）。`sam-lite` 的框模式下为 0.2 加每框 0.01。重放的项不扣费。上传免费。以上是带密钥运行时的扣费标价；免费层上的 smoke 运行不花钱。
 
 <!-- cost -->
 | 运行 | 调用次数 | 标价（credits） | 实扣（credits） |

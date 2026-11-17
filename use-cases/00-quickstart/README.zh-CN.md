@@ -1,9 +1,9 @@
-<!-- en-sha: 6f24a8675615 -->
+<!-- en-sha: 8218fdd2caf6 -->
 # 第一次调用
 
 [English](README.md) | 简体中文
 
-检查 API 密钥、上传一张图片、用 `ppocr-v6` 读出其中的文字，并查看这次调用的费用。该模型属于公共池，新账户即可运行。
+发送一张图片、用 `ppocr-v6` 读出其中的文字，并查看这次调用的费用。smoke 运行不需要 API 密钥，也不需要注册：它在免费层上运行。
 
 ## 问题 <!-- #problem -->
 
@@ -11,25 +11,26 @@
 
 ## 管线 <!-- #pipeline -->
 
-1. `GET /v1/models`：免费，检查密钥，列出价格和账户可用的模型。
-2. `POST /v1/images`：上传一次文件，得到 handle（`img_...`）。免费。
-3. 用 handle 调用 `POST /v1/ocr`：返回识别出的文字行，以及 `billing` 和 `timing`。
+1. `GET /v1/models`：免费，列出模型和价格。
+2. 仅在使用密钥时，`POST /v1/images`：上传一次文件，得到 handle（`img_...`）。免费。免费层没有上传：图片以 base64 内联发送（解码后最大 4 MiB）。
+3. 用图片或 handle 调用 `POST /v1/ocr`：返回识别出的文字行，以及 `billing` 和 `timing`。
 
 ## 运行 <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY="fbs_..."
 cd use-cases/00-quickstart/python && uv run main.py
 # 或：bash use-cases/00-quickstart/curl/run.sh
 # 或：cd use-cases/00-quickstart/typescript && pnpm install && node main.ts
 # 或：cd use-cases/00-quickstart/go && go run .
 ```
 
+无需密钥：调用由免费层在 Cookbook 的共享项目下处理（见[示例如何认证](../../README.zh-CN.md#authentication)）。想改用密钥运行，设置 `FOLDBUN_API_KEY` 即可；此时调用按标价扣费，图片上传一次后以 handle 发送。设置 `FOLDBUN_PROJECT_ID` 可改用自己的项目及其限额。
+
 每个实现都把 `out/result.json` 按 `contract/result.schema.json` 的格式写出。
 
 ## 代码 <!-- #code -->
 
-客户端只创建一次。密钥取自 `FOLDBUN_API_KEY`，从不打印。
+客户端只创建一次。密钥可选，取自 `FOLDBUN_API_KEY`；项目 ID 取自 `FOLDBUN_PROJECT_ID`，默认是 Cookbook 的项目。两者都从不打印。
 
 <!-- code: client -->
 <details><summary>curl (curl/run.sh)</summary>
@@ -100,7 +101,7 @@ fmt.Printf("key accepted; ppocr-v6 available: %t\n", models["ppocr-v6"].Availabl
 </details>
 <!-- /code -->
 
-图片可以用 base64 内联发送，单次调用时最简单；也可以先上传一次、用 handle 引用，适合同一张图多次调用或用于多个模型，批处理也只接受 handle。`url` 输入尚未开放。
+图片可以用 base64 内联发送，单次调用时最简单，也是免费层唯一的方式；也可以（使用密钥时）先上传一次、用 handle 引用，适合同一张图多次调用或用于多个模型，批处理也只接受 handle。`url` 输入尚未开放。
 
 <!-- code: image-input -->
 <details><summary>curl (curl/run.sh)</summary>
@@ -235,7 +236,7 @@ fmt.Printf("  list price %g credits, charged %g (%s)\n", b.Total, result.Cost, c
 
 ## 费用 <!-- #cost -->
 
-一次 `ppocr-v6` 调用的标价是 0.25 credits。公共池每日额度内的调用不扣费：`cost` 为 0，`billing` 显示标价、所用的池和当日计数。
+一次 `ppocr-v6` 调用的标价是 0.25 credits。smoke 运行在免费层上免费：运行时会打印这笔标价，并标注“免费层，不扣费”，不会从任何账户扣款。使用密钥时，每次调用都按标价扣费。
 
 <!-- cost -->
 | 运行 | 调用次数 | 标价（credits） | 实扣（credits） |

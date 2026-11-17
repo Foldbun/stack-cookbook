@@ -2,7 +2,7 @@
 
 English | [简体中文](README.zh-CN.md)
 
-Check an API key, upload an image, read its text with `ppocr-v6` and see what the call cost. The model is in the public pool, so a new account can run this.
+Send an image, read its text with `ppocr-v6` and see what the call cost. The smoke run needs no API key and no sign-up: it runs on the free tier.
 
 ## Problem <!-- #problem -->
 
@@ -10,25 +10,26 @@ A first integration has to get four things right before anything else: authentic
 
 ## Pipeline <!-- #pipeline -->
 
-1. `GET /v1/models`: free, checks the key and lists prices and what the account may use.
-2. `POST /v1/images`: upload the file once and get a handle (`img_...`). Free.
-3. `POST /v1/ocr` with the handle: the recognised lines, plus `billing` and `timing`.
+1. `GET /v1/models`: free, lists the models and their prices.
+2. With a key only, `POST /v1/images`: upload the file once and get a handle (`img_...`). Free. On the free tier there is no upload: the image goes inline as base64 (up to 4 MiB decoded).
+3. `POST /v1/ocr` with the image or the handle: the recognised lines, plus `billing` and `timing`.
 
 ## Run it <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY="fbs_..."
 cd use-cases/00-quickstart/python && uv run main.py
 # or: bash use-cases/00-quickstart/curl/run.sh
 # or: cd use-cases/00-quickstart/typescript && pnpm install && node main.ts
 # or: cd use-cases/00-quickstart/go && go run .
 ```
 
+No key is needed: the call is served by the free tier under the Cookbook's shared project (see [how the recipes authenticate](../../README.md#authentication)). To run with a key instead, set `FOLDBUN_API_KEY`; the call is then charged at the list price and the image is uploaded once and sent by handle. Set `FOLDBUN_PROJECT_ID` to use your own project and its limits.
+
 Each implementation writes `out/result.json` in the format of `contract/result.schema.json`.
 
 ## Code <!-- #code -->
 
-The client is created once. The key comes from `FOLDBUN_API_KEY` and is never printed.
+The client is created once. The key is optional and comes from `FOLDBUN_API_KEY`; the project ID comes from `FOLDBUN_PROJECT_ID` and defaults to the Cookbook's. Neither is ever printed.
 
 <!-- code: client -->
 <details><summary>curl (curl/run.sh)</summary>
@@ -99,7 +100,7 @@ fmt.Printf("key accepted; ppocr-v6 available: %t\n", models["ppocr-v6"].Availabl
 </details>
 <!-- /code -->
 
-An image can be sent inline as base64, which is simplest for one call, or uploaded once and referenced by its handle, which suits several calls or models on the same image and is required in batches. `url` inputs are not available yet.
+An image can be sent inline as base64, which is simplest for one call and the only way on the free tier, or uploaded once (with a key) and referenced by its handle, which suits several calls or models on the same image and is required in batches. `url` inputs are not available yet.
 
 <!-- code: image-input -->
 <details><summary>curl (curl/run.sh)</summary>
@@ -234,7 +235,7 @@ fmt.Printf("  list price %g credits, charged %g (%s)\n", b.Total, result.Cost, c
 
 ## Cost <!-- #cost -->
 
-One `ppocr-v6` call has a list price of 0.25 credits. Calls inside the daily allowance of the public pool are not charged: `cost` is 0, and `billing` shows the list price, the pool and today's count.
+One `ppocr-v6` call has a list price of 0.25 credits. A smoke run is free on the free tier: the run prints that value labelled "free tier, not charged", and nothing is debited. With a key, every call is charged at the list price.
 
 <!-- cost -->
 | Run | Calls | List price (credits) | Charged (credits) |

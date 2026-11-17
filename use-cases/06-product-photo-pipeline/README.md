@@ -21,12 +21,12 @@ Sellers upload photos with whatever background they have. A catalogue wants one 
 ## Run it <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY=...            # a billed account: remove-background is a paid model
+# no key needed: the smoke run uses the free tier. With FOLDBUN_API_KEY set the calls are charged at list price.
 cd use-cases/06-product-photo-pipeline/python
 uv run python main.py --manifest ../assets/smoke/manifest.json --out out --concurrency 4
 ```
 
-`--resume` reuses the cut-outs already in `out/cutouts/` instead of paying again. Exit codes: 0 done (items may be in `review.csv`), 1 failed, 2 no key, 3 the account cannot use the model, 4 the credit cap (`FOLDBUN_MAX_CREDITS`) refused a call. The full set (40 photos, 40 credits) is a release asset, see `assets/full.json`. Score a run with `uv run python evaluate.py --result out/result.json --truth assets/truth.json`.
+`--resume` reuses the cut-outs already in `out/cutouts/` instead of calling again. When the server answers `429` the client waits for `Retry-After` and carries on. Exit codes: 0 done (items may be in `review.csv`), 1 failed, 2 no key (the full set needs one), 3 the server refused the caller with a `403`, 4 the credit cap (`FOLDBUN_MAX_CREDITS`) refused a call. The full set (40 photos, 40 credits at list price) is a release asset, see `assets/full.json`; it needs `FOLDBUN_API_KEY`. Score a run with `uv run python evaluate.py --result out/result.json --truth assets/truth.json`.
 
 ## Code <!-- #code -->
 
@@ -236,7 +236,7 @@ How to read the recorded run:
 
 ## Cost <!-- #cost -->
 
-One credit per image (US$0.001 at 1,000 credits per US$1), so 1,000 photos cost 1,000 credits. The cache does not discount this endpoint, and the quality rules and the composition run locally for free. A rerun pays again unless you use `--resume`.
+One credit per image (US$0.001 at 1,000 credits per US$1), so 1,000 photos cost 1,000 credits. The cache does not discount this endpoint, and the quality rules and the composition run locally for free. A smoke run is free on the free tier (the run prints its list price labelled "free tier, not charged"); a keyed run is charged this much, and a rerun is charged again unless you use `--resume`.
 
 <!-- cost -->
 | Run | Calls | List price (credits) | Charged (credits) |
@@ -250,7 +250,7 @@ One credit per image (US$0.001 at 1,000 credits per US$1), so 1,000 photos cost 
 - A photo with several products is cut out as a whole. The `multiple_pieces` rule sends it to review; when you want only one of them, choose the object first with `sam3` and a text prompt and cut out that region. That combination is not implemented here.
 - Transparent and reflective products (glass, polished metal) get unstable edges. Expect them in `review.csv`.
 - A product cut off by the frame cannot be repaired. The rule only detects it.
-- One credit per photo, with no cache discount: a large backlog is a real bill.
+- One credit per photo, with no cache discount: on a key, a large backlog is a real bill.
 - The thresholds were set on 40 photos of household objects; check them against your own catalogue.
 
 ## Data <!-- #data -->

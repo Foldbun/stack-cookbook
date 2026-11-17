@@ -1,4 +1,4 @@
-<!-- en-sha: 87b99d1a264d -->
+<!-- en-sha: 7180a6997a38 -->
 # 收据和发票转为经过校验的 JSON
 
 [English](README.md) | 简体中文
@@ -13,7 +13,7 @@
 
 - **错误的数字比缺失的数字更糟。** 管线从不猜测。每个结果都要通过校验：明细之和等于小计，小计减折扣加税等于合计，日期存在且不在未来，取值所依据的文字行识别置信度足够。未通过的项重读，仍未通过的项写入 `needs_review.jsonl`。
 - **更好的模型贵 8 倍。** `ppocr-v6` 每张 0.25 credits，`paddleocr-vl` 每页 2 credits。对每份文档都用后者，会让昂贵路径变成默认路径，因此它只处理校验失败的项。
-- **速率限制。** 公共池每分钟 10 次、每个 UTC 日 100 次；已充值账户的免费池每分钟服务 60 次包含的调用、每日 1,000 次，超出部分计费。`paddleocr-vl` 只在付费池。客户端按 `GET /v1/models` 的 `perMinute` 控制节奏，使包含额度内的调用保持免费。
+- **速率限制。** 免费层按模型的重量级别，对每个项目分别限制每分钟和每日的调用数，`paddleocr-vl` 属于最重的一级，额度最小。服务端返回 `429` 时，客户端按 `Retry-After` 等待（`X-RateLimit-Remaining` 为 0 时按 `X-RateLimit-Reset` 等待）后继续，自己不做限速。smoke 文档在免费层内可以跑完，完整集合需要密钥。
 - **重跑不能重复扣费。** 崩溃或重复的运行不应为已经读过的文档再次付费。
 - **金额的写法多种多样**：`6.000`、`1,250.00`、`1.250,00`，带 `Rp`、`$` 或不带符号，负数写作 `-23.56`、`(23.56)` 或 `23.56-`。
 
@@ -22,7 +22,7 @@
 <!-- figure: assets/pipeline.svg -->
 ![管线：ppocr-v6、规则抽取、校验、回退到 paddleocr-vl、needs_review.jsonl](assets/pipeline.svg)
 
-1. 上传图片一次（`POST /v1/images`，免费），保留 handle。
+1. 使用密钥时，上传图片一次（`POST /v1/images`，免费），保留 handle。免费层没有上传：每次调用都以 base64 内联发送图片。
 2. `POST /v1/ocr`，模型 `ppocr-v6`：返回带框和置信度的文字行。
 3. 按纵向位置把文字行归并为行，再从行中读出字段：商户、日期、币种、明细、小计、折扣、服务费、税、合计。每个取值都保留来源：模型、文字行序号和框。
 4. 校验，全部检查通过才算通过。
@@ -34,10 +34,10 @@
 ## 运行 <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY="fbs_..."
-export FOLDBUN_MAX_CREDITS=5           # 可选：客户端拒绝可能超出该额度的调用
+# 无需密钥：smoke 运行使用免费层。设置 FOLDBUN_API_KEY 后调用按标价扣费；
+# FOLDBUN_MAX_CREDITS=5（可选）让客户端拒绝可能超出该额度的调用
 cd use-cases/03-receipts-to-json/python
-uv run main.py --out out               # 4 份 smoke 文档：标价约 3 credits
+uv run main.py --out out               # 4 份 smoke 文档：标价约 3 credits，在免费层上免费
 uv run main.py --out out --resume      # 中断之后：已完成的项不再重读
 uv run main.py --out out --no-fallback # 只用 OCR
 # 或：cd ../typescript && pnpm install && node main.ts --out out   # TypeScript 版本：同样的管线、参数和输出
@@ -46,11 +46,11 @@ uv run main.py --out out --no-fallback # 只用 OCR
 
 参数：`--manifest`、`--out`、`--concurrency`（默认 4）、`--limit`、`--resume`、`--no-fallback`。输出：`result.json`（格式见 `contract/result.schema.json`）、`receipts.jsonl`、`needs_review.jsonl`，以及 `items/`（每个完成的项一个文件，供 `--resume` 使用）。
 
-`paddleocr-vl` 回退需要已充值的账户。新账户上回退调用返回 `403 model_locked`；该项保留 `ppocr-v6` 的读取结果并进入复核，运行照常完成。
+`paddleocr-vl` 回退在免费层上也能运行，受重量级别的限额约束。如果服务端拒绝它（重试之后仍是 `429`，或返回 `403`），该项保留 `ppocr-v6` 的读取结果并进入复核，运行照常完成。
 
 评估一次运行：`python evaluate.py --result out/result.json --truth assets/smoke/truth.json`。
 
-完整集合（60 张 CORD 收据和 20 张合成发票，11 MB）是仓库的发布附件（见 `datasets/README.md`）。其清单已提交为 `assets/full.json`，图片和标准答案在压缩包里。把压缩包解压到 `assets/`，再在仓库根目录对参考实现运行完整集合。读完 80 份文档按标价最多 180 积分（每份都由 `ppocr-v6` 读取并再由 `paddleocr-vl` 重读），通常约 60 积分；重读需要已充值的账户：
+完整集合（60 张 CORD 收据和 20 张合成发票，11 MB）是仓库的发布附件（见 `datasets/README.md`）。其清单已提交为 `assets/full.json`，图片和标准答案在压缩包里。把压缩包解压到 `assets/`，再在仓库根目录对参考实现运行完整集合。读完 80 份文档按标价最多 180 积分（每份都由 `ppocr-v6` 读取并再由 `paddleocr-vl` 重读），通常约 60 积分。完整运行需要 `FOLDBUN_API_KEY`（没有密钥时以退出码 2 结束）：
 
 ```bash
 tar xzf 03-receipts-to-json-full.tar.gz -C use-cases/03-receipts-to-json/assets
@@ -1071,7 +1071,7 @@ attempts = append(attempts, attempt(ocrModel, extractReceipt(rowsFromOCR(ocr.Lin
 </details>
 <!-- /code -->
 
-第二次调用读取同一个 handle：不再上传，图片也不再经网络传输第二次。
+使用密钥时，第二次调用读取同一个 handle：不再上传，图片也不再经网络传输第二次。免费层上两次调用都内联发送图片。
 
 <!-- code: fallback-call -->
 <details><summary>Python (python/main.py)</summary>
@@ -1580,11 +1580,11 @@ Smoke 集合（4 份文档），离线夹具：
 | `heldout_hybrid_cost_per_1000_charged` | 850 |
 <!-- /metrics -->
 
-指标名称：`*_accuracy` 是字段与标准答案一致的文档占比（合计精确匹配；真值有日期时日期精确匹配；明细条数精确匹配）；无前缀的是管线最终交付的收据，`accepted_` 只含通过校验的，`ocr_only_` 是仅由 `ppocr-v6` 产生的结果。`validation_pass_rate` 是无需复核即被接受的占比；`fallback_rate` 是被重读的占比；`needs_review_rate` 是仍然失败的占比。成本为每 1,000 份文档的标价（`charged` 不含每日额度所覆盖的部分）。
+指标名称：`*_accuracy` 是字段与标准答案一致的文档占比（合计精确匹配；真值有日期时日期精确匹配；明细条数精确匹配）；无前缀的是管线最终交付的收据，`accepted_` 只含通过校验的，`ocr_only_` 是仅由 `ppocr-v6` 产生的结果。`validation_pass_rate` 是无需复核即被接受的占比；`fallback_rate` 是被重读的占比；`needs_review_rate` 是仍然失败的占比。成本为每 1,000 份文档的标价（`charged` 是该次记录的运行实际被扣的金额；规划时请按标价）。
 
 ## 成本 <!-- #cost -->
 
-`ppocr-v6` 每次调用标价 0.25 credits，`paddleocr-vl` 每次 2 credits。对 N 份文档、回退比例 f，标价为 `0.25 N + 2 f N`：只用 OCR 时每 1,000 份 250 credits，混合时为 250 + 2,000 f，f = 0.1 时为 450。每日额度之内的 `ppocr-v6` 调用不扣费；`paddleocr-vl` 始终计费；幂等回放不扣费。
+`ppocr-v6` 每次调用标价 0.25 credits，`paddleocr-vl` 每次 2 credits。对 N 份文档、回退比例 f，标价为 `0.25 N + 2 f N`：只用 OCR 时每 1,000 份 250 credits，混合时为 250 + 2,000 f，f = 0.1 时为 450。smoke 运行在免费层上免费（运行时会打印标价并标注“免费层，不扣费”）；带密钥的运行按这些标价扣费。幂等回放（需要密钥）不扣费。
 
 <!-- cost -->
 | 运行 | 调用次数 | 标价（credits） | 实扣（credits） |
@@ -1603,7 +1603,7 @@ Smoke 集合（4 份文档），离线夹具：
 - **同一张图的两次读取可能略有不同。** 80 份文档的两次运行之间，有 2 份文档在一处返回了不同的文本（一个标题块、金额中的一位数字）。结果的稳定程度足以比较不同运行，但不应期待逐字相同；重复运行能返回已存的答案，靠的是幂等键。
 - **手写、褪色的热敏纸和有褶皱的照片**会降低两个模型的质量；此时校验会把更多的项送去复核。
 - **不做税务或会计判断。** 检查只是算术，不是合规。
-- 已上传图片的 handle 最多保留 7 天；遇到 `404 image_not_found` 时客户端会自行重新上传。
+- 使用密钥时，已上传图片的 handle 最多保留 7 天；遇到 `404 image_not_found` 时客户端会自行重新上传。
 
 参见文档中的[文字识别](https://stack.foldbun.com/docs/use-cases/text-recognition/)、[文档解析](https://stack.foldbun.com/docs/use-cases/document-parsing/)、[速率限制](https://stack.foldbun.com/docs/rate-limits/)和[计费](https://stack.foldbun.com/docs/billing/)。
 

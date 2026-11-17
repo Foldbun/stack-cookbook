@@ -2,7 +2,7 @@
 
 English | [简体中文](README.zh-CN.md)
 
-Embed a library of images with `dinov3` and `siglip2`, keep the vectors in a small local index that is updated incrementally, and answer three questions: which images look like this one, which images match this sentence, and which images are near-duplicates of each other. Both models are in the public pool, so a new account can run the smoke set.
+Embed a library of images with `dinov3` and `siglip2`, keep the vectors in a small local index that is updated incrementally, and answer three questions: which images look like this one, which images match this sentence, and which images are near-duplicates of each other. The smoke set runs on the free tier, with no key and no sign-up.
 
 **Built with DINOv3.** `dinov3` output is covered by the DINOv3 License; products built on it should show the tag "Built with DINOv3".
 
@@ -17,7 +17,7 @@ A photo library has a few hundred to a few tens of thousands of images, grows by
 The constraints that shape the code are the ones around the call, not the model:
 
 - **Cost.** An image costs 0.05 credits per model, so a library costs 0.10 credits per image once. Re-embedding the library on every change would multiply that, so the index must be rebuilt incrementally: only new or changed files are embedded, found by the sha256 of their content.
-- **Allowance.** The public pool includes 100 calls per UTC day, and every image of a batch is a call. A library of a few hundred images does not fit in one day, so the run has to stop cleanly when the allowance is used up and continue the next day, not fail half-way.
+- **Limits.** The free tier caps each project per minute and per day, and every image is a call. A library of a few hundred images can run into the cap, and the Cookbook's shared project is also used by other readers, so the run has to wait out a `429` and, when the daily cap is reached, stop cleanly and continue later, not fail half-way.
 - **Failure.** Batches can lose an item, expire, or lose the connection. A rerun must not embed or pay twice.
 - **Scale.** At this size the vectors fit in memory and exact search is one matrix product. No vector database is needed, and none is added.
 
@@ -28,11 +28,12 @@ The constraints that shape the code are the ones around the call, not the model:
       |  sha256 of every file; compare with the catalogue in the index
       v
  new or changed images only
-      |  POST /v1/images (free), then POST /v1/batch/embeddings
+      |  with a key: POST /v1/images (free), then POST /v1/batch/embeddings
+      |  on the free tier: one call per image, the image inline
       |  chunks of 50, one model at a time, dinov3 then siglip2
       v
  index directory: index.json + vectors-dinov3-N.f32 + vectors-siglip2-N.f32
-      |  committed after every chunk (atomic), stops cleanly at the daily allowance
+      |  committed after every chunk (atomic), stops cleanly at the daily cap
       v
  queries, all local except the query text or the query image that is not in the library
    image  -> dinov3 vector  -> exact cosine top-k
@@ -40,8 +41,8 @@ The constraints that shape the code are the ones around the call, not the model:
    duplicates -> dinov3 vectors, pairs above a threshold, connected components (union-find)
 ```
 
-1. `POST /v1/images`: upload each new file once and get a handle. Free.
-2. `POST /v1/batch/embeddings` with `dinov3` and with `siglip2`: up to 1,000 items per request, 50 here. A batch takes one token of the per-minute limit, but its items run one after another on the server and each one counts as a call of the daily allowance.
+1. With a key, `POST /v1/images`: upload each new file once and get a handle. Free. The free tier has no upload: each image goes inline as base64 (up to 4 MiB decoded).
+2. With a key, `POST /v1/batch/embeddings` with `dinov3` and with `siglip2`: up to 1,000 items per request, 50 here. A batch takes one token of the per-minute limit, but its items run one after another on the server. The free tier has no batch endpoints, so there each image is one `POST /v1/embeddings` call per model.
 3. `index.json` and the vector files are written after every chunk. Vectors are L2-normalised, so the dot product is the cosine similarity.
 4. A text query is one `POST /v1/embeddings` call with `siglip2` (0.01 credits per text, up to 64 texts per call); it is ranked against the `siglip2` vectors of the images, because image and text share one space. An image query uses the stored `dinov3` vector when the image is in the library, and one call otherwise.
 5. Near-duplicates need no call: the pairs above a threshold are read off the stored `dinov3` vectors.
@@ -49,7 +50,7 @@ The constraints that shape the code are the ones around the call, not the model:
 ## Run it <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY="fbs_..."
+# no key needed: without FOLDBUN_API_KEY the free tier serves the calls. With a key they are charged at list price.
 cd use-cases/05-image-library-search/python
 
 uv run imgsearch.py index ~/photos                          # embed new and changed files; run it again to resume
@@ -61,13 +62,13 @@ uv run imgsearch.py status                                  # what the index hol
 uv run main.py                                              # the smoke set; writes out/result.json (what the harness runs)
 ```
 
-`index` accepts `--batch-size`, `--free-only` (stop at the included daily calls instead of paying for more) and `--keep-free N` (leave N included calls for queries). When the daily allowance ends, it prints how many vectors are missing and when the calls come back (00:00 UTC), and exits with code 5; run the same command then. The exit codes are listed in the header of `imgsearch.py`.
+`index` accepts `--batch-size`. When the server answers `429` it waits for `Retry-After` and carries on. When the daily cap of the project is reached, it prints how many vectors are missing and when the calls come back, and exits with code 5; run the same command then, and the index continues where it stopped. The exit codes are listed in the header of `imgsearch.py`.
 
 The first query after a fresh `index` shows its cost on the last line, for example `cost: 0.01 credits at list price, 0 charged, in 1 calls`.
 
 The same code, driven by a manifest, is what the harness runs (`main.py --manifest M --out DIR`). It also writes `DIR/index/` (the index), `DIR/stats.json` (timing, the allowance seen, the result of a second indexing pass that must make no call) and `DIR/result.json` in the format of `contract/result.schema.json`: one item per library image and one per text query, each with the ledger rows of its own calls.
 
-The full set (400 images, 100 near-duplicate variants, 40 text queries, 73 MB) is a release asset of the repository (see `datasets/README.md`). Its manifest is committed as `assets/full.json`; the images and the ground truth are in the archive. Extract it into `assets/` and run the reference implementation on it from the repository root. The run is at most 51 credits at list price (500 images x 0.10 plus 40 texts x 0.01 is 50.4) in about 1,040 calls, which fits in one UTC day only on a funded account; on a public-pool account the daily allowance ends the run early and it must be repeated on the following days.
+The full set (400 images, 100 near-duplicate variants, 40 text queries, 73 MB) is a release asset of the repository (see `datasets/README.md`). Its manifest is committed as `assets/full.json`; the images and the ground truth are in the archive. Extract it into `assets/` and run the reference implementation on it from the repository root. The full run needs `FOLDBUN_API_KEY` (it exits with code 2 without one): it is large and uses uploads and batches. It is at most 51 credits at list price (500 images x 0.10 plus 40 texts x 0.01 is 50.4) in about 1,040 calls.
 
 ```bash
 tar xzf 05-image-library-search-full.tar.gz -C use-cases/05-image-library-search/assets
@@ -82,9 +83,9 @@ The Go implementation is the same pipeline as one command: `cd use-cases/05-imag
 
 ## Code <!-- #code -->
 
-The client file (`stack_client.py`, `stackclient/client.go`) is a copy of the one in `clients/` (retries, idempotency keys, the per-minute token bucket, the credit cap and the ledger). The code below is what this use case adds.
+The client file (`stack_client.py`, `stackclient/client.go`) is a copy of the one in `clients/` (retries and waits that follow the server's `429` and rate-limit headers, idempotency keys for keyed calls, the credit cap and the ledger). The code below is what this use case adds.
 
-**The loop over the library.** The images that lack a vector are cut into chunks and embedded with each model in turn. The models alternate chunk by chunk, so that when the allowance ends the first part of the library has both vectors.
+**The loop over the library.** The images that lack a vector are cut into chunks and embedded with each model in turn. The models alternate chunk by chunk, so that when a run is cut short the first part of the library has both vectors.
 
 <!-- code: index-library -->
 <details><summary>Python (python/embedder.py)</summary>
@@ -169,7 +170,7 @@ func indexLibrary(client *stackclient.Client, index *LibraryIndex, root string, 
 </details>
 <!-- /code -->
 
-**One batch.** Each item of the stream is handled as it arrives. The ledger row of an item is the last row of the batch's tag. An item that failed for a reason that may pass (`image_not_found`, `model_busy`, an expired item) goes into the next attempt; a stream that ends without a summary sends the unfinished items again; the allowance ending, or the credit cap, stops the run. The idempotency key of a batch is derived from its content, so rerunning an interrupted chunk replays the items that finished without charging them again.
+**One batch.** Each item of the stream is handled as it arrives. The ledger row of an item is the last row of the batch's tag. An item that failed for a reason that may pass (`image_not_found`, `model_busy`, an expired item) goes into the next attempt; a stream that ends without a summary sends the unfinished items again; the daily cap being reached, or the credit cap, stops the run. The idempotency key of a batch is derived from its content, so rerunning an interrupted chunk replays the items that finished without charging them again.
 
 <!-- code: embed-chunk -->
 <details><summary>Python (python/embedder.py)</summary>
@@ -708,7 +709,7 @@ if err == nil {
 </details>
 <!-- /code -->
 
-**Text queries.** One call per query keeps the cost and the latency of each query in its own item. Texts can be sent together (up to 64 per call) to spend fewer calls of the daily allowance; the price is per text either way.
+**Text queries.** One call per query keeps the cost and the latency of each query in its own item. Texts can be sent together (up to 64 per call) to spend fewer calls against the project's limits; the price is per text either way.
 
 <!-- code: text-queries -->
 <details><summary>Python (python/main.py)</summary>
@@ -795,7 +796,7 @@ curl "127.0.0.1:8080/duplicates?threshold=0.90"         # groups of near-duplica
 curl "127.0.0.1:8080/healthz"
 ```
 
-`/search` embeds the text with `siglip2` through the client, so every query is one billed call (0.01 credits at list price; it counts as one of the included daily calls while those last); it needs `FOLDBUN_API_KEY` when the service starts, and without it only `/search` is off. `/similar` and `/duplicates` read the stored vectors and make no API call. `k` defaults to 10 and is lowered to 100 when larger; a bad `k`, an empty or over-long `q` and a threshold outside (0, 1] answer 400, an unknown image id 404, any method but GET 405, and an API failure 502 (429 when the daily allowance, the balance or the credit cap is used up). SIGINT and SIGTERM stop the service after the running requests finish.
+`/search` embeds the text with `siglip2` through the client, so every query is one call (0.01 credits at list price; free on the free tier, which the service uses when `FOLDBUN_API_KEY` is not set, and charged when it is). `/similar` and `/duplicates` read the stored vectors and make no API call. `k` defaults to 10 and is lowered to 100 when larger; a bad `k`, an empty or over-long `q` and a threshold outside (0, 1] answer 400, an unknown image id 404, any method but GET 405, and an API failure 502 (429 when the project's limit, the balance or the credit cap is used up). SIGINT and SIGTERM stop the service after the running requests finish.
 
 The handler table and the server settings (timeouts, header limit, graceful shutdown) are all of it:
 
@@ -888,7 +889,7 @@ The numbers below are generated from `expected/full-summary.json`, which a maint
 
 ## Cost <!-- #cost -->
 
-An image costs 0.05 credits with `dinov3` and 0.05 with `siglip2`; a text costs 0.01 with `siglip2`. The smoke set (25 images, 5 queries) is 25 x 0.10 + 5 x 0.01 = 2.55 credits at list price, in 55 calls: 25 for `dinov3`, 25 for `siglip2` and 5 text queries. That is inside the 100 included calls of one UTC day, so a new account is charged nothing. The full set (about 500 images, 40 queries) is 50.4 credits at list price, in about 1,040 calls: a funded account's free pool covers the first 1,000 calls per UTC day of each pool model; a public-pool account would need about 11 days of 100 calls, and the indexing resumes after each stop.
+An image costs 0.05 credits with `dinov3` and 0.05 with `siglip2`; a text costs 0.01 with `siglip2`. The smoke set (25 images, 5 queries) is 25 x 0.10 + 5 x 0.01 = 2.55 credits at list price, in 55 calls: 25 for `dinov3`, 25 for `siglip2` and 5 text queries. On the free tier the smoke run is not charged: it prints that list price labelled "free tier, not charged". The full set (about 500 images, 40 queries) is 50.4 credits at list price, in about 1,040 calls, charged to a key; indexing resumes after each stop.
 
 Each run records its own list price and charge:
 
@@ -907,9 +908,9 @@ Per 1,000 images the library costs 100 credits at list price, once; after that o
 - **Duplicates are a threshold on a similarity.** The default (0.90) is a starting point. Choose it on a labelled sample of the library, as `evaluate.py` does, and expect crops and heavy re-compression to score lower than resizes. Connected components chain: A resembles B and B resembles C puts all three in one group.
 - **Image-level meaning only.** Both models describe a whole image; there is no object location. `siglip2` takes a 224 px input, so small objects are lost. Text queries work best in English, and the scores are small numbers: only the ranking carries meaning, so no fixed cut-off is used.
 - **The model is part of the index.** Vectors of different models are not comparable, and a new version of a model would make old vectors inconsistent with new ones. The index stores the vector length of each model and refuses a different one; rebuild it when a model changes.
-- **Daily allowance.** The public pool includes 100 calls per UTC day. A shared pool may use one allowance for both models; the code reacts to what each response reports instead of assuming. Items of a batch run one after another, so a batch of N takes about N times the processing time of one image; keep chunks well inside the 600 s limit of a batch.
+- **Free-tier limits.** The free tier limits each project per minute and per day by the weight of the model, and the Cookbook's shared project is used by every reader, so a cap can be reached by others. The code reacts to the `429` and the headers the server sends instead of assuming a number. Items of a batch run one after another, so a batch of N takes about N times the processing time of one image; keep chunks well inside the 600 s limit of a batch.
 - **Uploads are kept by the client.** The client file keeps the bytes of uploaded images in memory to upload again when a handle is evicted. For a very large library, index it in several runs.
-- Reference: [Embeddings and search](https://stack.foldbun.com/docs/use-cases/embeddings/), [DINOv3](https://stack.foldbun.com/docs/models/dinov3/), [SigLIP 2](https://stack.foldbun.com/docs/models/siglip2/) and [Rate limits and pools](https://stack.foldbun.com/docs/rate-limits/) in the documentation. `dinov3` output is covered by the DINOv3 License; products built on it should show the tag "Built with DINOv3".
+- Reference: [Embeddings and search](https://stack.foldbun.com/docs/use-cases/embeddings/), [DINOv3](https://stack.foldbun.com/docs/models/dinov3/), [SigLIP 2](https://stack.foldbun.com/docs/models/siglip2/) and [Rate limits](https://stack.foldbun.com/docs/rate-limits/) in the documentation. `dinov3` output is covered by the DINOv3 License; products built on it should show the tag "Built with DINOv3".
 
 ## Data <!-- #data -->
 

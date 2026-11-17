@@ -1,18 +1,18 @@
-<!-- en-sha: 9074f98eb91c -->
+<!-- en-sha: a41dde0001f8 -->
 # 点击分割组件与持有密钥的后端
 
 [English](README.md) | 简体中文
 
-在浏览器里点几下，分割出一个物体。一个小型后端持有 API 密钥，每张图只上传到 Foldbun Stack 一次，并把每次点击连同之前的全部点击一起发给 `sam-lite`；浏览器拿回的是多边形，始终接触不到密钥。点击模拟器按真人的方式驱动后端，实测一个物体需要几次点击、分割质量如何、花费多少。
+在浏览器里点几下，分割出一个物体。一个小型后端持有凭据（API 密钥；在免费层上只有项目 ID），每张图只保存一次，并把每次点击连同之前的全部点击一起发给 `sam-lite`；浏览器拿回的是多边形，始终接触不到密钥。点击模拟器按真人的方式驱动后端，实测一个物体需要几次点击、分割质量如何、花费多少。
 
 ## 问题 <!-- #problem -->
 
 标注工具、图片编辑器或商品目录常需要「点一下物体，得到它的轮廓」。模型调用本身并不难，决定能否放到公开页面上的是调用之外的部分：
 
 - **密钥不能进入浏览器。** 页面里的任何内容访问者都能读到，所以由后端发起调用，页面只和这个后端通信。
-- **每次点击都是一次计费调用。** `sam-lite` 的标价是每次细化 0.01 credits，另加图像编码 0.2。Stack 会缓存编码结果，第一次之后的点击通常只收 0.01，但缓存不作保证，预算应按每次点击都未命中来规划。
+- **每次点击都是一次有标价的调用。** `sam-lite` 的标价是每次细化 0.01 credits，另加图像编码 0.2。Stack 会缓存编码结果，第一次之后的点击通常只收 0.01，但缓存不作保证，预算应按每次点击都未命中来规划。免费层上这些调用不扣费，但会计入项目的限额。
 - **模型不保存状态。** `POST /v1/refine` 每次都接收该物体的全部点。后端也一样：只保存图像，不保存点击，因此刷新页面或打开第二个标签页都不会造成状态错位。
-- **访问者共用一个账户。** 账户的免费池每分钟提供 60 次调用。后端按会话限速，客户端文件再按池的速率统一调度全部调用，单个高频访问者无法占满所有人的配额。
+- **访问者共用一个项目或账户。** 适用于它的限额（免费层的每分钟和每日限额，或账户的限速）由使用该页面的所有人共享。后端按会话限速，服务端返回 `429` 时客户端文件会等待，单个高频访问者无法占满所有人的配额。
 - **点击延迟会被直接感知。** 交互式调用若 2 秒内未完成，会以可重试的 `504` 失败；后端报告每次 Stack 调用的耗时，供页面显示。客户端看到的延迟取决于它到 API 的网络路径，因此本用例的实测不包含这一项。
 
 ## 工作方式 <!-- #design -->
@@ -21,7 +21,7 @@
 
 | 请求 | 应答 |
 |---|---|
-| `POST /api/images`（图像原始字节） | `{imageId, width, height}`；同一内容只上传到 Stack 一次，并缓存其 handle |
+| `POST /api/images`（图像原始字节） | `{imageId, width, height}`；使用密钥时，同一内容只上传到 Stack 一次，并缓存其 handle；免费层上后端保存图像字节（最大 4 MiB），每次点击内联发送 |
 | `POST /api/refine {imageId, points, box?}` | `{polygon, bbox, area, score, model, costCredits, listCredits, cache, latencyMs}` |
 | `GET /api/usage` | 本会话的点击数、credits、缓存命中数和账本行 |
 | `GET /api/health` | 就绪状态、语言和客户端版本 |
@@ -83,7 +83,7 @@ node main.ts --port 8080                 # 需设置 FOLDBUN_API_KEY；提供 ..
 
 ### 为什么密钥不会到达浏览器
 
-组件只调用本后端的三个路由：`POST /api/images`、`POST /api/refine` 和 `GET /api/usage`。Foldbun Stack API 的密钥由后端持有，后端负责每张图只上传一次、调用 Stack，并在返回结果时去掉账户信息。因此页面不可能泄露密钥，限制也都放在后端（按会话限速、`SEGMENTER_MODELS`、`FOLDBUN_MAX_CREDITS`）。会话只是计量单位，不是身份认证：页面公开时，应把后端放在站点自己的登录之后。
+组件只调用本后端的三个路由：`POST /api/images`、`POST /api/refine` 和 `GET /api/usage`。Foldbun Stack API 的密钥（免费层上是项目 ID）由后端持有，后端在有密钥时负责每张图只上传一次、调用 Stack，并在返回结果时去掉账户信息。因此页面不可能泄露密钥，限制也都放在后端（按会话限速、`SEGMENTER_MODELS`、`FOLDBUN_MAX_CREDITS`）。会话只是计量单位，不是身份认证：页面公开时，应把后端放在站点自己的登录之后。
 
 ### 同源要求
 
@@ -92,8 +92,8 @@ node main.ts --port 8080                 # 需设置 FOLDBUN_API_KEY；提供 ..
 ## 运行 <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY="fbs_..."
-export FOLDBUN_MAX_CREDITS=2           # optional: the client refuses calls that could pass it
+# 无需密钥：后端在免费层上运行。想改用密钥扣费，设置 FOLDBUN_API_KEY="fbs_..."，
+# 并可选设置 FOLDBUN_MAX_CREDITS=2（客户端会拒绝可能超出它的调用）
 cd use-cases/02-click-to-segment/typescript
 pnpm install
 node main.ts --port 8080               # listening on http://127.0.0.1:8080
@@ -114,9 +114,9 @@ curl -s -H "X-Session-Id: $S" http://127.0.0.1:8080/api/usage
 
 参数（三种语言相同）：`--port`（默认 8080）、`--host`（默认 127.0.0.1）和 `--static DIR`（默认 `../web/dist`），即页面所在目录：`/` 返回其中的 `index.html`，`/<名称>` 返回该目录下直接存放的文件。`SEGMENTER_MODELS` 是请求可以指定的模型列表，以逗号分隔（默认 `sam-lite`；如需对比可加入 `sam3`）。后端不发送 CORS 头：页面和后端应部署在同一个源下。
 
-要实测一个后端，由 harness 在空闲端口上启动它并运行点击模拟器：有密钥时用 `uv run python -m harness live --uc 02`，离线对假 API 用 `uv run python -m harness check --uc 02`。
+要实测一个后端，由 harness 在空闲端口上启动它并运行点击模拟器：对真实 API 用 `uv run python -m harness live --uc 02`，离线对假 API 用 `uv run python -m harness check --uc 02`。
 
-完整集合（30 个物体，每个都有标准答案掩码，5 MB）是仓库的发布附件（见 `datasets/README.md`）。其清单已提交为 `assets/full.json`，每个物体的点击上限为 10 次；图片、掩码和标准答案在压缩包里。把压缩包解压到 `assets/`，再在仓库根目录通过模拟器运行参考后端（TypeScript）。按标价最多 63 credits（30 个物体 x 10 次点击 x 0.21，即每次点击都未命中缓存），缓存正常时约 9 credits。对真实 API 模拟器每秒最多点击一次，因此运行需要几分钟。
+完整集合（30 个物体，每个都有标准答案掩码，5 MB）是仓库的发布附件（见 `datasets/README.md`）。其清单已提交为 `assets/full.json`，每个物体的点击上限为 10 次；图片、掩码和标准答案在压缩包里。把压缩包解压到 `assets/`，再在仓库根目录通过模拟器运行参考后端（TypeScript）。完整运行需要 `FOLDBUN_API_KEY`（没有密钥时 harness 会退出）。按标价最多 63 credits（30 个物体 x 10 次点击 x 0.21，即每次点击都未命中缓存），缓存正常时约 9 credits。对真实 API 模拟器每秒最多点击一次，因此运行需要几分钟。
 
 ```bash
 tar xzf 02-click-to-segment-full.tar.gz -C use-cases/02-click-to-segment/assets
@@ -131,7 +131,7 @@ uv run python -m harness refresh --size full --uc 02 --max-credits 63          #
 
 ### 只上传一次 <!-- #code-upload -->
 
-`imageId` 由图像字节计算得出，所以同一文件在任何会话、任何语言中的 id 都相同，重复上传不产生费用。
+`imageId` 由图像字节计算得出，所以同一文件在任何会话、任何语言中的 id 都相同，重复上传不产生费用。使用密钥时字节也只上传到 Stack 一次；免费层没有上传，后端每次点击都把图像内联发送。
 
 <!-- code: upload-once -->
 <details><summary>TypeScript (typescript/backend.ts)</summary>
@@ -444,7 +444,7 @@ func (b *Backend) refine(r *http.Request, s *session) (any, error) {
 
 ### 会话与限速 <!-- #code-limits -->
 
-每个会话有两个令牌桶：细化每分钟 60 次、突发 10 次；上传每分钟 10 次、突发 5 次。超出限额时返回 `429 rate_limited` 并带 `Retry-After`。
+每个会话有两个令牌桶：细化每分钟 60 次、突发 10 次；上传每分钟 10 次、突发 5 次。超出限额时返回 `429 rate_limited` 并带 `Retry-After`。这是后端自己的限额；如果 Stack 本身返回 `429`，后端的客户端会按它给出的 `Retry-After` 等待，页面最多看到一个可重试的错误。
 
 <!-- code: session-limit -->
 <details><summary>TypeScript (typescript/backend.ts)</summary>
@@ -969,7 +969,7 @@ Smoke 集（3 个物体，最多 4 次点击），离线：
 
 ## 成本 <!-- #cost -->
 
-使用 `sam-lite` 时，若只有第一次点击未命中编码缓存，k 次点击分割一个物体的标价为 0.2 + 0.01 k credits；若每次都未命中，最多为 0.21 k。上传免费。充值账户的免费池每天最多覆盖 1,000 次调用，这些调用计入标价但不实际扣费。
+使用 `sam-lite` 时，若只有第一次点击未命中编码缓存，k 次点击分割一个物体的标价为 0.2 + 0.01 k credits；若每次都未命中，最多为 0.21 k。上传免费。smoke 运行在免费层上免费：运行时会打印这笔标价并标注“免费层，不扣费”；带密钥的运行按此扣费。
 
 <!-- cost -->
 | 运行 | 调用次数 | 标价（credits） | 实扣（credits） |

@@ -15,7 +15,7 @@ The constraints that shape the code:
 - **Chunk boundaries decide retrieval quality.** A heading should open a chunk, a table must never be cut in half (half a table answers nothing), and a paragraph that is too long is cut where a sentence ends.
 - **Running headers and footers are noise.** "Wealth of Nations, Book I" and "Page 2 of 3" on every page would be indexed again and again, and would match queries they should not match. They repeat across pages, so they can be found by comparing pages of the same document.
 - **Every hit must cite its source.** Each chunk keeps its page number, the merged box of its blocks, the types of the blocks and the sha256 of the page file.
-- **Cost is per page.** `paddleocr-vl` costs 2 credits per page, so 1,000 pages cost 2,000 credits at list price.
+- **Cost is per page.** `paddleocr-vl` costs 2 credits per page, so 1,000 pages cost 2,000 credits at list price. It is the heaviest model class, so the free tier allows only a few pages per minute: enough for the smoke pages, not for a corpus.
 
 ## Pipeline <!-- #pipeline -->
 
@@ -23,7 +23,7 @@ The constraints that shape the code:
 ![Pipeline: page images, paddleocr-vl blocks, repeated headers and footers removed, chunks, chunks.jsonl and document.md](assets/pipeline.svg)
 
 1. Take the page images (the dataset is images; for a PDF, render each page first, see "Adapt it").
-2. Upload each page once (`POST /v1/images`, free) and call `POST /v1/documents/parse` with `paddleocr-vl` and `options.blocks: true`: layout blocks (`title`, `text`, `table`, `formula`, `header`, `footer`, ...) with boxes, in reading order, tables as HTML and formulas as LaTeX.
+2. With a key, upload each page once (`POST /v1/images`, free); on the free tier send the page inline as base64 instead. Then call `POST /v1/documents/parse` with `paddleocr-vl` and `options.blocks: true`: layout blocks (`title`, `text`, `table`, `formula`, `header`, `footer`, ...) with boxes, in reading order, tables as HTML and formulas as LaTeX.
 3. Sort the blocks by `order`. For every document, find the `header` and `footer` blocks whose text (digits blanked) appears on at least two pages and drop them.
 4. Cut chunks page by page: a title starts a new chunk; text is packed to about 800 characters and cut at sentence ends when a block is longer; a table or formula is never cut; a chunk never crosses a page.
 5. Write `chunks.jsonl` (one chunk per line), one Markdown file per document under `documents/`, and `result.json`.
@@ -39,17 +39,17 @@ The output of one page is described by `output.schema.json`. A chunk looks like 
 ## Run it <!-- #run -->
 
 ```bash
-export FOLDBUN_API_KEY="fbs_..."
-export FOLDBUN_MAX_CREDITS=4           # optional: the client refuses calls that could pass it
+# no key needed: the smoke run uses the free tier. With FOLDBUN_API_KEY set the calls are charged at list price;
+# FOLDBUN_MAX_CREDITS=4 (optional) makes the client refuse calls that could pass it
 cd use-cases/04-documents-to-rag-chunks/python
-uv run main.py --out out               # the 2 smoke pages: 4 credits at list price
+uv run main.py --out out               # the 2 smoke pages: 4 credits at list price, free on the free tier
 uv run main.py --out out --resume      # after an interruption: pages already read are not read again
 uv run main.py --out out --chunk-size 1200   # a different target chunk size
 ```
 
 Arguments: `--manifest`, `--out`, `--concurrency` (default 2), `--limit`, `--resume`, `--chunk-size` (default 800), `--pdf FILE`. Outputs: `result.json` (format of `contract/result.schema.json`), `chunks.jsonl`, `documents/<document>.md` and `items/` (one small file per page read, which `--resume` uses).
 
-Without a key the program exits with code 2 and the standard message. On a new account `paddleocr-vl` answers `403 model_locked` (it is in the paid pool): the run stops with exit code 3.
+The smoke pages run without a key. When the server answers `429` the client waits for `Retry-After` and carries on. The full set needs `FOLDBUN_API_KEY`: without it the program exits with code 2 and the standard message. If the server refuses the caller with a `403` (the free tier is not offered in every region), the run stops with exit code 3.
 
 To score a run: `python evaluate.py --result out/result.json --truth assets/smoke/truth.json`.
 
@@ -57,7 +57,7 @@ The full set (30 pages: 15 clean and the same 15 photographed, 8 MB) is a releas
 
 ```bash
 tar xzf 04-documents-to-rag-chunks-full.tar.gz -C use-cases/04-documents-to-rag-chunks/assets
-export FOLDBUN_API_KEY="fbs_..."
+export FOLDBUN_API_KEY="fbs_..."          # the full run needs a key
 uv run python -m harness live --size full --uc 04 --max-credits 60 --dry-run   # the plan, nothing is sent
 uv run python -m harness refresh --size full --uc 04 --max-credits 60          # runs, scores, writes expected/full.json and expected/full-summary.json
 ```
@@ -408,7 +408,7 @@ Full set (30 pages):
 
 ## Cost <!-- #cost -->
 
-One page is one `paddleocr-vl` call at 2 credits, whatever the page contains: 2,000 credits per 1,000 pages at list price. The cost per 1,000 pages in the table is computed with every page at list price. For large batches of plain text, `ppocr-v6` costs 0.25 credits per image (see use case 03) but returns lines without layout, tables or reading order.
+One page is one `paddleocr-vl` call at 2 credits, whatever the page contains: 2,000 credits per 1,000 pages at list price. The cost per 1,000 pages in the table is computed with every page at list price. A smoke run is free on the free tier (the run prints its list price labelled "free tier, not charged"); a keyed run costs this much. For large batches of plain text, `ppocr-v6` costs 0.25 credits per image (see use case 03) but returns lines without layout, tables or reading order.
 
 <!-- cost -->
 | Run | Calls | List price (credits) | Charged (credits) |
@@ -417,7 +417,7 @@ One page is one `paddleocr-vl` call at 2 credits, whatever the page contains: 2,
 | full | 30 | 56 | 56 |
 <!-- /cost -->
 
-- A call that fails is not charged, and a repeated idempotency key within 24 hours is replayed without being charged, so `--resume` and reruns cost nothing for pages already read.
+- A call that fails is not charged, and `--resume` reads the pages already saved in `items/` instead of calling again, so reruns cost nothing for pages already read. With a key, a repeated idempotency key within 24 hours is also replayed without being charged.
 - Chunking runs on your machine and costs nothing; changing `--chunk-size` needs no new calls once the pages are saved in `items/` (use `--resume`).
 
 See [Document parsing](https://stack.foldbun.com/docs/use-cases/document-parsing/), [Rate limits](https://stack.foldbun.com/docs/rate-limits/) and [Billing](https://stack.foldbun.com/docs/billing/) in the documentation.
