@@ -49,6 +49,7 @@ FREE_LIMITS = {
     "heavy": {"rpm": 20, "burst": 2, "daily": 1000},
 }
 FREE_MAX_IMAGE = 4 * 1024 * 1024  # decoded size of an inline image on the free tier
+KEY_PROJECT = "fbp_0192f3c47a1e7b2d9c4f1a2b3c4d5e70"  # the project every fake API key belongs to
 PROJECT_ID = re.compile(r"fbp_[A-Za-z0-9]{8,64}")
 DEFAULT_MODEL = {"/v1/ocr": "ppocr-v6", "/v1/documents/parse": "paddleocr-vl", "/v1/remove-background": "birefnet", "/v1/refine": "sam3"}
 INFERENCE = {"/v1/segment", "/v1/refine", "/v1/ocr", "/v1/documents/parse", "/v1/embeddings", "/v1/remove-background"}
@@ -163,6 +164,7 @@ class Fake:
         self.fixtures = load_fixtures(fixtures or [])
         self.validate, self.upstream, self.record = validate, upstream, record
         self.lock = threading.Lock()
+        self.request = threading.local()  # per request thread: `source` is the X-Foldbun-Project of a keyed call
         self.reset(scenario)
 
     def reset(self, scenario=None):
@@ -201,9 +203,12 @@ class Fake:
         """`who` is the API key of a funded account or the project ID of a free caller."""
         return "free" if who.startswith("fbp_") else "funded"
 
-    def model_info(self, mid):
+    def model_info(self, mid, who):
+        """One entry of GET /v1/models. A key adds the account fields (retired pool fields included); a project ID alone gets none."""
         _, name, task, endpoints, lic, prices = MODEL[mid]
-        return {
+        with self.lock:
+            free = {"class": WEIGHT[mid], **self.free_limits[WEIGHT[mid]]}
+        info = {
             "id": mid,
             "name": name,
             "task": task,
@@ -211,11 +216,11 @@ class Fake:
             "license": lic,
             "prices": [{"unit": u, "price": p} for u, p in prices.items()],
             "available": True,
-            "pool": "paid",
-            "freeDailyCalls": None,
-            "perMinute": None,
-            "unlockedBy": None,
+            "free": free,
         }
+        if self.tier(who) == "funded":
+            info.update(pool="paid", freeDailyCalls=None, perMinute=None, unlockedBy=None)
+        return info
 
     def whoami(self, who):
         """GET /v1/whoami: the account behind a key, or the project of a free caller."""
@@ -235,7 +240,18 @@ class Fake:
             balance = self.balance["funded"]
         d = hashlib.sha256(who.encode()).hexdigest()
         account = f"{d[:8]}-{d[8:12]}-7{d[13:16]}-8{d[17:20]}-{d[20:32]}"
-        return {"keyId": f"key_{account}", "accountId": account, "scopes": [], "balance": balance, "dailyAllowances": []}
+        body = {
+            "keyId": f"key_{account}",
+            "accountId": account,
+            "scopes": [],
+            "balance": balance,
+            "dailyAllowances": [],
+            "tier": "paid",
+            "project": {"id": KEY_PROJECT, "name": "Default project"},
+        }
+        if getattr(self.request, "source", None):
+            body["sourceProject"] = {"id": self.request.source}
+        return body
 
     def free_gate(self, project, ip, mid):
         """The limits of the free tier for one call: raises 429 `rate_limited` / `daily_limit_reached` when a scenario
@@ -314,7 +330,9 @@ class Fake:
             if self.balance["funded"] < total:
                 raise ApiError("insufficient_balance", f"insufficient balance: this call can cost up to {total:g} credits")
             self.balance["funded"] = r6(self.balance["funded"] - total)
-            return total, {"lines": lines, "total": total, "charged": True, "pool": None}
+            source = getattr(self.request, "source", None)
+            billing = {"tier": "paid", "project": KEY_PROJECT, "sourceProject": source, "lines": lines, "total": total, "charged": True, "pool": "paid"}
+            return total, billing
 
     # ---- images ----
     def store_image(self, data):
@@ -573,11 +591,7 @@ class Handler(BaseHTTPRequestHandler):
             from harness import openapi
 
             path = self.path.split("?")[0]
-            if self.free_request and path == "/v1/whoami":
-                return  # the published description knows the account form only
             for e in openapi.response_errors(path, status, body):
-                if self.free_request and "'balance' is a required property" in e:
-                    continue  # a free call has no balance
                 with self.fake.lock:
                     self.fake.violations.append(f"response {self.command} {self.path} {status}: {e}")
 
@@ -612,13 +626,14 @@ class Handler(BaseHTTPRequestHandler):
             if not key and not project:
                 raise ApiError("unauthorized", "missing API key or project ID")
             who = key or project
+            self.fake.request.source = project if key else None
             self.free_request = not key
             if self.free_request and self.headers.get("Idempotency-Key") is not None:
                 raise ApiError("unsupported", "the free tier does not take an Idempotency-Key")
             if method == "GET" and path == "/v1/models":
                 if rule and rule.get("error"):
                     raise ApiError(rule["error"]["code"], "scripted", rule["error"].get("retryAfterMs", 0))
-                body = {"data": [self.fake.model_info(m[0]) for m in MODELS]}
+                body = {"data": [self.fake.model_info(m[0], who) for m in MODELS]}
                 self.check_response(200, body)
                 return self.send_json(200, body)
             if method == "GET" and path == "/v1/whoami":

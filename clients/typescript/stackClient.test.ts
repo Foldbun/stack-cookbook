@@ -166,7 +166,7 @@ describe("TypeScript client", () => {
     const r2 = await c.post("/v1/ocr", { image: sc.imageBase64(png()) }, { tag: "b" });
     assert.equal(r1.image.id, first.id);
     assert.equal(r2.image.id, first.id);
-    assert.equal(r1.billing.pool, null);
+    assert.equal(r1.billing.pool, "paid");
     assert.equal(r1.cost, 0.25);
     assert.deepEqual(c.calls("a"), [
       { endpoint: "/v1/ocr", model: "ppocr-v6", list: 0.25, charged: 0.25, cache: null, queueMs: 4, processingMs: 700, replayed: false },

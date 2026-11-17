@@ -38,9 +38,11 @@ def test_no_key_means_free_tier_with_the_cookbook_project(monkeypatch):
 
 def test_free_tier_lists_models_with_the_project_alone(server):
     c = free(server)
-    assert "ppocr-v6" in c.models()
+    models = c.models()
+    assert "ppocr-v6" in models and models["sam3"]["free"] == {"class": "medium", "rpm": 120, "burst": 2, "daily": 10000}
     (entry,) = calls(server, "/v1/models")
     assert (entry["project"], entry["hasAuthorization"]) == (PROJECT, False)
+    assert "pool" not in models["sam3"] and client(server).models()["sam3"]["pool"] == "paid"
 
 
 def test_free_call_sends_only_the_project_header(server):
@@ -136,7 +138,7 @@ def test_upload_ocr_and_ledger(server):
     r1 = c.post("/v1/ocr", {"image": sc.image_handle(first["id"])}, tag="a")
     r2 = c.post("/v1/ocr", {"image": sc.image_base64(png())}, tag="b")
     assert r1["image"]["id"] == r2["image"]["id"] == first["id"]
-    assert r1["billing"]["pool"] is None and r1["cost"] == 0.25
+    assert r1["billing"]["pool"] == "paid" and r1["cost"] == 0.25
     rows = c.calls("a")
     assert rows == [
         {"endpoint": "/v1/ocr", "model": "ppocr-v6", "list": 0.25, "charged": 0.25, "cache": None, "queueMs": 4, "processingMs": 700, "replayed": False}

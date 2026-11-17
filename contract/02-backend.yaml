@@ -69,11 +69,13 @@ info:
     **Rate limits** (per session, token buckets): refine 60 per minute with a burst of 10; upload 10 per minute with
     a burst of 5. Over the limit: `429 rate_limited` with `retryAfterMs` and a `Retry-After` header (whole seconds,
     rounded up). A rejected request (`400`, `404`, `413`, `415`) consumes a token of its session like any other, because the limit is taken
-    after the session is identified and before the request is examined. Under the per-session limits, the client file paces all calls at the per-minute limit of the model's
-    pool on the Stack account, so many sessions queue rather than fail.
+    after the session is identified and before the request is examined. Under the per-session limits, the client file does not pace calls itself: a `429` from Stack (`rate_limited`,
+    `free_busy`) is retried after the wait Stack names, and a success that reports no calls left in the current window
+    delays the next call for that model until the window resets, so many sessions queue rather than fail.
 
     **Limits of a request.** Body of `POST /api/images` at most 20 MiB (the Stack upload limit), `image/jpeg`,
-    `image/png` or `image/webp`; body of `POST /api/refine` at most 64 KiB, at most 20 points (the Stack limit), at least
+    `image/png` or `image/webp`; without an API key (the free tier, which takes inline base64 images only) at most
+    4 MiB, over which the answer is `413 payload_too_large`; body of `POST /api/refine` at most 64 KiB, at most 20 points (the Stack limit), at least
     one positive point or a box. Points lie in `[0, width] x [0, height]`; a box is `[x1, y1, x2, y2]` with
     `0 <= x1 < x2 <= width` and `0 <= y1 < y2 <= height`. The backend checks all of this before calling Stack. An empty image body is `400 invalid_request` and is not sent to
     Stack, and `"model": null` means that no model was given, so the default applies.
@@ -85,9 +87,9 @@ info:
 
     | Stack outcome | Backend status and `code` | `retryable` |
     |---|---|---|
-    | a retryable error that outlived the retries (`429 rate_limited`, `503`, `504 upstream_timeout`), or a network error | `503 upstream_busy`, `retryAfterMs` from Stack (at least 1000) | true |
+    | a retryable error that outlived the retries (`429 rate_limited`, `429 free_busy`, `503`, `504 upstream_timeout`), or a network error | `503 upstream_busy`, `retryAfterMs` from Stack (at least 1000) | true |
     | the client file's credit cap refused the call (`FOLDBUN_MAX_CREDITS`) | `503 credit_cap` | false |
-    | any other Stack error (`402 insufficient_balance`, `403 model_locked`, `429 daily_limit_reached`, `401`, `400`, other `5xx`) | `502 upstream_refused` | false |
+    | any other Stack error (`402 insufficient_balance`, `403 model_locked`, `429 daily_limit_reached`, `403 free_tier_unavailable`, `401`, `400`, other `5xx`) | `502 upstream_refused` | false |
 
     `upstreamCode` is the Stack error code for `upstream_busy` and `upstream_refused` (`network_error` when no response
     arrived) and `requestId` its `X-Request-Id` when there was one. `404 image_not_found` from Stack never reaches the
@@ -232,7 +234,7 @@ components:
         area: { type: number, minimum: 0, description: The instance's `area` from Stack (mask pixels). }
         score: { type: number, description: The instance's `score` from Stack. }
         model: { type: string }
-        costCredits: { type: number, minimum: 0, description: 'Credits charged for this call (Stack `cost`; 0 when a free pool covered it).' }
+        costCredits: { type: number, minimum: 0, description: 'Credits charged for this call (Stack `cost`; 0 without an API key, where the free tier does not charge).' }
         listCredits: { type: number, minimum: 0, description: 'List price of this call (Stack `billing.total`): `sam-lite` 0.01 per click, plus 0.2 for encoding the image when `cache` is `miss`.' }
         cache: { enum: [hit, miss], description: 'Stack''s image-encoding cache. A hit is not guaranteed: plan for a miss on every click.' }
         latencyMs: { type: integer, minimum: 0, description: 'Time the backend spent in the Stack call, retries included (wall clock).' }

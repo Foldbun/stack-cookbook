@@ -330,7 +330,7 @@ func TestUploadOCRAndLedger(t *testing.T) {
 	}
 	_ = json.Unmarshal(raw1, &r1)
 	_ = json.Unmarshal(raw2, &r2)
-	if r1.Image.ID != first.ID || r2.Image.ID != first.ID || r1.Billing.Pool != "" || r1.Cost != 0.25 {
+	if r1.Image.ID != first.ID || r2.Image.ID != first.ID || r1.Billing.Pool != "paid" || r1.Cost != 0.25 {
 		t.Errorf("results %+v %+v", r1, r2)
 	}
 	model := "ppocr-v6"
