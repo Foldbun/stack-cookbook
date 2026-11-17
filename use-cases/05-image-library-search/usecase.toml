@@ -2,6 +2,7 @@ id = "05-image-library-search"
 order = 5
 title = { en = "Search an image library by image, by text, and for near-duplicates", zh = "按图、按文字搜索图库，并找出近重复图片" }
 summary = { en = "Embed a library with dinov3 and siglip2, keep the vectors in a local index that is updated incrementally, and answer image, text and near-duplicate queries with exact cosine search.", zh = "用 dinov3 和 siglip2 为图库生成向量，存进可增量更新的本地索引，再用精确的余弦检索完成以图搜图、文字搜图和近重复检测。" }
+seo_title = { en = "Image search by image, text and duplicates", zh = "以图搜图、文搜图与近重复检测" }
 models = ["dinov3", "siglip2"]
 tier = "public"
 languages = ["python", "go"]

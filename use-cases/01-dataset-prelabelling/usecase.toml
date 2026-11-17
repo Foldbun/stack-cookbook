@@ -2,6 +2,7 @@ id = "01-dataset-prelabelling"
 order = 1
 title = { en = "Pre-label an image dataset from text prompts", zh = "用文字提示词预标注图像数据集" }
 summary = { en = "Segment a folder of images in batches from text prompts, accept confident labels, queue the uncertain ones for review and export COCO and YOLO-seg.", zh = "按文字提示词分批分割一个图片目录，接受高置信度标注，把不确定的送入复核队列，并导出 COCO 与 YOLO-seg。" }
+seo_title = { en = "Auto-label image datasets from text prompts", zh = "用文字提示词自动预标注图像数据集" }
 models = ["sam3", "sam-lite"]
 tier = "billed"
 languages = ["python", "go"]

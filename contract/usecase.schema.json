@@ -33,6 +33,10 @@
     "summary": {
       "$ref": "#/$defs/text"
     },
+    "seo_title": {
+      "$ref": "#/$defs/text",
+      "description": "Short page title for search results and link previews; the site adds ' | Stack Cookbook' (at most 43 characters)."
+    },
     "models": {
       "type": "array",
       "minItems": 1,

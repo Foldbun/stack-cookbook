@@ -2,6 +2,7 @@ id = "06-product-photo-pipeline"
 order = 6
 title = { en = "Marketplace photos to catalogue images", zh = "把商家照片变成统一的商品目录图" }
 summary = { en = "Cut the product out of each photo with birefnet, check the cut-out locally with four quality rules, and compose the ones that pass into 1200 x 1200 white-background WebP images with a soft shadow; the rest go to a review list with the reason.", zh = "用 birefnet 把商品从每张照片里抠出来，在本地用四条质检规则检查抠图；通过的合成为 1200 x 1200 的白底 WebP（带柔和投影），不通过的连同原因进入复核清单。" }
+seo_title = { en = "Batch background removal for product photos", zh = "电商商品图批量抠图与统一目录图" }
 models = ["birefnet"]
 tier = "billed"
 languages = ["python"]

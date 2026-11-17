@@ -2,6 +2,7 @@ id = "04-documents-to-rag-chunks"
 order = 4
 title = { en = "Scanned documents to Markdown chunks for a search index", zh = "扫描文档转为可入索引的 Markdown 切块" }
 summary = { en = "Parse every page with paddleocr-vl, remove headers and footers that repeat across pages, and cut the text into chunks that keep tables whole and carry page, box and heading path.", zh = "用 paddleocr-vl 解析每一页，去掉跨页重复的页眉页脚，把正文切成块；表格整块不切，每块带页码、位置框和标题路径。" }
+seo_title = { en = "Scanned PDFs to Markdown chunks for RAG", zh = "PDF 解析做 RAG 切块：扫描件转 Markdown" }
 models = ["paddleocr-vl"]
 tier = "billed"
 languages = ["python"]

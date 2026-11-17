@@ -2,6 +2,7 @@ id = "03-receipts-to-json"
 order = 3
 title = { en = "Receipts and invoices to validated JSON", zh = "收据和发票转为经过校验的 JSON" }
 summary = { en = "Read receipts with ppocr-v6, extract the fields by rules, check that the sums add up, and read only the items that fail again with paddleocr-vl.", zh = "用 ppocr-v6 读取收据，按规则抽取字段，校验金额是否对得上，只把校验失败的项用 paddleocr-vl 重读。" }
+seo_title = { en = "Receipt OCR to validated JSON", zh = "收据发票识别，转为校验过的 JSON" }
 models = ["ppocr-v6", "paddleocr-vl"]
 tier = "billed"
 languages = ["python", "typescript", "go"]

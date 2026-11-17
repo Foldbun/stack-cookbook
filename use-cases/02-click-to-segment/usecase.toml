@@ -2,6 +2,7 @@ id = "02-click-to-segment"
 order = 2
 title = { en = "Click-to-segment component with a key-holding backend", zh = "点击分割组件与持有密钥的后端" }
 summary = { en = "Segment one object with a few clicks in the browser: a small backend holds the key, uploads each image once and sends every click to sam-lite; a click simulator measures clicks, quality and cost.", zh = "在浏览器里点几下分割出一个物体：一个小型后端持有密钥，每张图只上传一次，把每次点击发给 sam-lite；点击模拟器实测点击次数、分割质量和成本。" }
+seo_title = { en = "Click-to-segment widget with a key backend", zh = "点击分割组件与持有密钥的后端" }
 models = ["sam-lite"]
 tier = "funded"
 kind = "server"

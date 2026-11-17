@@ -2,6 +2,7 @@ id = "08-cost-and-latency-monitoring"
 order = 8
 title = { en = "Monitor cost and latency of a production integration", zh = "监控线上集成的成本与时延" }
 summary = { en = "Wrap the client to export Prometheus metrics from the billing and timing of every answer (credits by model and unit, cache hits and what they saved, queue and processing time, balance), and trip a spend guard before the budget is gone.", zh = "包住客户端，用每次应答里的计费和耗时导出 Prometheus 指标（按模型和单位的 credits、缓存命中及省下的费用、排队和处理耗时、余额），并在预算花完之前触发花费守卫。" }
+seo_title = { en = "Monitor Stack API cost and latency", zh = "监控 Stack API 的成本与时延" }
 models = ["ppocr-v6", "sam-lite", "sam3"]
 tier = "funded"
 languages = ["python"]
