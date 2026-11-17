@@ -12,6 +12,7 @@ import json
 import math
 import re
 import socket
+import struct
 import threading
 import time
 import uuid
@@ -28,6 +29,7 @@ import stack_client as sc
 
 LANGUAGE = "python"
 IMAGE_BYTES = 20 * 1024 * 1024  # the Stack upload limit
+FREE_IMAGE_BYTES = 4 * 1024 * 1024  # the largest image the free tier takes inline
 REFINE_BYTES = 64 * 1024
 MAX_POINTS = 20  # the Stack limit of POST /v1/refine
 MAX_IMAGES = 256
@@ -55,6 +57,8 @@ STATIC_TYPES = {
 class Stack(Protocol):
     """The part of StackClient the backend uses (the tests pass a stand-in)."""
 
+    free: bool
+
     def upload(self, data: bytes, content_type: str = ...) -> dict: ...
     def post(self, path: str, body: dict, idempotency_key: str | None = ..., *, tag: str | None = ...) -> dict: ...
     def calls(self, tag: str | None = ...) -> list[dict]: ...
@@ -80,16 +84,26 @@ class ApiError(Exception):
         return {"error": err}
 
 
+# What the backend says when the free tier refuses for good: its own text, never Stack's.
+FREE_REFUSED = {
+    "daily_limit_reached": "the daily limit of the free tier is used up (it resets at 00:00 UTC); start the backend with FOLDBUN_API_KEY to continue now",
+    "free_tier_unavailable": "the free tier is not available; start the backend with FOLDBUN_API_KEY",
+}
+
+
 def from_stack(err: BaseException) -> ApiError:
     """Map an error of the client file (after its own retries) to the backend's error. Stack's message is not forwarded."""
     if isinstance(err, ApiError):
         return err
     if isinstance(err, sc.BudgetExceeded):
         return ApiError(503, "credit_cap", "the backend's credit cap is reached")
+    if isinstance(err, sc.MissingApiKey):  # a call that only a key can make
+        return ApiError(502, "upstream_refused", "this needs an API key: start the backend with FOLDBUN_API_KEY", False, 0, err.code)
     if isinstance(err, sc.StackError):
-        if not err.retryable:
-            return ApiError(502, "upstream_refused", "Foldbun Stack refused the call", False, 0, err.code, err.request_id)
-        return ApiError(503, "upstream_busy", "Foldbun Stack is busy; try again", True, max(1000, err.retry_after_ms), err.code, err.request_id)
+        if err.retryable or err.code in sc.RETRY_CODES:  # rate_limited and free_busy that outlived the client's waits
+            return ApiError(503, "upstream_busy", "Foldbun Stack is busy; try again", True, max(1000, err.retry_after_ms), err.code, err.request_id)
+        message = FREE_REFUSED.get(err.code, "Foldbun Stack refused the call")
+        return ApiError(502, "upstream_refused", message, False, 0, err.code, err.request_id)
     if isinstance(err, OSError | http.client.HTTPException | ValueError):  # no usable answer (for example, not JSON)
         return ApiError(503, "upstream_busy", "Foldbun Stack is busy; try again", True, 1000, "network_error")
     return ApiError(500, "internal", "internal error")
@@ -130,9 +144,82 @@ class Session:
 
 @dataclass
 class Image:
-    handle: str
+    handle: str | None  # the Stack handle; None in free mode, which has no uploads
     width: int
     height: int
+    data: bytes = b""  # free mode keeps the bytes and sends them inline with every click
+
+
+# region image-size
+def image_size(data: bytes) -> tuple[int, int] | None:
+    """(width, height) of a PNG, JPEG or WebP image as the API counts them (JPEG: EXIF orientation applied), else None.
+    Free mode has no upload that answers with the size, and the points are checked against it."""
+    w = h = 0
+    if data[:8] == b"\x89PNG\r\n\x1a\n" and len(data) >= 24:
+        w, h = struct.unpack(">II", data[16:24])
+    elif data[:4] == b"RIFF" and data[8:12] == b"WEBP" and len(data) >= 30:
+        kind = data[12:16]
+        if kind == b"VP8 ":
+            w, h = (v & 0x3FFF for v in struct.unpack("<HH", data[26:30]))
+        elif kind == b"VP8L":
+            bits = int.from_bytes(data[21:25], "little")
+            w, h = (bits & 0x3FFF) + 1, ((bits >> 14) & 0x3FFF) + 1
+        elif kind == b"VP8X":
+            w, h = 1 + int.from_bytes(data[24:27], "little"), 1 + int.from_bytes(data[27:30], "little")
+    elif data[:2] == b"\xff\xd8":
+        w, h, turned = jpeg_size(data)
+        if turned:
+            w, h = h, w
+    return (w, h) if w > 0 and h > 0 else None
+
+
+JPEG_FRAMES = (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF)
+
+
+def jpeg_size(data: bytes) -> tuple[int, int, bool]:
+    """Walk the marker segments: the size from the frame header, and whether the EXIF orientation (5 to 8) turns the image."""
+    w = h = 0
+    turned = False
+    i = 2
+    while i + 4 <= len(data) and data[i] == 0xFF:
+        marker = data[i + 1]
+        if marker == 0xFF:  # fill byte
+            i += 1
+            continue
+        if marker == 0x01 or 0xD0 <= marker <= 0xD8:  # markers without a length
+            i += 2
+            continue
+        length = struct.unpack(">H", data[i + 2 : i + 4])[0]
+        body = data[i + 4 : i + 2 + length]
+        if marker == 0xE1 and body[:6] == b"Exif\0\0":
+            turned = exif_turns(body[6:])
+        if marker in JPEG_FRAMES and len(body) >= 5:
+            h, w = struct.unpack(">HH", body[1:5])
+            break
+        if marker == 0xDA:  # the scan starts: no frame header came first
+            break
+        i += 2 + length
+    return w, h, turned
+
+
+def exif_turns(tiff: bytes) -> bool:
+    """True when the orientation tag of the first IFD turns the image by a quarter (values 5 to 8)."""
+    if len(tiff) < 8 or tiff[:2] not in (b"II", b"MM"):
+        return False
+    e = "<" if tiff[:2] == b"II" else ">"
+    offset = struct.unpack(e + "I", tiff[4:8])[0]
+    if offset + 2 > len(tiff):
+        return False
+    for k in range(struct.unpack(e + "H", tiff[offset : offset + 2])[0]):
+        entry = tiff[offset + 2 + 12 * k : offset + 14 + 12 * k]
+        if len(entry) < 12:
+            return False
+        if struct.unpack(e + "H", entry[:2])[0] == 0x0112:
+            return struct.unpack(e + "H", entry[8:10])[0] in (5, 6, 7, 8)
+    return False
+
+
+# endregion
 
 
 @dataclass
@@ -178,6 +265,7 @@ class Backend:
         log: Callable[[str], None] | None = None,
     ):
         self.stack = stack
+        self.free = bool(getattr(stack, "free", False))  # the client decides: no key, no uploads
         self.models = models or ["sam-lite"]
         self.static_dir = Path(static_dir) if static_dir else None
         self.now = now or (lambda: time.monotonic() * 1000)  # milliseconds
@@ -274,6 +362,13 @@ class Backend:
         data = req.read_body(IMAGE_BYTES)
         if not data:
             raise invalid("the body is empty: send the raw bytes of the image")
+        size = None
+        if self.free:  # no upload will answer with the size, so read it from the bytes
+            if len(data) > FREE_IMAGE_BYTES:
+                raise ApiError(413, "payload_too_large", f"at most {FREE_IMAGE_BYTES} bytes without an API key (the free tier takes images up to 4 MiB)")
+            size = image_size(data)
+            if size is None:
+                raise invalid("the body is not a readable jpeg, png or webp image")
         image_id = "im_" + hashlib.sha256(data).hexdigest()[:32]
         with self._lock:
             pending = self._images.get(image_id)
@@ -284,11 +379,15 @@ class Backend:
             while len(self._images) > MAX_IMAGES:
                 self._images.popitem(last=False)
         if owner:
-            # one Stack upload per distinct content; the client file keeps the bytes and uploads again if Stack evicts them.
-            # Concurrent uploads of the same bytes wait for this one instead of uploading again.
+            # With a key: one Stack upload per distinct content; the client file keeps the bytes and uploads again if
+            # Stack evicts them. Concurrent uploads of the same bytes wait for this one instead of uploading again.
+            # Free tier: there are no uploads; this cache keeps the bytes and every click sends them inline.
             try:
-                u = self.stack.upload(data, content_type)
-                pending.set_result(Image(u["id"], u["width"], u["height"]))
+                if size:
+                    pending.set_result(Image(None, size[0], size[1], data))
+                else:
+                    u = self.stack.upload(data, content_type)
+                    pending.set_result(Image(u["id"], u["width"], u["height"]))
             except BaseException as exc:
                 with self._lock:
                     if self._images.get(image_id) is pending:
@@ -325,7 +424,8 @@ class Backend:
             raise not_found from None
         check_bounds(points, box, img)
         # Stateless: every click sends all points of the object. The body is the same in every language.
-        call: dict = {"model": model, "image": sc.image_handle(img.handle), "points": points}
+        image = sc.image_base64(img.data) if img.handle is None else sc.image_handle(img.handle)
+        call: dict = {"model": model, "image": image, "points": points}
         if box:
             call["box"] = box
         t = time.monotonic()

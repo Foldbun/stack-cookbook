@@ -20,6 +20,7 @@ const EXIT_TIER = 3;
 const EXIT_BUDGET = 4;
 const OCR_MODEL = "ppocr-v6";
 const FALLBACK_MODEL = "paddleocr-vl";
+const FREE_MAX_ITEMS = 10; // the free tier is for trying a recipe on a few items; a bigger run needs a key
 const PIPELINE = "2"; // changes when extraction or validation rules change; a resumed run only reuses items of the same version
 
 interface Item {
@@ -60,6 +61,20 @@ function contentType(name: string): string {
   return { ".png": "image/png", ".webp": "image/webp" }[extname(name).toLowerCase()] ?? "image/jpeg";
 }
 
+/** What this run cost, at list price; the free tier does not charge. */
+export function costLine(client: sc.StackClient): string {
+  const s = client.summary();
+  return client.free ? `list price ${s.listTotal} credits (free tier, not charged)` : `list price ${s.listTotal} credits, charged ${s.chargedTotal}`;
+}
+
+// #region image-input
+/** With a key the image is uploaded once and both models read the same handle; the free tier takes the bytes inline on every call. */
+export async function imageInput(client: sc.StackClient, data: Uint8Array, name: string): Promise<{ base64: string } | { id: string }> {
+  if (client.free) return sc.imageBase64(data);
+  return sc.imageHandle((await client.upload(data, contentType(name))).id);
+}
+// #endregion
+
 // #region attempt
 /** What an attempt keeps in the output: the receipt as that model read it and the names of the checks it failed. */
 function summary(a: Attempt) {
@@ -77,32 +92,32 @@ function attempt(model: string, receipt: Receipt, today: string): Attempt {
 async function processItem(client: sc.StackClient, item: Item, base: string, useFallback: boolean, today: string): Promise<Entry> {
   const data = await readFile(join(base, item.image));
   const sha = sha256(data);
-  const handle = (await client.upload(data, contentType(item.image))).id; // free; both models read the same handle
+  const image = await imageInput(client, data, item.image);
   const attempts: Attempt[] = [];
 
-  // 1. ppocr-v6: 0.25 credits, inside the public pool's daily allowance.
+  // 1. ppocr-v6: 0.25 credits at list price.
   // #region ocr-call
   const ocr = await client.post(
     "/v1/ocr",
-    { model: OCR_MODEL, image: sc.imageHandle(handle), options: { words: false } },
+    { model: OCR_MODEL, image, options: { words: false } },
     { idempotencyKey: idempotencyKey(sha, OCR_MODEL), tag: item.id },
   );
   attempts.push(attempt(OCR_MODEL, extractReceipt(rowsFromOcr(ocr.lines), OCR_MODEL, ocr.image.width), today));
   // #endregion
 
-  // 2. Only an item that failed validation is read again, by paddleocr-vl on the same handle: 2 credits, paid models only.
+  // 2. Only an item that failed validation is read again, by paddleocr-vl on the same image: 2 credits at list price.
   // #region fallback-call
   if (useFallback && !attempts[0].passed) {
     try {
       const page = await client.post(
         "/v1/documents/parse",
-        { model: FALLBACK_MODEL, image: sc.imageHandle(handle), options: { blocks: true } },
+        { model: FALLBACK_MODEL, image, options: { blocks: true } },
         { idempotencyKey: idempotencyKey(sha, FALLBACK_MODEL), tag: item.id },
       );
       attempts.push(attempt(FALLBACK_MODEL, extractReceipt(rowsFromBlocks(page.blocks), FALLBACK_MODEL, page.image.width), today));
     } catch (err) {
       if (!(err instanceof sc.StackError) || err.code === "budget_exceeded") throw err;
-      // An account without the paid pool (model_locked) or a failed call: the item stays with what ppocr-v6 read.
+      // A key without access to the model (model_locked) or a failed call: the item stays with what ppocr-v6 read.
       attempts.push({ model: FALLBACK_MODEL, receipt: null, passed: false, checks: [], note: err.code });
     }
   }
@@ -176,8 +191,12 @@ async function main(): Promise<number> {
   const t0 = performance.now();
   let client: sc.StackClient;
   try {
-    client = new sc.StackClient({ maxConcurrency: concurrency }); // FOLDBUN_API_KEY, FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
-    await client.models(); // free: checks the key and loads prices and the per-minute limits the client paces itself by
+    client = new sc.StackClient({ maxConcurrency: concurrency }); // FOLDBUN_API_KEY (optional), FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
+    await client.whoami(); // checks the project (free tier) or the key
+    const count = (manifest.items as Item[]).slice(0, args.limit === undefined ? undefined : Number(args.limit)).length;
+    if (client.free && count > FREE_MAX_ITEMS) {
+      client.requireKey(`the free tier is meant for trying a recipe on a few items, and this manifest has ${count}`);
+    }
   } catch (err) {
     if (!(err instanceof sc.StackError)) throw err;
     if (err instanceof sc.MissingApiKey) {
@@ -202,8 +221,8 @@ async function main(): Promise<number> {
   }
 
   // #region concurrency
-  // The client allows `--concurrency` requests in flight and spaces calls by the per-minute limit of the model's pool,
-  // so the workers here only keep it busy. One item is one task: its calls are sequential (OCR, then maybe parse).
+  // The client allows `--concurrency` requests in flight and waits out a 429 by itself, so the
+  // workers here only keep it busy. One item is one task: its calls are sequential (OCR, then maybe parse).
   let code = 0;
   let next = 0;
   async function worker(): Promise<void> {
@@ -265,13 +284,16 @@ async function main(): Promise<number> {
     ledger: ledgerOf(done),
   };
   await writeFile(join(args.out, "result.json"), JSON.stringify(result, null, 2) + "\n");
+  console.log(costLine(client));
   return code;
 }
 
-main().then(
-  (code) => process.exit(code),
-  (err) => {
-    console.error(err instanceof sc.StackError ? err.describe() : err);
-    process.exit(EXIT_FAILED);
-  },
-);
+if (import.meta.main) {
+  main().then(
+    (code) => process.exit(code),
+    (err) => {
+      console.error(err instanceof sc.StackError ? err.describe() : err);
+      process.exit(EXIT_FAILED);
+    },
+  );
+}

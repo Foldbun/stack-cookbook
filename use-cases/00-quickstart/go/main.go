@@ -1,4 +1,4 @@
-// First call to the Foldbun Stack API: check the key, upload an image, read its text, show the cost.
+// First call to the Foldbun Stack API: read the text of an image and see what the call is worth. Needs no key.
 package main
 
 import (
@@ -78,10 +78,10 @@ func readText(client *stackclient.Client, it item, base string) (*output, error)
 	}
 	// region image-input
 	var image map[string]string
-	if it.ImageInput == "base64" {
-		image = stackclient.ImageBase64(data) // inline: simplest for a single call
+	if client.Free() || it.ImageInput == "base64" {
+		image = stackclient.ImageBase64(data) // inline: simplest for a single call, and the only form the free tier takes
 	} else {
-		uploaded, err := client.Upload(data, contentType) // free; the handle can be reused for 7 days at most
+		uploaded, err := client.Upload(data, contentType) // needs a key; the handle can be reused for 7 days at most
 		if err != nil {
 			return nil, err
 		}
@@ -97,9 +97,7 @@ func readText(client *stackclient.Client, it item, base string) (*output, error)
 		output
 		Cost    float64 `json:"cost"`
 		Billing struct {
-			Total     float64 `json:"total"`
-			Pool      string  `json:"pool"`
-			Allowance struct{ Used, Limit int }
+			Total float64 `json:"total"` // list price in credits
 		} `json:"billing"`
 	}
 	if err := json.Unmarshal(raw, &result); err != nil {
@@ -108,11 +106,11 @@ func readText(client *stackclient.Client, it item, base string) (*output, error)
 	for _, l := range result.Lines {
 		fmt.Printf("  %.2f  %s\n", l.Confidence, l.Text)
 	}
-	b, covered := result.Billing, "billed"
-	if b.Pool != "" {
-		covered = fmt.Sprintf("covered by the %s pool (%d/%d today)", b.Pool, b.Allowance.Used, b.Allowance.Limit)
+	if client.Free() {
+		fmt.Printf("  list price %g credits (free tier, not charged)\n", result.Billing.Total)
+	} else {
+		fmt.Printf("  list price %g credits, charged %g\n", result.Billing.Total, result.Cost)
 	}
-	fmt.Printf("  list price %g credits, charged %g (%s)\n", b.Total, result.Cost, covered)
 	// endregion
 	return &result.output, nil
 }
@@ -139,20 +137,35 @@ func run() int {
 	}
 	started := time.Now().UTC()
 	// region client
-	client, err := stackclient.New(stackclient.Config{MaxConcurrency: *concurrency}) // FOLDBUN_API_KEY, FOLDBUN_API_BASE
-	if stackclient.Code(err) == "missing_api_key" {
-		fmt.Fprintln(os.Stderr, stackclient.MissingKey)
-		return exitNoKey
-	} else if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return exitFailed
-	}
-	models, err := client.Models() // free: checks the key and lists prices
+	// No FOLDBUN_API_KEY: the free tier, with the Cookbook's shared project (FOLDBUN_PROJECT_ID to use your own).
+	client, err := stackclient.New(stackclient.Config{MaxConcurrency: *concurrency}) // FOLDBUN_API_KEY, FOLDBUN_PROJECT_ID, FOLDBUN_API_BASE
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return exitFailed
 	}
-	fmt.Printf("key accepted; ppocr-v6 available: %t\n", models["ppocr-v6"].Available)
+	whoami, err := client.WhoAmI() // shows who is calling: a project (free tier) or an account (API key)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		if stackclient.Code(err) == "missing_api_key" {
+			return exitNoKey
+		}
+		return exitFailed
+	}
+	var who struct {
+		Balance json.Number `json:"balance"`
+		Project struct {
+			ID string `json:"id"`
+		} `json:"project"`
+	}
+	if err := json.Unmarshal(whoami, &who); err != nil {
+		fmt.Fprintln(os.Stderr, "whoami:", err)
+		return exitFailed
+	}
+	if client.Free() {
+		fmt.Printf("free tier, project %s\n", who.Project.ID)
+	} else {
+		fmt.Printf("key accepted; balance %s credits\n", who.Balance)
+	}
 	// endregion
 	items, code := []itemResult{}, 0
 	for i, it := range manifest.Items {

@@ -6,14 +6,17 @@ Run from the python/ directory of this use case, inside the cookbook repository:
     uv run --with pytest pytest tests
 """
 
+import base64
 import hashlib
 import http.client
 import json
 import os
 import signal
+import struct
 import subprocess
 import sys
 import threading
+import zlib
 from pathlib import Path
 
 import pytest
@@ -22,11 +25,12 @@ HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE))
 
 import stack_client as sc  # noqa: E402
-from backend import Backend, RateLimit, Server, from_stack  # noqa: E402
+from backend import FREE_IMAGE_BYTES, Backend, RateLimit, Server, from_stack, image_size  # noqa: E402
 
 
 class FakeStack:
-    def __init__(self):
+    def __init__(self, free=False):
+        self.free = free
         self.uploads = 0
         self.bodies = []
         self.fail = None
@@ -37,6 +41,8 @@ class FakeStack:
         self._lock = threading.Lock()
 
     def upload(self, data, content_type="image/jpeg"):
+        if self.free:
+            raise sc.MissingApiKey("image uploads are not part of the free tier")
         with self._lock:
             self.uploads += 1
         if self.upload_gate:
@@ -60,7 +66,7 @@ class FakeStack:
                         "endpoint": path,
                         "model": body["model"],
                         "list": list_price,
-                        "charged": 0,
+                        "charged": 0 if self.free else list_price,
                         "cache": cache,
                         "queueMs": 4,
                         "processingMs": 60,
@@ -71,7 +77,7 @@ class FakeStack:
         polygon = [{"outer": [10, 10, 50, 10, 50, 40, 10, 40]}]
         return {
             "model": body["model"],
-            "cost": 0,
+            "cost": 0 if self.free else list_price,
             "cache": cache,
             "billing": {"total": list_price},
             "instances": [{"score": 0.9, "bbox": [10, 10, 51, 41], "area": 1271, "polygon": polygon}],
@@ -251,7 +257,7 @@ def test_refine_sends_all_points_with_explicit_positive_and_returns_polygon_cost
     assert (r["cache"], r["listCredits"], r["costCredits"], r["bbox"], r["area"], r["score"], r["model"]) == (
         "miss",
         0.21,
-        0,
+        0.21,
         [10, 10, 51, 41],
         1271,
         0.9,
@@ -424,6 +430,14 @@ def test_from_stack_mapping():
     assert from_stack(sc.StackError(402, "insufficient_balance", "no", False)).status == 502
     cap = from_stack(sc.BudgetExceeded("cap"))
     assert (cap.status, cap.code, cap.retryable) == (503, "credit_cap", False)
+    for code in ("rate_limited", "free_busy"):  # the free tier's waits that outlived the client's retries
+        err = from_stack(sc.StackError(429, code, "slow down", False, 4200, "req_3"))
+        assert (err.status, err.code, err.retryable, err.retry_after_ms, err.upstream_code) == (503, "upstream_busy", True, 4200, code)
+    for code in ("daily_limit_reached", "free_tier_unavailable"):
+        err = from_stack(sc.StackError(429 if code.startswith("daily") else 403, code, "Stack's own words", False, 0, "req_4"))
+        assert (err.status, err.code, err.retryable, err.upstream_code) == (502, "upstream_refused", False, code)
+        assert "FOLDBUN_API_KEY" in err.message and "Stack's own words" not in err.message
+    assert from_stack(sc.MissingApiKey("uploads")).code == "upstream_refused"
 
 
 def test_rate_limit_refills_at_per_minute():
@@ -564,11 +578,21 @@ def run_main(*args, env=None, **kw):
     )
 
 
-def test_main_without_a_key_exits_2_before_listening():
-    p = run_main("--port", "0")
-    out, err = p.communicate(timeout=20)
-    assert p.returncode == 2
-    assert "FOLDBUN_API_KEY" in err and "listening" not in out
+def test_main_without_a_key_starts_in_free_mode_and_serves_health():
+    p = run_main("--port", "0", "--static", "no-such-dir")
+    try:
+        line = p.stdout.readline()
+        assert line.startswith("listening on http://127.0.0.1:")
+        assert "free tier" in p.stdout.readline()
+        assert Api(int(line.strip().rsplit(":", 1)[1])).json("GET", "/api/health")[0] == 200
+        p.send_signal(signal.SIGTERM)
+        assert p.wait(timeout=5) == 0
+    finally:
+        if p.poll() is None:
+            p.kill()
+            p.wait()
+        p.stdout.close()
+        p.stderr.close()
 
 
 @pytest.mark.parametrize("sig", [signal.SIGTERM, signal.SIGINT])
@@ -588,3 +612,91 @@ def test_main_listens_serves_health_and_stops_on_signal(sig):
             p.wait()
         p.stdout.close()
         p.stderr.close()
+
+
+# ---- free mode: no key, no uploads, the image goes inline with every click ----
+
+
+def png(width, height):
+    def chunk(kind, body):
+        return struct.pack(">I", len(body)) + kind + body + struct.pack(">I", zlib.crc32(kind + body))
+
+    raw = b"".join(b"\x00" + b"\x00" * (3 * width) for _ in range(height))
+    return (
+        b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b"")
+    )
+
+
+def jpeg(width, height, orientation=None):
+    exif = b""
+    if orientation:
+        tiff = b"MM\x00*\x00\x00\x00\x08" + struct.pack(">H", 1) + struct.pack(">HHIHH", 0x0112, 3, 1, orientation, 0) + b"\x00\x00\x00\x00"
+        exif = b"\xff\xe1" + struct.pack(">H", 8 + len(tiff)) + b"Exif\0\0" + tiff
+    frame = b"\xff\xc0" + struct.pack(">HBHHB", 11, 8, height, width, 1) + b"\x01\x11\x00"
+    return b"\xff\xd8" + exif + frame + b"\xff\xda\x00\x02"
+
+
+@pytest.fixture
+def free_api(clock, static_dir):
+    stack = FakeStack(free=True)
+    backend = Backend(stack, now=clock, log=lambda line: None, static_dir=static_dir)
+    server = Server("127.0.0.1", 0, backend)
+    threading.Thread(target=lambda: server.serve_forever(0.02), daemon=True).start()
+    yield Api(server.server_address[1]), stack
+    server.shutdown()
+    server.server_close()
+
+
+def test_image_size_reads_png_jpeg_and_orientation():
+    assert image_size(png(30, 20)) == (30, 20)
+    assert image_size(jpeg(40, 25)) == (40, 25)
+    assert image_size(jpeg(40, 25, orientation=1)) == (40, 25)
+    assert image_size(jpeg(40, 25, orientation=6)) == (25, 40)  # shown turned by a quarter, as the API counts it
+    assert image_size(b"RIFF\0\0\0\0WEBPVP8L\0\0\0\0\x2f" + (99 | (49 << 14)).to_bytes(4, "little") + b"\0" * 6) == (100, 50)
+    assert image_size(b"not an image") is None and image_size(b"") is None and image_size(b"\xff\xd8\xff\xd9") is None
+
+
+def test_free_mode_keeps_the_bytes_and_sends_them_inline_with_every_click(free_api):
+    api, stack = free_api
+    data = png(100, 80)
+    status, up, _ = api.upload("free", data=data)
+    assert status == 200 and (up["width"], up["height"]) == (100, 80)
+    assert up["imageId"] == "im_" + hashlib.sha256(data).hexdigest()[:32]
+    assert stack.uploads == 0
+    for x in (20, 60):
+        status, r, _ = api.refine("free", {"imageId": up["imageId"], "points": [{"x": x, "y": 20}]})
+        assert status == 200
+    assert [b["image"] for b in stack.bodies] == [{"base64": base64.b64encode(data).decode()}] * 2
+    assert (
+        api.refine("free", {"imageId": up["imageId"], "points": [{"x": 101, "y": 20}]})[1]["error"]["code"] == "invalid_request"
+    )  # bounds come from the bytes
+    assert (r["costCredits"], r["listCredits"]) == (0, 0.01)
+    usage = api.json("GET", "/api/usage", "free")[1]
+    assert (usage["uploads"], usage["clicks"], usage["costCredits"], usage["listCredits"]) == (1, 2, 0, 0.22)
+    assert [c["charged"] for c in usage["calls"]] == [0, 0] and [c["list"] for c in usage["calls"]] == [0.21, 0.01]
+
+
+def test_free_mode_refuses_images_it_cannot_send(free_api):
+    api, stack = free_api
+    status, err, _ = api.upload("bad", data=b"\xff\xd8\xff\x00 not an image")
+    assert (status, err["error"]["code"]) == (400, "invalid_request")
+    status, err, _ = api.upload("bad", data=png(10, 10) + b"\0" * FREE_IMAGE_BYTES)
+    assert (status, err["error"]["code"]) == (413, "payload_too_large") and "4 MiB" in err["error"]["message"]
+    assert stack.uploads == 0 and stack.bodies == []
+
+
+def test_free_mode_surfaces_the_free_tier_refusals(free_api):
+    api, stack = free_api
+    iid = api.upload("limits", data=png(100, 80))[1]["imageId"]
+    click = {"imageId": iid, "points": [{"x": 5, "y": 5}]}
+    stack.fail = sc.StackError(429, "daily_limit_reached", "the daily limit is used up", False, 0, "req_5")
+    status, r, _ = api.refine("limits", click)
+    assert (status, r["error"]["code"], r["error"]["retryable"], r["error"]["upstreamCode"]) == (502, "upstream_refused", False, "daily_limit_reached")
+    assert "FOLDBUN_API_KEY" in r["error"]["message"]
+    stack.fail = sc.StackError(403, "free_tier_unavailable", "unavailable", False, 0)
+    assert api.refine("limits", click)[1]["error"]["upstreamCode"] == "free_tier_unavailable"
+    stack.fail = sc.StackError(429, "rate_limited", "slow down", True, 3000)
+    status, r, res = api.refine("limits", click)
+    assert (status, r["error"]["code"], r["error"]["retryable"], res.getheader("Retry-After")) == (503, "upstream_busy", True, "3")
+    stack.fail = None
+    assert api.refine("limits", click)[0] == 200

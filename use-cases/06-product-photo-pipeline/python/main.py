@@ -2,7 +2,7 @@
 
     uv run python main.py --manifest <manifest.json> --out <dir> [--concurrency N] [--limit N] [--resume]
 
-For every image the run calls `POST /v1/remove-background` (model `birefnet`, `cutout`, `webp`; 1 credit, no cache
+For every image the run calls `POST /v1/remove-background` (model `birefnet`, `cutout`, `webp`; 1 credit list price, no cache
 discount), applies the four quality rules of pipeline.py and then either composes a 1200 x 1200 white-background WebP
 or lists the photo in review.csv with the reason. Next to result.json it writes:
 
@@ -27,6 +27,7 @@ import stack_client as sc
 
 EXIT_FAILED, EXIT_NO_KEY, EXIT_TIER, EXIT_BUDGET = 1, 2, 3, 4
 CREDITS_PER_IMAGE = 1  # list price of /v1/remove-background; it is not discounted when the cache is warm
+FREE_MAX_ITEMS = 10  # the free tier is for trying the recipe on a few photos; a bigger run needs an API key
 REVIEW_COLUMNS = ["file", "id", "reasons", "coverage", "edge_touch", "semi_transparent", "pieces"]
 
 
@@ -37,7 +38,7 @@ def fetch_cutout(client: sc.StackClient, image_path: Path, item_id: str, out: Pa
     if resume and cached.exists() and state.exists():
         return cached.read_bytes(), json.loads(state.read_text())["calls"]
     body = {"model": "birefnet", "image": sc.image_base64(image_path.read_bytes()), "options": {"output": "cutout", "format": "webp"}}
-    result = client.post("/v1/remove-background", body, tag=item_id)  # retries, pacing and the credit cap live in the client
+    result = client.post("/v1/remove-background", body, tag=item_id)  # retries, rate limits and the credit cap live in the client
     data = base64.b64decode(result["data"])
     cached.parent.mkdir(parents=True, exist_ok=True)
     state.parent.mkdir(parents=True, exist_ok=True)
@@ -100,8 +101,9 @@ def main() -> int:
     base, items = args.manifest.parent, manifest["items"][: args.limit]
     started, t0 = datetime.now(UTC), time.monotonic()
     try:
-        client = sc.StackClient(max_concurrency=args.concurrency)
-        client.models()  # free: checks the key
+        client = sc.StackClient(max_concurrency=args.concurrency)  # no FOLDBUN_API_KEY: the free tier, with inline base64 images
+        if len(items) > FREE_MAX_ITEMS:
+            client.require_key(f"the free tier is meant for trying a recipe on a few items, and this manifest has {len(items)}")
     except sc.MissingApiKey as err:
         print(err.message, file=sys.stderr)
         return EXIT_NO_KEY
@@ -129,6 +131,11 @@ def main() -> int:
     (args.out / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
     failed = sum(1 for e in entries if e["status"] == "error")
     print(f"{len(entries) - flagged - failed} catalogue images, {flagged} in review.csv, {failed} failed", file=sys.stderr)
+    ledger = result["ledger"]
+    if client.free:
+        print(f"list price {ledger['listTotal']:g} credits (free tier, not charged)", file=sys.stderr)
+    else:
+        print(f"list price {ledger['listTotal']:g} credits, charged {ledger['chargedTotal']:g}", file=sys.stderr)
     if "model_locked" in codes:
         return EXIT_TIER
     if "budget_exceeded" in codes:

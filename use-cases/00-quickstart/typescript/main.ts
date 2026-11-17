@@ -1,4 +1,4 @@
-// First call to the Foldbun Stack API: check the key, upload an image, read its text, show the cost.
+// First call to the Foldbun Stack API: read the text of an image and see what the call is worth. Needs no key.
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
@@ -21,10 +21,10 @@ async function readText(client: sc.StackClient, item: Item, base: string) {
   const contentType = item.image.endsWith(".webp") ? "image/webp" : item.image.endsWith(".png") ? "image/png" : "image/jpeg";
   // #region image-input
   let image;
-  if (item.imageInput === "base64") {
-    image = sc.imageBase64(data); // inline: simplest for a single call
+  if (client.free || item.imageInput === "base64") {
+    image = sc.imageBase64(data); // inline: simplest for a single call, and the only form the free tier takes
   } else {
-    const uploaded = await client.upload(data, contentType); // free; the handle can be reused for 7 days at most
+    const uploaded = await client.upload(data, contentType); // needs a key; the handle can be reused for 7 days at most
     image = sc.imageHandle(uploaded.id);
   }
   // #endregion
@@ -33,9 +33,8 @@ async function readText(client: sc.StackClient, item: Item, base: string) {
   for (const line of result.lines) {
     console.log(`  ${line.confidence.toFixed(2)}  ${line.text}`);
   }
-  const billing = result.billing;
-  const covered = billing.pool ? `covered by the ${billing.pool} pool (${billing.allowance.used}/${billing.allowance.limit} today)` : "billed";
-  console.log(`  list price ${billing.total} credits, charged ${result.cost} (${covered})`);
+  const price = result.billing.total; // list price in credits
+  console.log(client.free ? `  list price ${price} credits (free tier, not charged)` : `  list price ${price} credits, charged ${result.cost}`);
   // #endregion
   const lines = result.lines.map((ln: sc.Json) => ({ text: ln.text, confidence: ln.confidence, bbox: ln.bbox }));
   return { image: { width: result.image.width, height: result.image.height }, lines };
@@ -56,18 +55,17 @@ async function main(): Promise<number> {
   const started = new Date();
   const t0 = performance.now();
   // #region client
-  let client: sc.StackClient;
+  // No FOLDBUN_API_KEY: the free tier, with the Cookbook's shared project (FOLDBUN_PROJECT_ID to use your own).
+  const client = new sc.StackClient({ maxConcurrency: Number(args.concurrency) }); // FOLDBUN_API_KEY, FOLDBUN_PROJECT_ID, FOLDBUN_API_BASE
+  let who;
   try {
-    client = new sc.StackClient({ maxConcurrency: Number(args.concurrency) }); // FOLDBUN_API_KEY, FOLDBUN_API_BASE
+    who = await client.whoami(); // shows who is calling: a project (free tier) or an account (API key)
   } catch (err) {
-    if (err instanceof sc.MissingApiKey) {
-      console.error(err.message);
-      return EXIT_NO_KEY;
-    }
-    throw err;
+    if (!(err instanceof sc.StackError)) throw err;
+    console.error(err.describe());
+    return err.code === "missing_api_key" ? EXIT_NO_KEY : EXIT_FAILED;
   }
-  const models = await client.models(); // free: checks the key and lists prices
-  console.log(`key accepted; ppocr-v6 available: ${models["ppocr-v6"].available}`);
+  console.log(client.free ? `free tier, project ${who.project.id}` : `key accepted; balance ${who.balance} credits`);
   // #endregion
   const items = [];
   let code = 0;

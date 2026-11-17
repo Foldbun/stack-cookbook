@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"stack-cookbook/03-receipts-to-json/stackclient"
 )
 
 func mustDec(t *testing.T, s string) Dec {
@@ -480,5 +482,20 @@ func TestItemsMayDifferFromTheSubtotalByTheRoundingOfWholeNumbers(t *testing.T) 
 		if got := checkResults(validate(receipt, today))["items_sum_to_subtotal"]; got != tc.want {
 			t.Errorf("%s: items_sum_to_subtotal = %t, want %t", tc.name, got, tc.want)
 		}
+	}
+}
+
+func TestFreeTierSendsTheImageInline(t *testing.T) {
+	t.Setenv("FOLDBUN_API_KEY", "")
+	client, err := stackclient.New(stackclient.Config{})
+	if err != nil || !client.Free() {
+		t.Fatalf("want a free-tier client, got err=%v", err)
+	}
+	got, err := imageInput(client, []byte("abc"), "a.jpg") // no upload: that needs a key
+	if err != nil || !reflect.DeepEqual(got, map[string]string{"base64": "YWJj"}) {
+		t.Fatalf("got %v, %v", got, err)
+	}
+	if want := "list price 0 credits (free tier, not charged)"; costLine(client) != want {
+		t.Fatalf("cost line %q, want %q", costLine(client), want)
 	}
 }

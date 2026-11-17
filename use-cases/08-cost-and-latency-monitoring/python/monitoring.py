@@ -7,7 +7,9 @@
     monitor.serve(9108)                                   # GET http://localhost:9108/metrics
 
 Everything is read from what each answer already carries (`cost`, `billing`, `balance`, `timing`, `cache`, the error
-code), so there is nothing to ask the API for except an optional `GET /v1/whoami`, which is free and not metered.
+code), so there is nothing to ask the API for except an optional `GET /v1/whoami`, which is free and not metered. It works
+with or without an API key: with a key the balance gauge follows the account, on the free tier (no key) the gauges
+`stack_free_used_today` and `stack_free_daily_limit` follow the project's daily caps per weight class.
 stack_client.py itself is not modified: MonitoredClient wraps a client object and forwards what it does not know.
 """
 
@@ -36,7 +38,7 @@ class SpendGuard:
 
     mode "alert":  `on_alert(info)` runs once each time the spend crosses the limit; calls are not stopped.
     mode "reject": `check()` raises SpendGuardTripped while the spend of the window is over the limit.
-    basis "charged" counts what the account is debited (calls inside a daily allowance count 0); "list" counts the list price.
+    basis "charged" counts what the account is debited (a free-tier call counts 0); "list" counts the list price, which is the basis to use on the free tier.
     Pure logic: pass `clock` (a function returning seconds) to test it without waiting."""
 
     def __init__(self, max_per_hour, *, mode="alert", basis="charged", on_alert=None, window_s=3600.0, clock=time.monotonic):
@@ -106,7 +108,7 @@ class Monitor:
         r = self.registry
         self.credits = Counter(
             "stack_credits_total",
-            "Credits of every priced line; charged=true was debited, false was covered by a daily allowance.",
+            "Credits of every priced line; charged=true was debited, false was a free-tier call (list price, not charged).",
             ["model", "unit", "charged"],
             registry=r,
         )
@@ -128,10 +130,11 @@ class Monitor:
             buckets=LATENCY_BUCKETS_MS,
             registry=r,
         )
-        self.balance = Gauge("stack_balance_credits", "Account balance after the last answer or whoami refresh.", registry=r)
-        self.balance_at = Gauge("stack_balance_updated_timestamp_seconds", "When stack_balance_credits was last set.", registry=r)
-        self.allow_used = Gauge("stack_daily_allowance_used", "Included daily calls used today (UTC) per pool.", ["pool"], registry=r)
-        self.allow_limit = Gauge("stack_daily_allowance_limit", "Included daily calls per pool.", ["pool"], registry=r)
+        # The balance gauges exist only once a balance has been seen: the free tier has none, and an invented 0 would alert.
+        self.balance = self.balance_at = None
+        self._balance_lock = threading.Lock()
+        self.free_used = Gauge("stack_free_used_today", "Free-tier calls used today (UTC) by this project, per weight class.", ["class"], registry=r)
+        self.free_limit = Gauge("stack_free_daily_limit", "Free-tier calls allowed per day for this project, per weight class.", ["class"], registry=r)
         self.window_spend = Gauge("stack_spend_window_credits", "Spend inside the guard's window (what the guard compares with its limit).", registry=r)
         self.guard_tripped = Gauge("stack_spend_guard_tripped", "1 while the spend of the window is over the guard's limit.", registry=r)
         self._tags = itertools.count(1)
@@ -162,9 +165,6 @@ class Monitor:
                 self.cache_misses.labels(model).inc()
             if "balance" in result:
                 self._set_balance(result["balance"])
-            if billing.get("pool") and billing.get("allowance"):
-                self.allow_used.labels(billing["pool"]).set(billing["allowance"]["used"])
-                self.allow_limit.labels(billing["pool"]).set(billing["allowance"]["limit"])
         by_list = self.guard is not None and self.guard.basis == "list"
         self._guard_record(0 if replayed else billing.get("total", cost) if by_list else cost)
 
@@ -179,6 +179,10 @@ class Monitor:
         self._guard_record(0)
 
     def _set_balance(self, value):
+        with self._balance_lock:
+            if self.balance is None:
+                self.balance = Gauge("stack_balance_credits", "Account balance after the last answer or whoami refresh.", registry=self.registry)
+                self.balance_at = Gauge("stack_balance_updated_timestamp_seconds", "When stack_balance_credits was last set.", registry=self.registry)
         self.balance.set(value)
         self.balance_at.set(self.wall())
 
@@ -192,12 +196,14 @@ class Monitor:
 
     # region account
     def refresh_account(self, client):
-        """GET /v1/whoami (free, not metered, no rate-limit token): balance and today's daily allowances."""
+        """GET /v1/whoami (not metered): the balance with a key; on the free tier today's use and the daily limit per class."""
         info = client.get("/v1/whoami")
-        self._set_balance(info["balance"])
-        for a in info.get("dailyAllowances", []):
-            self.allow_used.labels(a["pool"]).set(a["used"])
-            self.allow_limit.labels(a["pool"]).set(a["limit"])
+        if info.get("tier") == "free":
+            for cls, limit in info.get("limits", {}).items():
+                self.free_limit.labels(cls).set(limit["daily"])
+                self.free_used.labels(cls).set(info.get("usedToday", {}).get(cls, 0))
+        elif "balance" in info:
+            self._set_balance(info["balance"])
         return info
 
     def refresh_every(self, client, seconds):

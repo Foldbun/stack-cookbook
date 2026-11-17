@@ -30,6 +30,8 @@ const (
 
 	ocrModel      = "ppocr-v6"
 	fallbackModel = "paddleocr-vl"
+	// freeMaxItems: the free tier is for trying a recipe on a few items; a bigger run needs a key.
+	freeMaxItems = 10
 	// pipeline changes when extraction or validation rules change; a resumed run only reuses items of the same version.
 	pipeline = "2"
 )
@@ -55,6 +57,31 @@ func contentType(name string) string {
 	}
 	return "image/jpeg"
 }
+
+// costLine is what this run cost, at list price; the free tier does not charge.
+func costLine(c *stackclient.Client) string {
+	s := c.Summary()
+	if c.Free() {
+		return fmt.Sprintf("list price %g credits (free tier, not charged)", s.ListTotal)
+	}
+	return fmt.Sprintf("list price %g credits, charged %g", s.ListTotal, s.ChargedTotal)
+}
+
+// region image-input
+
+// imageInput: with a key the image is uploaded once and both models read the same handle; the free tier takes the bytes inline on every call.
+func imageInput(client *stackclient.Client, data []byte, name string) (map[string]string, error) {
+	if client.Free() {
+		return stackclient.ImageBase64(data), nil
+	}
+	uploaded, err := client.Upload(data, contentType(name))
+	if err != nil {
+		return nil, err
+	}
+	return stackclient.ImageHandle(uploaded.ID), nil
+}
+
+// endregion
 
 type manifestItem struct {
 	ID    string `json:"id"`
@@ -130,17 +157,16 @@ func processItem(client *stackclient.Client, item manifestItem, base string, use
 	}
 	sum := sha256.Sum256(data)
 	sha := hex.EncodeToString(sum[:])
-	uploaded, err := client.Upload(data, contentType(item.Image)) // free; both models read the same handle
+	image, err := imageInput(client, data, item.Image)
 	if err != nil {
 		return Entry{}, "", err
 	}
-	handle := uploaded.ID
 	var attempts []Attempt
 
-	// 1. ppocr-v6: 0.25 credits, inside the public pool's daily allowance.
+	// 1. ppocr-v6: 0.25 credits at list price.
 	// region ocr-call
 	raw, err := client.Post("/v1/ocr",
-		map[string]any{"model": ocrModel, "image": stackclient.ImageHandle(handle), "options": map[string]any{"words": false}},
+		map[string]any{"model": ocrModel, "image": image, "options": map[string]any{"words": false}},
 		stackclient.Opts{Key: idempotencyKey(sha, ocrModel), Tag: item.ID})
 	if err != nil {
 		return Entry{}, "", err
@@ -157,16 +183,16 @@ func processItem(client *stackclient.Client, item manifestItem, base string, use
 	attempts = append(attempts, attempt(ocrModel, extractReceipt(rowsFromOCR(ocr.Lines), ocrModel, ocr.Image.Width), today))
 	// endregion
 
-	// 2. Only an item that failed validation is read again, by paddleocr-vl on the same handle: 2 credits, paid models only.
+	// 2. Only an item that failed validation is read again, by paddleocr-vl on the same image: 2 credits at list price.
 	// region fallback-call
 	if useFallback && !attempts[0].Passed {
 		raw, err := client.Post("/v1/documents/parse",
-			map[string]any{"model": fallbackModel, "image": stackclient.ImageHandle(handle), "options": map[string]any{"blocks": true}},
+			map[string]any{"model": fallbackModel, "image": image, "options": map[string]any{"blocks": true}},
 			stackclient.Opts{Key: idempotencyKey(sha, fallbackModel), Tag: item.ID})
 		var apiErr *stackclient.Error
 		switch {
 		case errors.As(err, &apiErr) && apiErr.Code != "budget_exceeded":
-			// An account without the paid pool (model_locked) or a failed call: the item stays with what ppocr-v6 read.
+			// A key without access to the model (model_locked) or a failed call: the item stays with what ppocr-v6 read.
 			attempts = append(attempts, Attempt{Model: fallbackModel, Note: apiErr.Code})
 		case err != nil:
 			return Entry{}, "", err
@@ -328,22 +354,28 @@ func run() int {
 	base, now := filepath.Dir(*manifestPath), time.Now()
 	today := calendarDate{now.Year(), int(now.Month()), now.Day()}
 	started := now.UTC()
-	client, err := stackclient.New(stackclient.Config{MaxConcurrency: *concurrency}) // FOLDBUN_API_KEY, FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
-	if stackclient.Code(err) == "missing_api_key" {
-		fmt.Fprintln(os.Stderr, stackclient.MissingKey)
-		return exitNoKey
-	} else if err != nil {
+	client, err := stackclient.New(stackclient.Config{MaxConcurrency: *concurrency}) // FOLDBUN_API_KEY (optional), FOLDBUN_API_BASE, FOLDBUN_MAX_CREDITS
+	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return exitFailed
 	}
-	if _, err := client.Models(); err != nil { // free: checks the key and loads prices and the per-minute limits the client paces itself by
+	if _, err := client.WhoAmI(); err != nil { // checks the project (free tier) or the key
 		fmt.Fprintln(os.Stderr, err)
 		return exitFailed
 	}
-
 	items := manifest.Items
 	if *limit > 0 && *limit < len(items) {
 		items = items[:*limit]
+	}
+	if len(items) > freeMaxItems {
+		if err := client.RequireKey(fmt.Sprintf("the free tier is meant for trying a recipe on a few items, and this manifest has %d", len(items))); err != nil {
+			var apiErr *stackclient.Error
+			if errors.As(err, &apiErr) {
+				err = errors.New(apiErr.Message)
+			}
+			fmt.Fprintln(os.Stderr, err)
+			return exitNoKey
+		}
 	}
 	entries := map[string]Entry{}
 	var todo []manifestItem
@@ -359,8 +391,8 @@ func run() int {
 	}
 
 	// region concurrency
-	// The client allows `--concurrency` requests in flight and spaces calls by the per-minute limit of the model's pool,
-	// so the worker goroutines here only keep it busy. One item is one goroutine: its calls are sequential (OCR, then maybe parse).
+	// The client allows `--concurrency` requests in flight and waits out a 429 by itself, so the worker goroutines here
+	// only keep it busy. One item is one goroutine: its calls are sequential (OCR, then maybe parse).
 	var (
 		mu     sync.Mutex
 		wg     sync.WaitGroup
@@ -448,6 +480,7 @@ func run() int {
 		fmt.Fprintln(os.Stderr, err)
 		return exitFailed
 	}
+	fmt.Println(costLine(client))
 	return code
 }
 
