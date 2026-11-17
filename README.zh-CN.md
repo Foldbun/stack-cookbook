@@ -1,4 +1,4 @@
-<!-- en-sha: 24bbcd47b46a -->
+<!-- en-sha: 0808e6055159 -->
 # Foldbun Stack Cookbook
 
 [English](README.md) | 简体中文
@@ -23,13 +23,13 @@ curl：`bash ../curl/run.sh`。TypeScript：`cd ../typescript && pnpm install &&
 
 ## 示例如何认证 <!-- #authentication -->
 
-调用 API 有两种方式，示例根据环境变量自动选择：
+调用 API 有三种方式，示例根据环境变量自动选择：
 
 - **免费层（默认）。** 没有设置 `FOLDBUN_API_KEY` 时，示例只发送请求头 `X-Foldbun-Project: fbp_2kIj7bWkULQkLAbceHhfLW4eY6O0`，也就是 Cookbook 自己的公共项目。七个模型全部免费，只接受内联 base64 图片（解码后最大 4 MiB）：没有图片上传、没有图片 handle、没有批处理端点，也没有幂等键。限额按项目计，随模型的重量级别而不同，另有按客户端 IP 的份额。Cookbook 的项目由所有读者共用，可能比较忙；免费层排在付费流量之后，不承诺可用性。被拒绝的调用返回 HTTP 429 并带 `Retry-After`，示例会等待后继续。部分地区无法使用免费层（403）。参见[免费层](https://stack.foldbun.com/docs/free-tier/)和[限速](https://stack.foldbun.com/docs/rate-limits/)。
 - **你自己的项目。** 在[控制台](https://stack.foldbun.com/console/)里创建项目（每个账户都有一个默认项目），把 `FOLDBUN_PROJECT_ID` 设为它的 ID。示例随后按你项目自己的限额计数，而不是共享的限额：轻量、中等、重型模型每分钟分别为 30、10、2 次请求，每日分别为 2,000、500、50 次。
 - **API 密钥（付费）。** 把 `FOLDBUN_API_KEY` 设为控制台里的密钥（`fbs_...`）。此时每次调用都按标价扣费；如果同时设置了项目 ID，该项目会被记为调用的来源。有密钥才能使用上传、handle 和批处理。带密钥的调用没有任何免费额度。
 
-每个用例的 smoke 运行都不需要密钥。完整运行需要 `FOLDBUN_API_KEY`：它们规模大，有些还用到上传、handle 或批处理；没有密钥时，完整运行会说明原因并退出。`FOLDBUN_MAX_CREDITS` 限制带密钥的运行最多花多少：客户端会拒绝可能超出它的调用。在免费层上，示例会打印所运行内容的标价，并标注“免费层，不扣费”。参见[认证](https://stack.foldbun.com/docs/authentication/)。
+每个用例的 smoke 运行都不需要密钥。完整运行需要 `FOLDBUN_API_KEY`：它们规模大，有些还用到上传、handle 或批处理；免费层是用来试用示例的：完整运行一旦超过 10 个条目（用例 05：25 张图片）就需要密钥，上传、图片 handle 和批处理会在本地被拒绝。这两种情况下，运行都会打印一行 `FOLDBUN_API_KEY is not set, and this needs a key: <原因>.`，并以退出码 2 退出。`GET /v1/models` 不需要密钥。`FOLDBUN_MAX_CREDITS` 限制带密钥的运行最多花多少：客户端会拒绝可能超出它的调用（没有密钥时不扣费，所以它不起作用）。在免费层上，示例会打印所运行内容的标价，并标注“免费层，不扣费”。参见[认证](https://stack.foldbun.com/docs/authentication/)。
 
 ## 用例 <!-- #use-cases -->
 

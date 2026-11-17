@@ -1,4 +1,4 @@
-<!-- en-sha: 5a4351c2f373 -->
+<!-- en-sha: 41c77d7b8121 -->
 # 扫描文档转为可入索引的 Markdown 切块
 
 [English](README.md) | 简体中文
@@ -50,7 +50,7 @@ uv run main.py --out out --chunk-size 1200   # 换一个目标块大小
 
 参数：`--manifest`、`--out`、`--concurrency`（默认 2）、`--limit`、`--resume`、`--chunk-size`（默认 800）、`--pdf FILE`。输出：`result.json`（格式见 `contract/result.schema.json`）、`chunks.jsonl`、`documents/<document>.md`，以及 `items/`（每读完一页存一个小文件，`--resume` 用它）。
 
-smoke 页面无需密钥即可运行。服务端返回 `429` 时，客户端按 `Retry-After` 等待后继续。完整集需要 `FOLDBUN_API_KEY`：没有密钥时程序以退出码 2 退出并打印标准提示。如果服务端以 `403` 拒绝调用方（并非所有地区都提供免费层），运行以退出码 3 停止。
+smoke 页面无需密钥即可运行。服务端返回 `429` 时，客户端按 `Retry-After` 等待后继续。完整集需要 `FOLDBUN_API_KEY`：没有密钥时程序以退出码 2 退出并打印标准提示。`403 free_tier_unavailable`（并非所有地区都提供免费层）是终局错误：该页记为失败，错误信息指向 `FOLDBUN_API_KEY`。退出码 3 表示密钥无权使用某个模型（`403 model_locked`），4 表示额度上限。
 
 给一次运行打分：`python evaluate.py --result out/result.json --truth assets/smoke/truth.json`。
 

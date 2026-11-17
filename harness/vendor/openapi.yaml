@@ -815,7 +815,7 @@ components:
         Foldbun ID restores it; the keys themselves are not revoked. Not retryable while the account is disabled.
         A deleted account's keys are revoked (`401 unauthorized`). `forbidden` is answered only on the private link
         used by Foldbun's own products (a key of an ordinary account), and on a free-tier call from a client address
-        or browser origin the project does not accept; `moved` only on the retired `pancakecv.com`
+        or browser origin the project does not accept; `moved` only on retired
         API hosts, whose body names the new API host.
 
         Codes of the free tier and of project IDs (see the Overview):

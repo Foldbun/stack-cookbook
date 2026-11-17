@@ -26,7 +26,7 @@ This example is that layer for Python: one file, `monitoring.py`, that you copy 
 | Call | the wrapped client sends the call as usual: retries, throttling, idempotency and the credit cap are the client's | `POST /v1/ocr`, `/v1/segment`, ..., `POST /v1/batch/*` |
 | Read | credits per `billing.lines[]`, `cost`, `cache`, `timing.queueMs` / `processingMs`, `balance`; an error is counted by its `code` | none |
 | Guard | the spend of the last hour is compared with the limit; alert once per crossing, or refuse new calls | none |
-| Refresh | `refresh_account()` reads the balance of the key; call it on a timer, `refresh_every(client, 60)` does. It needs a key | `GET /v1/whoami` (free, not metered) |
+| Refresh | `refresh_account()` reads the balance of the key, or on the free tier today's use and the daily limit per weight class; call it on a timer, `refresh_every(client, 60)` does | `GET /v1/whoami` (free, not metered) |
 | Expose | `monitor.serve(9108)` serves `GET /metrics`; Prometheus scrapes it, Grafana and alert rules read it | none |
 
 The metrics, all prefixed `stack_`:
@@ -39,6 +39,7 @@ The metrics, all prefixed `stack_`:
 | `stack_cache_saved_credits_total` | `model` | list price of the lines with `waived: true` |
 | `stack_latency_ms` (histogram) | `model`, `phase` | `queue` and `processing` from `timing`; `client_total` is the time this process measured around the call, for your own dashboards |
 | `stack_balance_credits`, `stack_balance_updated_timestamp_seconds` | | `balance` of the last answer or `whoami` refresh, and when |
+| `stack_free_used_today`, `stack_free_daily_limit` | `class` | free tier only: today's calls of this project and its daily limit per weight class, from the `whoami` refresh |
 | `stack_spend_window_credits`, `stack_spend_guard_tripped` | | the guard's window, and whether it is over the limit |
 
 ## Run it <!-- #run -->
@@ -53,11 +54,11 @@ uv run main.py --out out --guard-mode reject --guard-max 0.2            # the gu
 uv run python ../evaluate.py --result out/result.json --overhead        # check the books, print the cost of the layer
 ```
 
-Arguments: `--manifest`, `--out`, `--concurrency` (default 1: with one call at a time, the call that trips the guard has a stable number), `--limit`, `--resume` (accepted; a replay always starts over), `--metrics-port` (default 9108, 0 to not serve), `--hold`, `--guard-max` (credits per hour, default 0.2), `--guard-mode` (`alert` or `reject`), `--guard-basis` (`charged` or `list`). Outputs: `result.json` (format of `contract/result.schema.json`: one item per call and a last item `summary` with what the layer counted) and `metrics.prom`, the text exposition at the end of the run.
+Arguments: `--manifest`, `--out`, `--concurrency` (default 1: with one call at a time, the call that trips the guard has a stable number), `--limit`, `--resume` (accepted; a replay always starts over), `--metrics-port` (default 9108, 0 to not serve), `--hold`, `--guard-max` (credits per hour, default 1.0), `--guard-mode` (`alert` or `reject`), `--guard-basis` (`charged` or `list`). Outputs: `result.json` (format of `contract/result.schema.json`: one item per call and a last item `summary` with what the layer counted) and `metrics.prom`, the text exposition at the end of the run.
 
 The smoke replay needs no key and no sign-up. The full run needs `FOLDBUN_API_KEY`, as everywhere in the Cookbook. To run the replay without touching the real API at all, use the local fake of the API (see `CONTRIBUTING.md`); `uv run python -m harness check --uc 08` does that.
 
-On the free tier the replay is subject to its limits: when the server answers `429` the client waits for `Retry-After` and carries on, and if the server refuses the caller with a `403` (the free tier is not offered in every region) the replay stops with exit code 3.
+On the free tier the replay is subject to its limits: when the server answers `429` the client waits for `Retry-After` and carries on, and a `403 free_tier_unavailable` (the free tier is not offered in every region) is final: that call is recorded as failed with a message that points to `FOLDBUN_API_KEY`. Exit code 3 is a model locked for the key (`403 model_locked`), 4 the credit cap.
 
 To wire it into your own service, copy `monitoring.py` and use it like this:
 
@@ -69,7 +70,7 @@ guard = SpendGuard(max_per_hour=50, mode="alert", on_alert=notify)   # notify(in
 monitor = Monitor(guard=guard)
 client = MonitoredClient(StackClient(), monitor)                     # use it where you used StackClient
 monitor.serve(9108)                                                  # or mount monitor.exposition() in your own web app
-monitor.refresh_every(client, 60)                                    # balance and allowances, every minute
+monitor.refresh_every(client, 60)                                    # balance (key) or free-tier use, every minute
 ```
 
 Alerting rules and a Grafana dashboard for these metrics are in `assets/alerts.rules.yml` and `assets/grafana-dashboard.json` (import the dashboard, pick your Prometheus data source). `assets/metrics.sample.prom` is the exposition of one replay against the local fake API.
@@ -286,7 +287,7 @@ class SpendGuard:
 </details>
 <!-- /code -->
 
-The balance of a key from `GET /v1/whoami`, on demand or on a timer:
+The balance of a key, or the free tier's use per weight class, from `GET /v1/whoami`, on demand or on a timer:
 
 <!-- code: account -->
 <details><summary>Python (python/monitoring.py)</summary>
@@ -321,7 +322,7 @@ def refresh_every(self, client, seconds):
 </details>
 <!-- /code -->
 
-The replay wires the layer around the client and keeps going when one call fails (failures are data, not a crash); only a refused caller (a `403`) or the credit cap stops it:
+The replay wires the layer around the client and keeps going when one call fails (failures are data, not a crash); only a locked model (`403 model_locked`) or the credit cap stops it:
 
 <!-- code: wire -->
 <details><summary>Python (python/main.py)</summary>

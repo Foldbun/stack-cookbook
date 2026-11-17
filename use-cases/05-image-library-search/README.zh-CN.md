@@ -1,4 +1,4 @@
-<!-- en-sha: 1f8fcdf9ef99 -->
+<!-- en-sha: a6560150db9b -->
 # 按图、按文字搜索图库，并找出近重复图片
 
 [English](README.md) | 简体中文
@@ -63,11 +63,11 @@ uv run imgsearch.py status                                  # 索引中有什么
 uv run main.py                                              # smoke 数据集，写出 out/result.json（harness 运行的就是它）
 ```
 
-`index` 支持 `--batch-size`。服务端返回 `429` 时，它按 `Retry-After` 等待后继续。项目的每日上限用完时，它会打印还缺多少向量、调用数何时恢复，并以退出码 5 结束；到时重新运行同一条命令，索引会从停下的地方接着做。退出码列在 `imgsearch.py` 的文件头。
+`index` 支持 `--batch-size`。服务端返回 `429` 时，它按 `Retry-After` 等待后继续。项目的每日上限用完时，它会打印还缺多少向量、调用数何时恢复，并以退出码 1 结束；到时重新运行同一条命令，索引会从停下的地方接着做。退出码列在 `imgsearch.py` 的文件头。
 
 新建索引后的第一次查询会在最后一行显示费用，例如 `cost: 0.01 credits at list price, 0 charged, in 1 calls`。
 
-同一套代码由清单驱动时就是 harness 运行的程序（`main.py --manifest M --out DIR`）。它还会写出 `DIR/index/`（索引）、`DIR/stats.json`（耗时、观察到的额度、第二次建库的结果，该次必须不发出任何调用）以及符合 `contract/result.schema.json` 的 `DIR/result.json`：每张图库图片一项，每条文字查询一项，各自带有自己那几次调用的账本行。
+同一套代码由清单驱动时就是 harness 运行的程序（`main.py --manifest M --out DIR`）。它还会写出 `DIR/index/`（索引）、`DIR/stats.json`（耗时、嵌入了什么、运行是否在某个限额处停下、第二次建库的结果，该次必须不发出任何调用）以及符合 `contract/result.schema.json` 的 `DIR/result.json`：每张图库图片一项，每条文字查询一项，各自带有自己那几次调用的账本行。
 
 完整数据集（400 张图片、100 个近重复变体、40 条文字查询，73 MB）是仓库的发布附件（见 `datasets/README.md`）。其清单已提交为 `assets/full.json`，图片和标准答案在压缩包里。把压缩包解压到 `assets/`，再在仓库根目录对参考实现运行完整数据集。完整运行需要 `FOLDBUN_API_KEY`（没有密钥时以退出码 2 结束）：它规模大，而且用到上传和批处理。一次运行按标价最多 51 credits（500 张图片 x 0.10 加 40 条文本 x 0.01，合计 50.4），约 1,040 次调用。
 

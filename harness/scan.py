@@ -40,7 +40,7 @@ PATTERNS = re.compile("|".join([GENERIC, *extra_terms()]), re.I)
 # (file glob, regex the match must fully match, reason)
 ALLOW = [
     ("harness/scan.py", r".*", "the patterns themselves"),
-    ("harness/vendor/openapi.yaml", r"internal account|pancake", "the published API description, vendored unchanged"),
+    ("harness/vendor/openapi.yaml", r"internal account", "the published API description, vendored unchanged"),
 ]
 CALL_ID = re.compile(r"call_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 FAKE_CALL_ID = re.compile(r"call_00000000-0000-7000-8000-[0-9]{12}")

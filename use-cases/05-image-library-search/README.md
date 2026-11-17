@@ -62,11 +62,11 @@ uv run imgsearch.py status                                  # what the index hol
 uv run main.py                                              # the smoke set; writes out/result.json (what the harness runs)
 ```
 
-`index` accepts `--batch-size`. When the server answers `429` it waits for `Retry-After` and carries on. When the daily cap of the project is reached, it prints how many vectors are missing and when the calls come back, and exits with code 5; run the same command then, and the index continues where it stopped. The exit codes are listed in the header of `imgsearch.py`.
+`index` accepts `--batch-size`. When the server answers `429` it waits for `Retry-After` and carries on. When the daily cap of the project is reached, it prints how many vectors are missing and when the calls come back, and exits with code 1; run the same command then, and the index continues where it stopped. The exit codes are listed in the header of `imgsearch.py`.
 
 The first query after a fresh `index` shows its cost on the last line, for example `cost: 0.01 credits at list price, 0 charged, in 1 calls`.
 
-The same code, driven by a manifest, is what the harness runs (`main.py --manifest M --out DIR`). It also writes `DIR/index/` (the index), `DIR/stats.json` (timing, the allowance seen, the result of a second indexing pass that must make no call) and `DIR/result.json` in the format of `contract/result.schema.json`: one item per library image and one per text query, each with the ledger rows of its own calls.
+The same code, driven by a manifest, is what the harness runs (`main.py --manifest M --out DIR`). It also writes `DIR/index/` (the index), `DIR/stats.json` (timing, what was embedded, whether the run stopped at a limit, the result of a second indexing pass that must make no call) and `DIR/result.json` in the format of `contract/result.schema.json`: one item per library image and one per text query, each with the ledger rows of its own calls.
 
 The full set (400 images, 100 near-duplicate variants, 40 text queries, 73 MB) is a release asset of the repository (see `datasets/README.md`). Its manifest is committed as `assets/full.json`; the images and the ground truth are in the archive. Extract it into `assets/` and run the reference implementation on it from the repository root. The full run needs `FOLDBUN_API_KEY` (it exits with code 2 without one): it is large and uses uploads and batches. It is at most 51 credits at list price (500 images x 0.10 plus 40 texts x 0.01 is 50.4) in about 1,040 calls.
 

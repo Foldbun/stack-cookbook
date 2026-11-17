@@ -49,7 +49,7 @@ uv run main.py --out out --chunk-size 1200   # a different target chunk size
 
 Arguments: `--manifest`, `--out`, `--concurrency` (default 2), `--limit`, `--resume`, `--chunk-size` (default 800), `--pdf FILE`. Outputs: `result.json` (format of `contract/result.schema.json`), `chunks.jsonl`, `documents/<document>.md` and `items/` (one small file per page read, which `--resume` uses).
 
-The smoke pages run without a key. When the server answers `429` the client waits for `Retry-After` and carries on. The full set needs `FOLDBUN_API_KEY`: without it the program exits with code 2 and the standard message. If the server refuses the caller with a `403` (the free tier is not offered in every region), the run stops with exit code 3.
+The smoke pages run without a key. When the server answers `429` the client waits for `Retry-After` and carries on. The full set needs `FOLDBUN_API_KEY`: without it the program exits with code 2 and the standard message. A `403 free_tier_unavailable` (the free tier is not offered in every region) is final: the page is recorded as failed with a message that points to `FOLDBUN_API_KEY`. Exit code 3 means a model locked for the key (`403 model_locked`) and 4 the credit cap.
 
 To score a run: `python evaluate.py --result out/result.json --truth assets/smoke/truth.json`.
 

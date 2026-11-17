@@ -8,8 +8,13 @@ The recipes run on the Foldbun Stack free tier by default: no key and no sign-up
 
 - Free tier by default. With no `FOLDBUN_API_KEY` the clients send only `X-Foldbun-Project` with the Cookbook's public project ID and inline base64 images (no uploads, handles, batches or idempotency keys). `FOLDBUN_PROJECT_ID` is optional and replaces it with the reader's own project and its limits.
 - The API key is optional. When set, calls are charged at list price and the project header records the project as the source. `FOLDBUN_MAX_CREDITS` still caps what a keyed run may spend; on the free tier the recipes print the list price of what ran, labelled "free tier, not charged".
-- Every smoke run works with no key. Full runs need `FOLDBUN_API_KEY` and say so (exit code 2) when it is missing.
-- Throttling follows the server: on `429` the clients wait `Retry-After`, and when `X-RateLimit-Remaining` is 0 they wait `X-RateLimit-Reset` seconds. The client-side per-pool pacing is gone.
+- Every smoke run works with no key. A full run needs `FOLDBUN_API_KEY` once it goes beyond 10 items (use case 05: 25 images), and uploads, image handles and batches are refused locally; the run prints one line (`FOLDBUN_API_KEY is not set, and this needs a key: <reason>.`) and exits with code 2.
+- Throttling follows the server: a `429` (`rate_limited`, `free_busy`) and server-marked retryable errors are retried up to 5 times after `max(retryAfterMs, Retry-After, 1 s)` plus jitter (at most 60 s); `daily_limit_reached` and `free_tier_unavailable` are final; when a success reports `X-RateLimit-Remaining: 0` the next call for that model waits `X-RateLimit-Reset` seconds. The client-side per-pool pacing is gone.
+- `GET /v1/models` works with a project ID alone, so the clients no longer refuse it without a key; each model lists its free-tier limits.
+- Client files 1.1.0 (Python, TypeScript, Go). Exit code 3 means a model locked for the key (`403 model_locked`); a `403 free_tier_unavailable` is a failed call whose message points to `FOLDBUN_API_KEY`.
+- The vendored API description `harness/vendor/openapi.yaml` is now 1.3.0 (free tier by project ID, `GET /v1/whoami` for a project, per-model `free` limits, `tier` and `sourceProject` in billing; the daily allowances are retired). The fake API answers as 1.3.0 describes, with no exceptions in its response validation.
+- Use case 08: `--guard-max` defaults to 1.0 credit per hour; on the free tier the monitoring layer exports `stack_free_used_today` and `stack_free_daily_limit` per weight class.
+- The use-case table says what runs without a key ("Smoke run" or "Everything"), here and on the site.
 - The wording of the retired daily allowances ("public pool", "free pool", included calls, tiers by account balance) is removed from the READMEs, `CONTRIBUTING.md`, `clients/README.md` and the site. Cost tables keep the measured list prices, now framed as what a keyed run costs.
 - The root README has a section on how the recipes authenticate (free tier, own project, API key).
 

@@ -35,7 +35,7 @@ const { languages, useCases } = data
               <a href={lpath(locale, `/use-cases/${u.id}/`)}><span class="num">{u.num}</span> {u.title[locale]}</a>
               <span class="sum">{u.summary[locale]}</span>
             </th>
-            <td class="tier">{t[`tier.${u.tier}`]}</td>
+            <td class="tier">{t[`nokey.${u.withoutKey}`]}</td>
             {languages.map((l) => (
               <td class="mark">
                 {u.languages.includes(l.key)

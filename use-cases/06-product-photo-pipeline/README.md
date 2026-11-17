@@ -26,7 +26,7 @@ cd use-cases/06-product-photo-pipeline/python
 uv run python main.py --manifest ../assets/smoke/manifest.json --out out --concurrency 4
 ```
 
-`--resume` reuses the cut-outs already in `out/cutouts/` instead of calling again. When the server answers `429` the client waits for `Retry-After` and carries on. Exit codes: 0 done (items may be in `review.csv`), 1 failed, 2 no key (the full set needs one), 3 the server refused the caller with a `403`, 4 the credit cap (`FOLDBUN_MAX_CREDITS`) refused a call. The full set (40 photos, 40 credits at list price) is a release asset, see `assets/full.json`; it needs `FOLDBUN_API_KEY`. Score a run with `uv run python evaluate.py --result out/result.json --truth assets/truth.json`.
+`--resume` reuses the cut-outs already in `out/cutouts/` instead of calling again. When the server answers `429` the client waits for `Retry-After` and carries on. Exit codes: 0 done (items may be in `review.csv`), 1 failed, 2 no key (the full set needs one), 3 a model is locked for the key (`403 model_locked`), 4 the credit cap (`FOLDBUN_MAX_CREDITS`) refused a call. The full set (40 photos, 40 credits at list price) is a release asset, see `assets/full.json`; it needs `FOLDBUN_API_KEY`. Score a run with `uv run python evaluate.py --result out/result.json --truth assets/truth.json`.
 
 ## Code <!-- #code -->
 

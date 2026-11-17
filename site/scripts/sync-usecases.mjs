@@ -169,11 +169,16 @@ function runBlock(uc, lang) {
   return `**${t['uc.runTitle']}**\n\n${t['uc.runIntro']}\n\n<Tabs syncKey="lang">\n${tabs.join('\n')}\n</Tabs>`
 }
 
+// What runs on the free tier (no key): everything when the use case has only a smoke set, otherwise its smoke set.
+function withoutKey(uc) {
+  return uc.meta.sizes?.full ? 'smoke' : 'all'
+}
+
 function metaRow(uc, lang) {
   const t = T[lang]
   const parts = [
     `**${t['uc.models']}:** ${uc.meta.models.map((m) => `\`${m}\``).join(', ')}`,
-    `**${t['uc.account']}:** ${t[`tier.${uc.meta.tier}`]}`,
+    `**${t['uc.account']}:** ${t[`nokey.${withoutKey(uc)}`]}`,
     `**${t['uc.languages']}:** ${uc.languages.map(langName).join(', ')}`,
   ]
   if (uc.meta.playground) parts.push(`[${t['uc.playground']}](${playgroundUrl(uc.meta.playground)})`)
@@ -283,7 +288,7 @@ write(
   JSON.stringify(
     {
       languages: usedLanguages.map((key) => ({ key, name: langName(key) })),
-      useCases: useCases.map((uc) => ({ id: uc.id, num: uc.num, title: uc.meta.title, summary: uc.meta.summary, tier: uc.meta.tier, models: uc.meta.models, languages: uc.languages })),
+      useCases: useCases.map((uc) => ({ id: uc.id, num: uc.num, title: uc.meta.title, summary: uc.meta.summary, withoutKey: withoutKey(uc), models: uc.meta.models, languages: uc.languages })),
     },
     null,
     2,

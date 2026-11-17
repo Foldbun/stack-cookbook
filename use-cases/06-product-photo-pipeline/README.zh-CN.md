@@ -1,4 +1,4 @@
-<!-- en-sha: 7771d786a522 -->
+<!-- en-sha: e71362ea74a0 -->
 # 把商家照片变成统一的商品目录图
 
 [English](README.md) | 简体中文
@@ -27,7 +27,7 @@ cd use-cases/06-product-photo-pipeline/python
 uv run python main.py --manifest ../assets/smoke/manifest.json --out out --concurrency 4
 ```
 
-`--resume` 复用 `out/cutouts/` 里已有的抠图，不重复调用。服务端返回 `429` 时，客户端按 `Retry-After` 等待后继续。退出码：0 完成（部分条目可能在 `review.csv` 里），1 失败，2 没有密钥（完整集需要密钥），3 服务端以 `403` 拒绝了调用方，4 额度上限（`FOLDBUN_MAX_CREDITS`）拒绝了调用。完整集（40 张，按标价 40 credits）是发布资产，见 `assets/full.json`；它需要 `FOLDBUN_API_KEY`。用 `uv run python evaluate.py --result out/result.json --truth assets/truth.json` 给一次运行打分。
+`--resume` 复用 `out/cutouts/` 里已有的抠图，不重复调用。服务端返回 `429` 时，客户端按 `Retry-After` 等待后继续。退出码：0 完成（部分条目可能在 `review.csv` 里），1 失败，2 没有密钥（完整集需要密钥），3 密钥无权使用某个模型（`403 model_locked`），4 额度上限（`FOLDBUN_MAX_CREDITS`）拒绝了调用。完整集（40 张，按标价 40 credits）是发布资产，见 `assets/full.json`；它需要 `FOLDBUN_API_KEY`。用 `uv run python evaluate.py --result out/result.json --truth assets/truth.json` 给一次运行打分。
 
 ## 代码 <!-- #code -->
 

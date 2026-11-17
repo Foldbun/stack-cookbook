@@ -1,4 +1,4 @@
-<!-- en-sha: 67668c2810c3 -->
+<!-- en-sha: abc8da0927ab -->
 # 监控线上集成的成本与时延
 
 [English](README.md) | 简体中文
@@ -27,7 +27,7 @@
 | 调用 | 被包住的客户端照常发送：重试、节流、幂等和额度上限都是客户端的事 | `POST /v1/ocr`、`/v1/segment` ……、`POST /v1/batch/*` |
 | 读取 | 按 `billing.lines[]` 记 credits，读 `cost`、`cache`、`timing.queueMs` / `processingMs`、`balance`；错误按 `code` 计数 | 无 |
 | 守卫 | 把最近一小时的花费与上限比较；每次越线报警一次，或拒绝新调用 | 无 |
-| 刷新 | `refresh_account()` 读取密钥的余额；放在定时器里调用，`refresh_every(client, 60)` 就是这样。需要密钥 | `GET /v1/whoami`（免费，不计量） |
+| 刷新 | `refresh_account()` 读取密钥的余额，免费层则读取今天的使用量和每个重量级的每日上限；放在定时器里调用，`refresh_every(client, 60)` 就是这样 | `GET /v1/whoami`（免费，不计量） |
 | 暴露 | `monitor.serve(9108)` 提供 `GET /metrics`；Prometheus 抓取，Grafana 和告警规则读取 | 无 |
 
 指标，全部以 `stack_` 开头：
@@ -40,6 +40,7 @@
 | `stack_cache_saved_credits_total` | `model` | `waived: true` 的行的标价 |
 | `stack_latency_ms`（直方图） | `model`、`phase` | `queue` 和 `processing` 来自 `timing`；`client_total` 是本进程在调用外围测到的时间，供你自己的看板使用 |
 | `stack_balance_credits`、`stack_balance_updated_timestamp_seconds` | | 最近一次应答或 `whoami` 刷新的 `balance`，以及更新时刻 |
+| `stack_free_used_today`、`stack_free_daily_limit` | `class` | 仅免费层：本项目今天的调用数和每个重量级的每日上限，来自 `whoami` 刷新 |
 | `stack_spend_window_credits`、`stack_spend_guard_tripped` | | 守卫的窗口花费，以及是否越线 |
 
 ## 运行 <!-- #run -->
@@ -54,11 +55,11 @@ uv run main.py --out out --guard-mode reject --guard-max 0.2            # 最近
 uv run python ../evaluate.py --result out/result.json --overhead        # 核对账目，打印监控层的开销
 ```
 
-参数：`--manifest`、`--out`、`--concurrency`（默认 1：一次一个调用，触发守卫的是第几个调用就是确定的）、`--limit`、`--resume`（接受但无作用：回放总是重新开始）、`--metrics-port`（默认 9108，0 表示不提供）、`--hold`、`--guard-max`（每小时 credits，默认 0.2）、`--guard-mode`（`alert` 或 `reject`）、`--guard-basis`（`charged` 或 `list`）。输出：`result.json`（格式见 `contract/result.schema.json`：每次调用一项，最后一项 `summary` 是监控层统计的内容）和 `metrics.prom`（运行结束时的文本格式指标）。
+参数：`--manifest`、`--out`、`--concurrency`（默认 1：一次一个调用，触发守卫的是第几个调用就是确定的）、`--limit`、`--resume`（接受但无作用：回放总是重新开始）、`--metrics-port`（默认 9108，0 表示不提供）、`--hold`、`--guard-max`（每小时 credits，默认 1.0）、`--guard-mode`（`alert` 或 `reject`）、`--guard-basis`（`charged` 或 `list`）。输出：`result.json`（格式见 `contract/result.schema.json`：每次调用一项，最后一项 `summary` 是监控层统计的内容）和 `metrics.prom`（运行结束时的文本格式指标）。
 
 smoke 回放不需要密钥，也不需要注册；完整运行需要 `FOLDBUN_API_KEY`，和 Cookbook 里其他用例一样。想完全不碰真实 API 地跑回放，可以用 API 的本地假服务（见 `CONTRIBUTING.md`）；`uv run python -m harness check --uc 08` 就是这样做的。
 
-在免费层上，回放受其限额约束：服务端返回 `429` 时，客户端按 `Retry-After` 等待后继续；如果服务端以 `403` 拒绝调用方（并非所有地区都提供免费层），回放以退出码 3 结束。
+在免费层上，回放受其限额约束：服务端返回 `429` 时，客户端按 `Retry-After` 等待后继续；`403 free_tier_unavailable`（并非所有地区都提供免费层）是终局错误：该调用记为失败，错误信息指向 `FOLDBUN_API_KEY`。退出码 3 表示密钥无权使用某个模型（`403 model_locked`），4 表示额度上限。
 
 要接进自己的服务，复制 `monitoring.py`，这样用：
 
@@ -70,7 +71,7 @@ guard = SpendGuard(max_per_hour=50, mode="alert", on_alert=notify)   # notify(in
 monitor = Monitor(guard=guard)
 client = MonitoredClient(StackClient(), monitor)                     # 用在原来用 StackClient 的地方
 monitor.serve(9108)                                                  # 或在自己的 Web 应用里返回 monitor.exposition()
-monitor.refresh_every(client, 60)                                    # 余额和额度，每分钟刷新
+monitor.refresh_every(client, 60)                                    # 余额（有密钥）或免费层用量，每分钟刷新
 ```
 
 这些指标对应的告警规则和 Grafana 看板在 `assets/alerts.rules.yml` 和 `assets/grafana-dashboard.json`（导入看板，选你的 Prometheus 数据源）。`assets/metrics.sample.prom` 是对本地假 API 回放一次得到的指标输出。
@@ -287,7 +288,7 @@ class SpendGuard:
 </details>
 <!-- /code -->
 
-用 `GET /v1/whoami` 取密钥的余额，按需或定时：
+用 `GET /v1/whoami` 取密钥的余额（免费层则取每个重量级的使用量），按需或定时：
 
 <!-- code: account -->
 <details><summary>Python (python/monitoring.py)</summary>
@@ -322,7 +323,7 @@ def refresh_every(self, client, seconds):
 </details>
 <!-- /code -->
 
-回放把监控层接在客户端外面，单个调用失败时继续跑（失败是数据，不是崩溃）；只有调用方被拒绝（`403`）或额度上限才会让它停下：
+回放把监控层接在客户端外面，单个调用失败时继续跑（失败是数据，不是崩溃）；只有模型被锁定（`403 model_locked`）或额度上限才会让它停下：
 
 <!-- code: wire -->
 <details><summary>Python (python/main.py)</summary>
