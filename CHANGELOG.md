@@ -2,6 +2,10 @@
 
 All notable changes to this repository. Versions follow [Semantic Versioning](https://semver.org/); the client files carry their own version (`VERSION` in each file).
 
+## 0.3.1 - 2026-11-17
+
+- Site: the language filter row above the use-case matrix is aligned again; every button except "All" sat 8px below the label.
+
 ## 0.3.0 - 2026-11-17
 
 The recipes run on the Foldbun Stack free tier by default: no key and no sign-up.
