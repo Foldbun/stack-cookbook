@@ -355,4 +355,135 @@ describe("TypeScript client", () => {
     const e = await rejects(c.post("/v1/ocr", { image: sc.imageBase64(png()) }), sc.BudgetExceeded);
     assert.match(e.message, /^call refused: up to 0\.25 credits would pass FOLDBUN_MAX_CREDITS=0\.1 \(spent 0\)$/);
   });
+
+  // #region async jobs
+  const jobItems = async (c: sc.StackClient, n: number) =>
+    Promise.all(Array.from({ length: n }, async (_, i) => ({ image: sc.imageHandle((await c.upload(png(i), "image/png")).id) })));
+  const drain = async (c: sc.StackClient, id: string, tag?: string) => {
+    while ((await c.getJob(id)).status !== "completed");
+    const out: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
+    for await (const item of c.jobResults(id, { tag })) out.push(item);
+    return out;
+  };
+  const near = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} is not ${b}`);
+  const priv = (c: sc.StackClient) => c as unknown as { reserved: number; spent: number };
+
+  it("runs a job to completion and records its items in the ledger", async () => {
+    const c = client();
+    const items = await jobItems(c, 5);
+    const job = await c.createJob("siglip2", items, { idempotencyKey: "job-key", metadata: { dataset: "t" } });
+    assert.deepEqual([job.status, job.counts.total, job.estimate, job.metadata], ["queued", 5, 0.025, { dataset: "t" }]);
+    const [entry] = await calls("/v1/jobs");
+    assert.deepEqual([entry!.status, entry!.idempotencyKey, entry!.hasAuthorization], [202, "job-key", true]);
+    near(priv(c).reserved, 0.025); // the worst case is held until the job is final
+    const running = await c.getJob(job.id);
+    assert.ok(running.status === "running" && running.counts.ok > 0 && running.counts.ok < 5 && priv(c).reserved > 0);
+    const done = await c.getJob(job.id);
+    assert.deepEqual([done.status, done.counts.ok, done.cost], ["completed", 5, 0.025]);
+    near(priv(c).reserved, 0);
+    near(priv(c).spent, 0.025);
+    const got: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
+    for await (const item of c.jobResults(job.id, { tag: "j" })) got.push(item);
+    assert.deepEqual(got.map((i) => i.index), [0, 1, 2, 3, 4]);
+    assert.equal(got[0].result.embeddings[0].vector.length, got[0].result.dimensions);
+    const rows = c.calls("j");
+    assert.equal(rows.length, 5);
+    assert.deepEqual(rows[0], { endpoint: "/v1/jobs", model: "siglip2", list: 0.005, charged: 0.005, cache: "miss", queueMs: 4, processingMs: 80, replayed: false });
+    assert.deepEqual(c.summary(), { calls: 5, listTotal: 0.025, chargedTotal: 0.025 });
+    near(priv(c).spent, 0.025); // reading the results does not count the spend twice
+    for await (const _ of c.jobResults(job.id)); // nor does reading them again
+    assert.equal(c.summary().calls, 5);
+  });
+
+  it("pages the results by cursor and serves a repeated image from the cache for free", async () => {
+    const c = client();
+    const items = await jobItems(c, 4);
+    const first = await c.createJob("siglip2", items);
+    await drain(c, first.id);
+    const second = await c.createJob("siglip2", items);
+    while ((await c.getJob(second.id)).status !== "completed");
+    const got: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
+    for await (const item of c.jobResults(second.id, { limit: 2, tag: "again" })) got.push(item);
+    assert.deepEqual(got.map((i) => i.index), [0, 1, 2, 3]);
+    assert.equal((await calls(`/v1/jobs/${second.id}/results`)).length, 3); // 2 + 2 + the empty last page
+    assert.deepEqual(c.calls("again").map((r) => r.cache), ["hit", "hit", "hit", "hit"]);
+    assert.equal(c.summary().chargedTotal, 0.02);
+  });
+
+  it("reports the failed items of a job", async () => {
+    await scenario("job-partial");
+    const c = client();
+    const job = await c.createJob("siglip2", await jobItems(c, 4));
+    const items = await drain(c, job.id, "p");
+    assert.deepEqual(items.map((i) => i.status), ["ok", "error", "ok", "ok"]);
+    assert.equal(items[1].error.code, "bad_model_output");
+    assert.equal(c.calls("p").length, 3);
+    assert.deepEqual((await c.getJob(job.id)).counts, { total: 4, pending: 0, running: 0, ok: 3, error: 1, expired: 0, cancelled: 0 });
+  });
+
+  it("submits text items, replays an idempotent submit and holds the cost once", async () => {
+    const c = client();
+    const items = [{ texts: ["a dog", "a cat"] }, { texts: ["a bird"] }];
+    const a = await c.createJob("siglip2", items, { idempotencyKey: "same" });
+    const b = await c.createJob("siglip2", items, { idempotencyKey: "same" });
+    assert.equal(a.id, b.id);
+    assert.deepEqual((await calls("/v1/jobs")).map((e) => e.status), [202, 202]);
+    near(priv(c).reserved, a.estimate);
+    near(a.estimate, 0.003);
+    const e = await rejects(c.createJob("siglip2", items.slice(0, 1), { idempotencyKey: "same" }));
+    assert.deepEqual([e.status, e.code], [409, "idempotency_conflict"]);
+    await c.cancelJob(a.id);
+    near(priv(c).reserved, 0);
+  });
+
+  it("cancels a job", async () => {
+    const c = client();
+    const job = await c.createJob("dinov3", await jobItems(c, 3));
+    await c.getJob(job.id); // one poll: part of the items ran
+    const cancelled = await c.cancelJob(job.id);
+    assert.ok(cancelled.status === "cancelled" && cancelled.counts.cancelled > 0);
+    const statuses: string[] = [];
+    for await (const item of c.jobResults(job.id)) statuses.push(item.status);
+    assert.equal(statuses.filter((s) => s === "cancelled").length, cancelled.counts.cancelled);
+    near(priv(c).reserved, 0);
+    near(priv(c).spent, cancelled.cost);
+    const e = await rejects(c.cancelJob(job.id));
+    assert.deepEqual([e.status, e.code], [409, "job_finished"]);
+  });
+
+  it("refuses a job locally without a key or over the credit cap", async () => {
+    const f = free();
+    const gone = "job_" + "0".repeat(32);
+    await rejects(f.createJob("siglip2", []), sc.MissingApiKey);
+    await rejects(f.getJob(gone), sc.MissingApiKey);
+    await rejects(f.cancelJob(gone), sc.MissingApiKey);
+    await rejects((async () => { for await (const _ of f.jobResults(gone)); })(), sc.MissingApiKey);
+    const c = client({ maxCredits: 0.01 });
+    const items = await jobItems(c, 3); // the worst case is 3 x 0.005
+    const e = await rejects(c.createJob("siglip2", items), sc.BudgetExceeded);
+    assert.equal(e.message, "call refused: up to 0.015 credits would pass FOLDBUN_MAX_CREDITS=0.01 (spent 0)");
+    assert.equal((await calls("/v1/jobs")).length, 0);
+  });
+
+  it("retries a submit refused with too_many_jobs under the same idempotency key", async () => {
+    await scenario("job-too-many");
+    const c = client();
+    const items = await jobItems(c, 1);
+    const t0 = performance.now();
+    const job = await c.createJob("siglip2", items, { idempotencyKey: "retry-key" });
+    assert.ok(job.status === "queued" && performance.now() - t0 >= 1200);
+    const [first, second] = await calls("/v1/jobs");
+    assert.deepEqual([first!.status, second!.status], [429, 202]);
+    assert.deepEqual([first!.idempotencyKey, second!.idempotencyKey], ["retry-key", "retry-key"]);
+  });
+
+  it("raises insufficient_balance when the balance does not cover a job", async () => {
+    await scenario({ balance: 0.001 });
+    const c = client();
+    const items = await jobItems(c, 2);
+    const e = await rejects(c.createJob("siglip2", items));
+    assert.deepEqual([e.status, e.code], [402, "insufficient_balance"]);
+    near(priv(c).reserved, 0);
+  });
+  // #endregion
 });
