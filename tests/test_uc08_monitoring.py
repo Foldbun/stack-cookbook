@@ -276,3 +276,55 @@ def test_workload_fits_the_budget_and_matches_the_readme():
         seen.add((ln["model"], ln["image"]))
     assert spent == pytest.approx(2.55)
     assert Path(UC / "assets" / "manifest.json").exists()
+
+
+def test_async_job_items_are_counted_at_their_own_cost(server):
+    client = sc.StackClient("fbs_fake", server.url)
+    scenario(server, {"jobs": {"polls": 1, "itemErrors": {"1": "bad_model_output"}}})
+    handles = [client.upload(png(i), "image/png")["id"] for i in range(4)]
+    items = [{"image": {"id": h}} for h in handles]
+    m = Monitor(guard=SpendGuard(10))
+    c = MonitoredClient(client, m)
+    job = c.create_job("siglip2", items, "job-08", metadata={"purpose": "test"})
+    assert m.samples("stack_calls_total") == [] and m.guard.records == 0  # nothing is spent at submit
+    while c.get_job(job["id"])["status"] != "completed":
+        pass
+    assert value(m, "stack_async_jobs_total", model="siglip2", status="completed") == 1
+    got = list(c.job_results(job["id"], tag="a"))
+    assert [i["status"] for i in got] == ["ok", "error", "ok", "ok"]
+    assert value(m, "stack_calls_total", model="siglip2", status="ok", code="none") == 3
+    assert value(m, "stack_calls_total", model="siglip2", status="error", code="bad_model_output") == 1
+    assert value(m, "stack_credits_total", model="siglip2", unit="async_image", charged="true") == pytest.approx(0.015)  # 3 x the async price
+    assert not any(lab["unit"] == "image" for lab, _ in m.samples("stack_credits_total"))
+    assert value(m, "stack_latency_ms_count", model="siglip2", phase="processing") == 3
+    assert value(m, "stack_cache_misses_total", model="siglip2") == 3 and m.guard.records == 4
+    assert m.guard.spent() == pytest.approx(0.015)
+    assert client.summary()["chargedTotal"] == pytest.approx(0.015)  # the ledger and the metrics agree
+    list(c.job_results(job["id"]))  # reading the results again counts nothing again
+    c.get_job(job["id"])
+    assert (
+        value(m, "stack_calls_total", model="siglip2", status="ok", code="none") == 3
+        and value(m, "stack_async_jobs_total", model="siglip2", status="completed") == 1
+    )
+    again = c.create_job("siglip2", items)  # the same images again: cached, so the items cost nothing
+    while c.get_job(again["id"])["status"] != "completed":
+        pass
+    list(c.job_results(again["id"]))
+    assert value(m, "stack_cache_hits_total", model="siglip2") == 3  # item 1 fails again, the other three are served from the cache
+    assert value(m, "stack_credits_total", model="siglip2", unit="async_image", charged="true") == pytest.approx(0.015)  # unchanged
+    assert value(m, "stack_cache_saved_credits_total", model="siglip2") == pytest.approx(0.015)
+
+
+def test_async_job_without_a_key_or_with_a_tripped_guard_is_refused(server):
+    m = Monitor()
+    c = MonitoredClient(sc.StackClient("", server.url, project=PROJECT), m)
+    with pytest.raises(sc.MissingApiKey):
+        c.create_job("siglip2", [])
+    assert value(m, "stack_calls_total", model="siglip2", status="error", code="missing_api_key") == 1
+    keyed = sc.StackClient("fbs_fake", server.url)
+    guard = SpendGuard(0.0001, mode="reject")
+    guard.record(1)
+    mc = MonitoredClient(keyed, Monitor(guard=guard))
+    with pytest.raises(SpendGuardTripped):
+        mc.create_job("siglip2", [{"texts": ["a"]}])
+    assert [e for e in json.loads(urllib.request.urlopen(server.url + "/_fake/log").read())["log"] if e["path"] == "/v1/jobs"] == []

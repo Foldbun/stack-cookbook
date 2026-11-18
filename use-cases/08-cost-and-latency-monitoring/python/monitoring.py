@@ -131,7 +131,7 @@ class Monitor:
             registry=r,
         )
         # The balance gauges exist only once a balance has been seen: the free tier has none, and an invented 0 would alert.
-        self.balance = self.balance_at = None
+        self.balance = self.balance_at = self.jobs = None
         self._balance_lock = threading.Lock()
         self.free_used = Gauge("stack_free_used_today", "Free-tier calls used today (UTC) by this project, per weight class.", ["class"], registry=r)
         self.free_limit = Gauge("stack_free_daily_limit", "Free-tier calls allowed per day for this project, per weight class.", ["class"], registry=r)
@@ -140,8 +140,9 @@ class Monitor:
         self._tags = itertools.count(1)
 
     # region observe
-    def observe(self, model, result, *, replayed=False, client_ms=None):
-        """One successful call (or `ok` batch item): `result` is the answer body."""
+    def observe(self, model, result, *, replayed=False, client_ms=None, asynchronous=False):
+        """One successful call (or `ok` batch or async job item): `result` is the answer body. An async item is counted at its
+        own `cost`, under the unit `async_<unit>`: the async price is a tenth of the list price and is what was charged."""
         model = result.get("model") or model
         self.calls.labels(model, "replayed" if replayed else "ok", "none").inc()
         if client_ms is not None:
@@ -154,11 +155,14 @@ class Monitor:
                 if key in timing:
                     self.latency.labels(model, phase).observe(timing[key])
             charged = "true" if billing.get("charged", cost > 0) else "false"
-            for line in billing.get("lines") or [{"unit": "unknown", "amount": cost, "waived": False}]:
+            lines = billing.get("lines") or [{"unit": "unknown", "amount": cost, "waived": False}]
+            for line in lines:
                 if line.get("waived"):
                     self.cache_saved.labels(model).inc(round(line["unitPrice"] * line["quantity"], 6))
-                elif line["amount"]:
+                elif line["amount"] and not asynchronous:
                     self.credits.labels(model, line["unit"], charged).inc(line["amount"])
+            if asynchronous and cost:
+                self.credits.labels(model, "async_" + lines[0]["unit"], charged).inc(cost)
             if result.get("cache") == "hit":
                 self.cache_hits.labels(model).inc()
             elif result.get("cache") == "miss":
@@ -177,6 +181,14 @@ class Monitor:
         if client_ms is not None:
             self.latency.labels(model, "client_total").observe(client_ms)
         self._guard_record(0)
+
+    def job_finished(self, job):
+        """A job reached a final status (call once per job). The metric `stack_async_jobs_total{model,status}` exists from the
+        first job on: a run that never uses async jobs does not expose it."""
+        with self._balance_lock:
+            if self.jobs is None:
+                self.jobs = Counter("stack_async_jobs_total", "Async jobs that reached a final status.", ["model", "status"], registry=self.registry)
+        self.jobs.labels(job.get("model") or "unknown", job["status"]).inc()
 
     def _set_balance(self, value):
         with self._balance_lock:
@@ -250,11 +262,12 @@ class Monitor:
 
 # region wrapper
 class MonitoredClient:
-    """Wraps a StackClient. `post` and `batch` are measured; every other attribute (`upload`, `models`, `get`, `calls`,
-    `summary`, `ledger`, ...) is the wrapped client's."""
+    """Wraps a StackClient. `post`, `batch` and the async jobs (`create_job`, `get_job`, `job_results`) are measured; every
+    other attribute (`upload`, `models`, `get`, `calls`, `summary`, `ledger`, ...) is the wrapped client's."""
 
     def __init__(self, client, monitor):
         self._client, self.monitor = client, monitor
+        self._job_models, self._job_items, self._jobs_done = {}, set(), set()  # job id -> model; (job id, index) and job ids already counted
 
     def __getattr__(self, name):
         return getattr(self._client, name)
@@ -309,6 +322,50 @@ class MonitoredClient:
         except Exception as err:  # the stream itself failed (cut, timed out, refused)
             self.monitor.failure(model, err)
             raise
+
+    # region jobs
+    def create_job(self, model, items, idempotency_key=None, *, metadata=None):
+        """Like StackClient.create_job. Nothing is spent yet: an async job is charged as its items finish, so its cost is
+        counted when `job_results` reads them. A guard in mode "reject" refuses the submit while the window is over its limit."""
+        try:
+            if self.monitor.guard:
+                self.monitor.guard.check()
+            job = self._client.create_job(model, items, idempotency_key, metadata=metadata)
+        except Exception as err:  # refused by the guard or the credit cap, or an API error (402 insufficient_balance, 429 too_many_jobs, ...)
+            self.monitor.failure(model, err)
+            raise
+        self._job_models[job["id"]] = model
+        return job
+
+    def get_job(self, job_id):
+        """Like StackClient.get_job; the first time a job is seen in a final status it is counted in `stack_async_jobs_total`."""
+        return self._seen(self._client.get_job(job_id))
+
+    def cancel_job(self, job_id):
+        return self._seen(self._client.cancel_job(job_id))
+
+    def _seen(self, job):
+        if job["status"] not in ("queued", "running") and job["id"] not in self._jobs_done:
+            self._jobs_done.add(job["id"])
+            self.monitor.job_finished(job)
+        return job
+
+    def job_results(self, job_id, *, tag=None, **kwargs):
+        """Like StackClient.job_results (yields every finished item). Each item is counted once, however often it is read: an
+        `ok` item at its own `cost` (0 for a cache hit) and timing, any other item as a failed call with its error code."""
+        model = self._job_models.get(job_id, "unknown")
+        if self.monitor.guard:
+            self.monitor.guard.check()
+        for item in self._client.job_results(job_id, tag=tag, **kwargs):
+            if (job_id, item["index"]) not in self._job_items:
+                self._job_items.add((job_id, item["index"]))
+                if item["status"] == "ok":
+                    self.monitor.observe(model, item["result"], asynchronous=True)
+                else:
+                    error = item.get("error") or {}
+                    status = item["status"] if item["status"] in ("expired", "cancelled") else "error"
+                    self.monitor.failure(model, sc.StackError(0, error.get("code") or item["status"], error.get("message", "")), status=status)
+            yield item
 
     def whoami(self):
         return self.monitor.refresh_account(self._client)
