@@ -10,6 +10,8 @@ Semantics shared with the TypeScript and Go client files:
 - Limits: a 429 (`Retry-After`, `retryAfterMs`) is retried a bounded number of times with jitter; when
   `X-RateLimit-Remaining` is 0 the next call waits `X-RateLimit-Reset` seconds. `daily_limit_reached` and
   `free_tier_unavailable` are final.
+- Async jobs (key only, embedding models): `create_job`, `get_job`, `job_results` and `cancel_job`. The credit cap holds the
+  job's worst case (`estimate_job`) until the job is final; `get_job` moves what the job has cost so far into the spend.
 - Also: base URL from FOLDBUN_API_BASE, a concurrency cap, a credit cap for keyed runs (FOLDBUN_MAX_CREDITS) and a
   ledger of every call.
 """
@@ -25,7 +27,7 @@ import time
 import urllib.parse
 import uuid
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 DEFAULT_BASE = "https://api.stack.foldbun.com"
 USER_AGENT = f"foldbun-stack-cookbook/{VERSION} (python; +https://github.com/Foldbun/stack-cookbook)"
 # The Cookbook's own project. A project ID is not a secret: it names who is calling and authorises nothing beyond
@@ -36,6 +38,7 @@ DEFAULT_MODEL = {"/v1/ocr": "ppocr-v6", "/v1/documents/parse": "paddleocr-vl", "
 # (connect, read) timeouts in seconds
 T_MODELS, T_UPLOAD, T_CALL, T_BATCH = (10, 10), (10, 60), (10, 90), (10, 45)
 BATCH_MAX_S, MAX_RETRIES, MAX_WAIT_S = 600, 5, 60
+JOB_FINAL, JOB_PAGE = {"completed", "cancelled", "expired", "stopped"}, 1000  # final job statuses; results per page
 # Codes that are retried even when the error does not say `retryable`, and codes that are never retried.
 RETRY_CODES, FINAL_CODES = {"rate_limited", "free_busy"}, {"daily_limit_reached", "free_tier_unavailable"}
 FREE_HINT = {
@@ -91,6 +94,7 @@ class StackClient:
         self._sem = threading.BoundedSemaphore(max_concurrency)
         self._lock = threading.Lock()
         self._models, self._uploads, self._spent, self._reserved, self._gate = None, {}, 0.0, 0.0, {}
+        self._jobs, self._job_items = {}, set()  # job id -> {hold, cost}; (job id, index) of the results already in the ledger
 
     # region http
     def _request(self, method, path, body=None, headers=None, timeout=T_CALL, stream=False):
@@ -267,8 +271,89 @@ class StackClient:
 
     # endregion
 
+    # region jobs
+    def create_job(self, model, items, idempotency_key=None, *, metadata=None):
+        """POST /v1/jobs: many embedding calls queued as one background job at a tenth of the list price. `items` are the
+        bodies of single embedding calls without `model` (`{"image": image_handle(id)}` or `{"texts": [...]}`; images are
+        handles only). Needs a key. Returns the job (status `queued`); follow it with get_job and read job_results."""
+        self.require_key("async jobs are not part of the free tier")
+        body = {"endpoint": "embeddings", "model": model, "items": items}
+        if metadata is not None:
+            body["metadata"] = metadata
+        worst = estimate_job(self.models(), model, items)
+        self._reserve(worst)
+        headers = {"Content-Type": "application/json", "Idempotency-Key": idempotency_key or str(uuid.uuid4())}
+        try:
+            with self._sem:
+                _, raw = self._send("POST", "/v1/jobs", json.dumps(body).encode(), headers, T_CALL, gate=model)
+            job = json.loads(raw)
+        except BaseException:
+            self._release(worst)
+            raise
+        with self._lock:
+            if job["id"] in self._jobs:  # a replay of a job this client already holds
+                self._reserved -= worst
+            else:
+                self._jobs[job["id"]] = {"hold": worst, "cost": 0.0}
+        return job
+
+    def get_job(self, job_id):
+        """GET /v1/jobs/{id}: status, `counts` and the `cost` so far. Poll at a relaxed pace (every 30 s or more)."""
+        self.require_key("async jobs are not part of the free tier")
+        _, raw = self._send("GET", f"/v1/jobs/{job_id}", timeout=T_MODELS)
+        return self._track_job(json.loads(raw))
+
+    def job_results(self, job_id, *, limit=JOB_PAGE, tag=None):
+        """GET /v1/jobs/{id}/results, page after page by cursor. Yields every finished item `{index, status, result?, error?}`
+        in ascending index; `ok` items go into the ledger once (`cost` of the item), however often they are read.
+        Items keep finishing while the job runs: read the results after get_job reports a final status."""
+        self.require_key("async jobs are not part of the free tier")
+        cursor = None
+        while True:
+            query = {"limit": limit, **({"cursor": cursor} if cursor else {})}
+            _, raw = self._send("GET", f"/v1/jobs/{job_id}/results?{urllib.parse.urlencode(query)}", timeout=T_CALL)
+            page = json.loads(raw)
+            for item in page["items"]:
+                if item["status"] == "ok":
+                    self._record_job_item(job_id, item, tag)
+                yield item
+            cursor = page.get("next")
+            if not cursor:
+                return
+
+    def cancel_job(self, job_id):
+        """POST /v1/jobs/{id}/cancel: items that have not started are cancelled and never charged. Returns the job."""
+        self.require_key("async jobs are not part of the free tier")
+        _, raw = self._send("POST", f"/v1/jobs/{job_id}/cancel", b"", {"Content-Type": "application/json"}, T_MODELS)
+        return self._track_job(json.loads(raw))
+
+    def _track_job(self, job):
+        """Spend follows the job's `cost`; the rest of its hold is released once the job is final."""
+        with self._lock:
+            held = self._jobs.get(job["id"])
+            if held:
+                delta = max(0.0, job["cost"] - held["cost"])
+                take = min(delta, held["hold"])
+                self._spent += delta
+                self._reserved -= take
+                held["hold"] -= take
+                held["cost"] = max(held["cost"], job["cost"])
+                if job["status"] in JOB_FINAL:
+                    self._reserved -= held["hold"]
+                    held["hold"] = 0.0
+        return job
+
+    def _record_job_item(self, job_id, item, tag):
+        with self._lock:
+            if (job_id, item["index"]) in self._job_items:
+                return
+            self._job_items.add((job_id, item["index"]))
+        self._record("/v1/jobs", item["result"], False, tag, spend=False)
+
+    # endregion
+
     # region ledger
-    def _record(self, endpoint, result, replayed, tag):
+    def _record(self, endpoint, result, replayed, tag, spend=True):
         billing = result.get("billing") or {}
         row = {
             "endpoint": endpoint,
@@ -282,7 +367,7 @@ class StackClient:
         }
         with self._lock:
             self.ledger.append((tag, row))
-            if not replayed:
+            if not replayed and spend:
                 self._spent += row["list"]
 
     def calls(self, tag=None):
@@ -309,6 +394,12 @@ class StackClient:
 
 def _round(x):
     return math.floor(x * 1e6 + 0.5) / 1e6
+
+
+def estimate_job(models, model, items):
+    """Worst-case cost of an async job: the async price (`asyncPrices` of the model) of every item."""
+    price = {p["unit"]: p["price"] for p in (models.get(model) or {}).get("asyncPrices") or []}
+    return _round(sum(price.get("text", 0) * len(it["texts"]) if "texts" in it else price.get("image", 0) for it in items))
 
 
 def estimate(models, path, body, model):

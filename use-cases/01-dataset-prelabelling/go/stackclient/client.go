@@ -11,6 +11,8 @@
 //   - Limits: a 429 (`Retry-After`, `retryAfterMs`) is retried a bounded number of times with jitter; when
 //     `X-RateLimit-Remaining` is 0 the next call waits `X-RateLimit-Reset` seconds. `daily_limit_reached` and
 //     `free_tier_unavailable` are final.
+//   - Async jobs (key only, embedding models): CreateJob, GetJob, JobResults and CancelJob. The credit cap holds the
+//     job's worst case (EstimateJob) until the job is final; GetJob moves what the job has cost so far into the spend.
 //   - Also: base URL from FOLDBUN_API_BASE, a concurrency cap, a credit cap for keyed runs (FOLDBUN_MAX_CREDITS)
 //     and a ledger of every call.
 //
@@ -32,6 +34,7 @@ import (
 	mrand "math/rand/v2"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -41,7 +44,7 @@ import (
 )
 
 const (
-	Version     = "1.1.0"
+	Version     = "1.2.0"
 	DefaultBase = "https://api.stack.foldbun.com"
 	UserAgent   = "foldbun-stack-cookbook/" + Version + " (go; +https://github.com/Foldbun/stack-cookbook)"
 	// CookbookProject is the Cookbook's own project. A project ID is not a secret: it names who is calling and
@@ -53,6 +56,8 @@ const (
 	maxRetries = 5
 	maxWait    = 60 * time.Second
 	connect    = 10 * time.Second
+
+	jobPage = 1000 // results per page of JobResults
 )
 
 // Read timeouts (the connect timeout is always 10 s).
@@ -130,6 +135,7 @@ type Opts struct {
 	Key         string        // idempotency key, reused on every retry; a new UUID when empty
 	Tag         string        // ledger tag (an item id); Calls(tag) returns the rows made with it
 	ReadTimeout time.Duration // replaces the default read timeout of a call (90 s)
+	PageSize    int           // JobResults: items per page, 1 to 1,000 (default 1,000)
 }
 
 // Row is one ledger row: a successful call or an `ok` batch item. It is the `calls[]` entry of result.json.
@@ -157,6 +163,8 @@ type Model struct {
 	Available bool     `json:"available"`
 	Prices    []Price  `json:"prices"`
 	Endpoints []string `json:"endpoints"`
+	// AsyncPrices is the price per unit of an async job; `Unit` is the synchronous unit it replaces. Empty without async.
+	AsyncPrices []Price `json:"asyncPrices"`
 }
 
 type Price struct {
@@ -171,6 +179,47 @@ type ImageInfo struct {
 	Height      int    `json:"height"`
 	Bytes       int    `json:"bytes"`
 	ContentType string `json:"contentType"`
+}
+
+// JobCounts is the number of items of a job in each status.
+type JobCounts struct {
+	Total     int `json:"total"`
+	Pending   int `json:"pending"`
+	Running   int `json:"running"`
+	OK        int `json:"ok"`
+	Error     int `json:"error"`
+	Expired   int `json:"expired"`
+	Cancelled int `json:"cancelled"`
+}
+
+// Job is an async job (`POST /v1/jobs`): its status, item counts and the credits charged so far.
+type Job struct {
+	ID              string          `json:"id"`
+	Model           string          `json:"model"`
+	Status          string          `json:"status"` // queued, running, completed, cancelled, expired or stopped
+	Counts          JobCounts       `json:"counts"`
+	Estimate        float64         `json:"estimate"` // the most the job can cost; held until it ends
+	Cost            float64         `json:"cost"`     // charged so far
+	CreatedAt       string          `json:"createdAt"`
+	StartedAt       *string         `json:"startedAt"`
+	FinishedAt      *string         `json:"finishedAt"`
+	ExpiresAt       string          `json:"expiresAt"`
+	ResultsExpireAt *string         `json:"resultsExpireAt"`
+	Metadata        json.RawMessage `json:"metadata"`
+}
+
+// Final reports whether the job has ended (completed, cancelled, expired or stopped).
+func (j Job) Final() bool { return j.Status != "queued" && j.Status != "running" }
+
+// JobItem is one finished item of a job: Result is the response of the single call when Status is "ok".
+type JobItem struct {
+	Index  int             `json:"index"`
+	Status string          `json:"status"` // ok, error, expired, cancelled or deleted
+	Result json.RawMessage `json:"result"`
+	Error  *struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+	} `json:"error"`
 }
 
 // Event is one Server-Sent Event of a batch: "progress", "item" or "summary".
@@ -200,10 +249,14 @@ type Client struct {
 	gate     map[string]time.Time // per model: no call before this time (X-RateLimit-Remaining 0)
 	spent    float64
 	reserved float64
+	jobs     map[string]*jobHold // async jobs this client submitted
+	jobItems map[string]bool     // "job id:index" of the results already in the ledger
 
 	modelsMu sync.Mutex
 	models   map[string]Model
 }
+
+type jobHold struct{ hold, cost float64 } // credits still held for a job, and the cost of it seen so far
 
 type upload struct {
 	data        []byte
@@ -231,7 +284,7 @@ func New(cfg Config) (*Client, error) {
 		base = DefaultBase
 	}
 	c := &Client{apiKey: key, project: project, free: key == "", base: strings.TrimRight(base, "/"), maxCredits: cfg.MaxCredits,
-		uploads: map[string]upload{}, gate: map[string]time.Time{}}
+		uploads: map[string]upload{}, gate: map[string]time.Time{}, jobs: map[string]*jobHold{}, jobItems: map[string]bool{}}
 	if c.maxCredits == nil {
 		if s := os.Getenv("FOLDBUN_MAX_CREDITS"); s != "" {
 			v, err := strconv.ParseFloat(s, 64)
@@ -654,8 +707,205 @@ func (c *Client) Batch(endpoint string, body any, o Opts, fn func(Event) error) 
 
 // endregion
 
+// region jobs
+
+// CreateJob is POST /v1/jobs: many embedding calls queued as one background job at a tenth of the list price. items
+// is a list of the bodies of single embedding calls without `model` (`{"image": ImageHandle(id)}` or
+// `{"texts": [...]}`; images are handles only); metadata is optional (nil to omit). Needs a key. Returns the job
+// (status queued); follow it with GetJob and read JobResults.
+func (c *Client) CreateJob(model string, items any, metadata any, o Opts) (Job, error) {
+	var job Job
+	if err := c.RequireKey("async jobs are not part of the free tier"); err != nil {
+		return job, err
+	}
+	raw, err := json.Marshal(items)
+	if err != nil {
+		return job, err
+	}
+	var views []view
+	if err := json.Unmarshal(raw, &views); err != nil {
+		return job, err
+	}
+	body := map[string]any{"endpoint": "embeddings", "model": model, "items": json.RawMessage(raw)}
+	if metadata != nil {
+		body["metadata"] = metadata
+	}
+	data, err := json.Marshal(body)
+	if err != nil {
+		return job, err
+	}
+	models, err := c.Models()
+	if err != nil {
+		return job, err
+	}
+	worst := estimateJob(models, model, views)
+	if err := c.reserve(worst); err != nil {
+		return job, err
+	}
+	key := o.Key
+	if key == "" {
+		key = newUUID()
+	}
+	headers := map[string]string{"Content-Type": "application/json", "Idempotency-Key": key}
+	rep, err := func() (*reply, error) {
+		c.sem <- struct{}{}
+		defer func() { <-c.sem }()
+		return c.send("POST", "/v1/jobs", data, headers, readCall, true, false, model)
+	}()
+	if err == nil {
+		err = json.Unmarshal(rep.raw, &job)
+	}
+	if err != nil {
+		c.release(worst)
+		return Job{}, err
+	}
+	c.mu.Lock()
+	if _, held := c.jobs[job.ID]; held { // a replay of a job this client already holds
+		c.reserved -= worst
+	} else {
+		c.jobs[job.ID] = &jobHold{hold: worst}
+	}
+	c.mu.Unlock()
+	return job, nil
+}
+
+// GetJob is GET /v1/jobs/{id}: status, counts and the cost so far. Poll at a relaxed pace (every 30 s or more).
+func (c *Client) GetJob(id string) (Job, error) {
+	if err := c.RequireKey("async jobs are not part of the free tier"); err != nil {
+		return Job{}, err
+	}
+	rep, err := c.send("GET", "/v1/jobs/"+id, nil, nil, readModels, true, false, "")
+	return c.trackJob(rep, err)
+}
+
+// CancelJob is POST /v1/jobs/{id}/cancel: items that have not started are cancelled and never charged.
+func (c *Client) CancelJob(id string) (Job, error) {
+	if err := c.RequireKey("async jobs are not part of the free tier"); err != nil {
+		return Job{}, err
+	}
+	rep, err := c.send("POST", "/v1/jobs/"+id+"/cancel", []byte{}, map[string]string{"Content-Type": "application/json"}, readModels, true, false, "")
+	return c.trackJob(rep, err)
+}
+
+// trackJob decodes a job answer. Spend follows the job's cost; the rest of its hold is released once it is final.
+func (c *Client) trackJob(rep *reply, err error) (Job, error) {
+	var job Job
+	if err != nil {
+		return job, err
+	}
+	if err := json.Unmarshal(rep.raw, &job); err != nil {
+		return job, err
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if h, ok := c.jobs[job.ID]; ok {
+		delta := math.Max(0, job.Cost-h.cost)
+		take := math.Min(delta, h.hold)
+		c.spent += delta
+		c.reserved -= take
+		h.hold -= take
+		h.cost = math.Max(h.cost, job.Cost)
+		if job.Final() {
+			c.reserved -= h.hold
+			h.hold = 0
+		}
+	}
+	return job, nil
+}
+
+// JobResults is GET /v1/jobs/{id}/results, page after page by cursor. fn is called for every finished item in
+// ascending index; return ErrStop to end early. `ok` items go into the ledger once (the item's cost), however often
+// they are read, before fn sees them. Items keep finishing while the job runs: read the results after GetJob
+// reports a final status.
+func (c *Client) JobResults(id string, o Opts, fn func(JobItem) error) error {
+	if err := c.RequireKey("async jobs are not part of the free tier"); err != nil {
+		return err
+	}
+	limit := o.PageSize
+	if limit <= 0 {
+		limit = jobPage
+	}
+	cursor := ""
+	for {
+		path := fmt.Sprintf("/v1/jobs/%s/results?limit=%d", id, limit)
+		if cursor != "" {
+			path += "&cursor=" + url.QueryEscape(cursor)
+		}
+		rep, err := c.send("GET", path, nil, nil, readCall, true, false, "")
+		if err != nil {
+			return err
+		}
+		var page struct {
+			Items []JobItem `json:"items"`
+			Next  *string   `json:"next"`
+		}
+		if err := json.Unmarshal(rep.raw, &page); err != nil {
+			return err
+		}
+		for _, item := range page.Items {
+			if item.Status == "ok" {
+				if err := c.recordJobItem(id, item, o.Tag); err != nil {
+					return err
+				}
+			}
+			if err := fn(item); err != nil {
+				if errors.Is(err, ErrStop) {
+					return nil
+				}
+				return err
+			}
+		}
+		if page.Next == nil || *page.Next == "" {
+			return nil
+		}
+		cursor = *page.Next
+	}
+}
+
+func (c *Client) recordJobItem(id string, item JobItem, tag string) error {
+	k := fmt.Sprintf("%s:%d", id, item.Index)
+	c.mu.Lock()
+	seen := c.jobItems[k]
+	c.jobItems[k] = true
+	c.mu.Unlock()
+	if seen {
+		return nil
+	}
+	return c.recordRow("/v1/jobs", item.Result, false, tag, false)
+}
+
+// EstimateJob is the worst-case cost of an async job: the async price (`AsyncPrices` of the model) of every item.
+func EstimateJob(models map[string]Model, model string, items any) float64 {
+	raw, _ := json.Marshal(items)
+	var views []view
+	_ = json.Unmarshal(raw, &views)
+	return estimateJob(models, model, views)
+}
+
+func estimateJob(models map[string]Model, model string, items []view) float64 {
+	price := map[string]float64{}
+	for _, p := range models[model].AsyncPrices {
+		price[p.Unit] = p.Price
+	}
+	sum := 0.0
+	for _, it := range items {
+		if it.Texts != nil {
+			sum += float64(price["text"] * float64(len(it.Texts))) // float64(): no fused multiply-add
+		} else {
+			sum += price["image"]
+		}
+	}
+	return round6(sum)
+}
+
+// endregion
+
 // region ledger
 func (c *Client) record(endpoint string, raw []byte, replayed bool, tag string) error {
+	return c.recordRow(endpoint, raw, replayed, tag, true)
+}
+
+func (c *Client) recordRow(endpoint string, raw []byte, replayed bool, tag string, spend bool) error {
 	var r struct {
 		Model   *string  `json:"model"`
 		Cost    *float64 `json:"cost"`
@@ -688,7 +938,7 @@ func (c *Client) record(endpoint string, raw []byte, replayed bool, tag string) 
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.ledger = append(c.ledger, entry{tag, row})
-	if !replayed {
+	if !replayed && spend {
 		c.spent += row.List
 	}
 	return nil

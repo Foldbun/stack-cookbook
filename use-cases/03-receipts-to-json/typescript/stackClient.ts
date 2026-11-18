@@ -16,7 +16,7 @@
  */
 import { randomUUID } from "node:crypto";
 
-export const VERSION = "1.1.0";
+export const VERSION = "1.2.0";
 export const DEFAULT_BASE = "https://api.stack.foldbun.com";
 export const USER_AGENT = `foldbun-stack-cookbook/${VERSION} (typescript; +https://github.com/Foldbun/stack-cookbook)`;
 // The Cookbook's own project. A project ID is not a secret: it names who is calling and authorises nothing beyond
@@ -38,6 +38,8 @@ const T_BATCH: Timeout = [10, 45];
 const BATCH_MAX_S = 600;
 const MAX_RETRIES = 5;
 const MAX_WAIT_S = 60;
+const JOB_FINAL = new Set(["completed", "cancelled", "expired", "stopped"]); // final job statuses
+const JOB_PAGE = 1000; // results per page
 // Codes that are retried even when the error does not say `retryable`, and codes that are never retried.
 const RETRY_CODES = new Set(["rate_limited", "free_busy"]);
 const FINAL_CODES = new Set(["daily_limit_reached", "free_tier_unavailable"]);
@@ -107,6 +109,20 @@ export interface CallOptions {
   tag?: string;
   /** [connect, read] seconds. */
   timeout?: readonly [number, number];
+}
+
+export interface JobOptions {
+  /** Reused on every retry; a new UUID when omitted. */
+  idempotencyKey?: string;
+  /** Returned unchanged as `job.metadata` (at most 16 keys and 2 KiB). */
+  metadata?: Record<string, unknown>;
+}
+
+export interface JobResultsOptions {
+  /** Item tag: the ledger rows of these results are returned by `calls(tag)`. */
+  tag?: string;
+  /** Items per page, 1 to 1,000 (default 1,000). */
+  limit?: number;
 }
 
 export interface ClientOptions {
@@ -218,6 +234,8 @@ export class StackClient {
   private modelsPromise: Promise<Record<string, Json>> | null = null;
   private uploads = new Map<string, { data: Uint8Array; contentType: string }>();
   private spent = 0;
+  private jobs = new Map<string, { hold: number; cost: number }>(); // job id -> credits still held, cost seen so far
+  private jobItems = new Set<string>(); // `${job id}:${index}` of the results already in the ledger
   private reserved = 0;
   private gate = new Map<string, number>(); // model -> performance.now() before which the next call waits
 
@@ -433,8 +451,101 @@ export class StackClient {
   }
   // #endregion
 
+  // #region jobs
+  /**
+   * POST /v1/jobs: many embedding calls queued as one background job at a tenth of the list price. `items` are the
+   * bodies of single embedding calls without `model` (`{ image: imageHandle(id) }` or `{ texts: [...] }`; images are
+   * handles only). Needs a key. Returns the job (status `queued`); follow it with getJob and read jobResults.
+   */
+  async createJob(model: string, items: Json[], opts: JobOptions = {}): Promise<Json> {
+    this.requireKey("async jobs are not part of the free tier");
+    const body: Json = { endpoint: "embeddings", model, items };
+    if (opts.metadata !== undefined) body.metadata = opts.metadata;
+    const worst = estimateJob(await this.models(), model, items);
+    this.reserve(worst);
+    const headers = { "Content-Type": "application/json", "Idempotency-Key": opts.idempotencyKey ?? randomUUID() };
+    let job: Json;
+    try {
+      await this.sem.acquire();
+      try {
+        const reply = await this.send("POST", "/v1/jobs", JSON.stringify(body), headers, T_CALL, true, false, model);
+        job = JSON.parse(new TextDecoder().decode(reply.raw));
+      } finally {
+        this.sem.release();
+      }
+    } catch (err) {
+      this.release(worst);
+      throw err;
+    }
+    if (this.jobs.has(job.id)) this.release(worst); // a replay of a job this client already holds
+    else this.jobs.set(job.id, { hold: worst, cost: 0 });
+    return job;
+  }
+
+  /** GET /v1/jobs/{id}: status, `counts` and the `cost` so far. Poll at a relaxed pace (every 30 s or more). */
+  async getJob(jobId: string): Promise<Json> {
+    this.requireKey("async jobs are not part of the free tier");
+    const { raw } = await this.send("GET", `/v1/jobs/${jobId}`, undefined, {}, T_MODELS);
+    return this.trackJob(JSON.parse(new TextDecoder().decode(raw)));
+  }
+
+  /**
+   * GET /v1/jobs/{id}/results, page after page by cursor. Yields every finished item `{index, status, result?, error?}`
+   * in ascending index; `ok` items go into the ledger once (`cost` of the item), however often they are read.
+   * Items keep finishing while the job runs: read the results after getJob reports a final status.
+   */
+  async *jobResults(jobId: string, opts: JobResultsOptions = {}): AsyncGenerator<Json> {
+    this.requireKey("async jobs are not part of the free tier");
+    let cursor: string | null = null;
+    for (;;) {
+      const query = new URLSearchParams({ limit: String(opts.limit ?? JOB_PAGE) });
+      if (cursor) query.set("cursor", cursor);
+      const { raw } = await this.send("GET", `/v1/jobs/${jobId}/results?${query}`, undefined, {}, T_CALL);
+      const page = JSON.parse(new TextDecoder().decode(raw));
+      for (const item of page.items as Json[]) {
+        if (item.status === "ok") this.recordJobItem(jobId, item, opts.tag);
+        yield item;
+      }
+      cursor = page.next ?? null;
+      if (!cursor) return;
+    }
+  }
+
+  /** POST /v1/jobs/{id}/cancel: items that have not started are cancelled and never charged. Returns the job. */
+  async cancelJob(jobId: string): Promise<Json> {
+    this.requireKey("async jobs are not part of the free tier");
+    const { raw } = await this.send("POST", `/v1/jobs/${jobId}/cancel`, "", { "Content-Type": "application/json" }, T_MODELS);
+    return this.trackJob(JSON.parse(new TextDecoder().decode(raw)));
+  }
+
+  /** Spend follows the job's `cost`; the rest of its hold is released once the job is final. */
+  private trackJob(job: Json): Json {
+    const held = this.jobs.get(job.id);
+    if (held) {
+      const delta = Math.max(0, job.cost - held.cost);
+      const take = Math.min(delta, held.hold);
+      this.spent += delta;
+      this.reserved -= take;
+      held.hold -= take;
+      held.cost = Math.max(held.cost, job.cost);
+      if (JOB_FINAL.has(job.status)) {
+        this.reserved -= held.hold;
+        held.hold = 0;
+      }
+    }
+    return job;
+  }
+
+  private recordJobItem(jobId: string, item: Json, tag?: string): void {
+    const id = `${jobId}:${item.index}`;
+    if (this.jobItems.has(id)) return;
+    this.jobItems.add(id);
+    this.record("/v1/jobs", item.result, false, tag, false);
+  }
+  // #endregion
+
   // #region ledger
-  private record(endpoint: string, result: Json, replayed: boolean, tag?: string): void {
+  private record(endpoint: string, result: Json, replayed: boolean, tag?: string, spend = true): void {
     const billing = result.billing ?? {};
     const row: LedgerRow = {
       endpoint,
@@ -447,7 +558,7 @@ export class StackClient {
       replayed,
     };
     this.ledger.push([tag, row]);
-    if (!replayed) this.spent += row.list;
+    if (!replayed && spend) this.spent += row.list;
   }
 
   /** Ledger rows (the `calls[]` of result.json), optionally only those made with `tag`. */
@@ -487,6 +598,13 @@ function g(x: number): string {
   const exp = Number(x.toExponential(5).split("e")[1]);
   if (exp < -4 || exp >= 6) return x.toExponential(5).replace(/\.?0+e/, "e").replace(/e([+-])(\d)$/, "e$10$2");
   return x.toFixed(5 - exp).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+}
+
+/** Worst-case cost of an async job: the async price (`asyncPrices` of the model) of every item. */
+export function estimateJob(models: Record<string, Json>, model: string, items: Json[]): number {
+  const price: Record<string, number> = {};
+  for (const p of models[model]?.asyncPrices ?? []) price[p.unit] = p.price;
+  return round(items.reduce((sum: number, it) => sum + ("texts" in it ? (price.text ?? 0) * it.texts.length : (price.image ?? 0)), 0));
 }
 
 /** Worst-case list price of one call (the encoding fee is always counted). */
