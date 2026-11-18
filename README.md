@@ -66,7 +66,7 @@ Every implementation is a command-line program with the same arguments, `--manif
 
 ## Data and licences <!-- #data -->
 
-Every image and dataset has a licence that allows redistribution, with a row per file in an attribution table. See [ATTRIBUTION.md](ATTRIBUTION.md).
+Every image and dataset has a licence that allows redistribution, with a row per file in an attribution table. See [ATTRIBUTION.md](ATTRIBUTION.md). Rights holders can request removal of an image or dataset through the [contact page](https://foldbun.com/contact/).
 
 ## Help and feedback <!-- #help -->
 

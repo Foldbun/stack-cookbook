@@ -1,4 +1,4 @@
-<!-- en-sha: 8218fdd2caf6 -->
+<!-- en-sha: 68240fa2eff8 -->
 # 第一次调用
 
 [English](README.md) | 简体中文
@@ -280,4 +280,4 @@ if client.Free() {
 
 ## 数据 <!-- #data -->
 
-`assets/smoke/settings.webp` 是为 Foldbun Stack 制作的合成截图，以 CC0 1.0 发布；见 `assets/smoke/ATTRIBUTION.csv`。
+`assets/smoke/settings.webp` 是为 Foldbun Stack 制作的合成截图，以 CC0 1.0 发布；见 `assets/smoke/ATTRIBUTION.csv`。权利人如需移除某张图片或某个数据集，可通过[联系页面](https://foldbun.com/zh/contact/)提出。

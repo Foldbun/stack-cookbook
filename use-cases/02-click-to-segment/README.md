@@ -1068,4 +1068,4 @@ See [Images](https://stack.foldbun.com/docs/images/), [Rate limits](https://stac
 
 ## Data <!-- #data -->
 
-The smoke set is 3 objects (a goose, a bird and a platter) from the validation split of Open Images V7: images CC BY 2.0 by their authors, resized to at most 1,024 px; segmentation masks CC BY 4.0 by Google LLC, resized to the image. Attribution: `assets/smoke/ATTRIBUTION.csv`.
+The smoke set is 3 objects (a goose, a bird and a platter) from the validation split of Open Images V7: images CC BY 2.0 by their authors, resized to at most 1,024 px; segmentation masks CC BY 4.0 by Google LLC, resized to the image. Attribution: `assets/smoke/ATTRIBUTION.csv`. Rights holders can request removal of an image or dataset through the [contact page](https://foldbun.com/contact/).

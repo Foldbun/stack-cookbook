@@ -279,4 +279,4 @@ One `ppocr-v6` call has a list price of 0.25 credits. A smoke run is free on the
 
 ## Data <!-- #data -->
 
-`assets/smoke/settings.webp` is a synthetic screenshot made for Foldbun Stack and released under CC0 1.0; see `assets/smoke/ATTRIBUTION.csv`.
+`assets/smoke/settings.webp` is a synthetic screenshot made for Foldbun Stack and released under CC0 1.0; see `assets/smoke/ATTRIBUTION.csv`. Rights holders can request removal of an image or dataset through the [contact page](https://foldbun.com/contact/).

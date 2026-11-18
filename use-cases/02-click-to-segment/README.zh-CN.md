@@ -1,4 +1,4 @@
-<!-- en-sha: a41dde0001f8 -->
+<!-- en-sha: e2510611ea60 -->
 # 点击分割组件与持有密钥的后端
 
 [English](README.md) | 简体中文
@@ -1069,4 +1069,4 @@ Smoke 集（3 个物体，最多 4 次点击），离线：
 
 ## 数据 <!-- #data -->
 
-Smoke 集是来自 Open Images V7 验证集的 3 个物体（一只鹅、一只鸟和一个托盘）：图像以 CC BY 2.0 授权，版权归各自作者，长边缩放到不超过 1,024 像素；分割掩码以 CC BY 4.0 授权，版权归 Google LLC，已缩放到与图像一致。署名信息见 `assets/smoke/ATTRIBUTION.csv`。
+Smoke 集是来自 Open Images V7 验证集的 3 个物体（一只鹅、一只鸟和一个托盘）：图像以 CC BY 2.0 授权，版权归各自作者，长边缩放到不超过 1,024 像素；分割掩码以 CC BY 4.0 授权，版权归 Google LLC，已缩放到与图像一致。署名信息见 `assets/smoke/ATTRIBUTION.csv`。权利人如需移除某张图片或某个数据集，可通过[联系页面](https://foldbun.com/zh/contact/)提出。

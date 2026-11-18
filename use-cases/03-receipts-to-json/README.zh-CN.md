@@ -1,4 +1,4 @@
-<!-- en-sha: 7180a6997a38 -->
+<!-- en-sha: 40fecd54423e -->
 # 收据和发票转为经过校验的 JSON
 
 [English](README.md) | 简体中文
@@ -1609,4 +1609,4 @@ Smoke 集合（4 份文档），离线夹具：
 
 ## 数据 <!-- #data -->
 
-Smoke 集合为 3 张 CORD v2 收据（NAVER Clova，CC BY 4.0，重新编码为 JPEG）和 1 张合成发票（CC0，为本仓库生成，带拍摄式的透视）。署名见 `assets/smoke/ATTRIBUTION.csv`。CORD 的标准答案不含商户和日期。
+Smoke 集合为 3 张 CORD v2 收据（NAVER Clova，CC BY 4.0，重新编码为 JPEG）和 1 张合成发票（CC0，为本仓库生成，带拍摄式的透视）。署名见 `assets/smoke/ATTRIBUTION.csv`。CORD 的标准答案不含商户和日期。权利人如需移除某张图片或某个数据集，可通过[联系页面](https://foldbun.com/zh/contact/)提出。

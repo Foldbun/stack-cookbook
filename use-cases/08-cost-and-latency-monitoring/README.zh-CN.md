@@ -1,4 +1,4 @@
-<!-- en-sha: abc8da0927ab -->
+<!-- en-sha: 4f9692bd2a8b -->
 # 监控线上集成的成本与时延
 
 [English](README.md) | 简体中文
@@ -471,4 +471,4 @@ def run_call(mc, entry, images):
 
 ## 数据 <!-- #data -->
 
-工作负载用的图片都已在本仓库里：用例 00 的设置页截图（`../00-quickstart/assets/smoke/settings.webp`，CC0，来自 Playground 样例）和用例 01 smoke 集里的两张照片（`../../datasets/smoke/01-dataset-prelabelling/images/`，Open Images，CC BY 2.0）。它们的 sha256 在 `assets/manifest.json` 里；作者和许可证在这些目录的 `ATTRIBUTION.csv` 和 `ATTRIBUTION.md` 里。没有新增数据。
+工作负载用的图片都已在本仓库里：用例 00 的设置页截图（`../00-quickstart/assets/smoke/settings.webp`，CC0，来自 Playground 样例）和用例 01 smoke 集里的两张照片（`../../datasets/smoke/01-dataset-prelabelling/images/`，Open Images，CC BY 2.0）。它们的 sha256 在 `assets/manifest.json` 里；作者和许可证在这些目录的 `ATTRIBUTION.csv` 和 `ATTRIBUTION.md` 里。没有新增数据。权利人如需移除某张图片或某个数据集，可通过[联系页面](https://foldbun.com/zh/contact/)提出。

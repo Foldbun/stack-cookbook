@@ -1,4 +1,4 @@
-<!-- en-sha: a6560150db9b -->
+<!-- en-sha: af66e99ce63a -->
 # 按图、按文字搜索图库，并找出近重复图片
 
 [English](README.md) | 简体中文
@@ -992,4 +992,4 @@ func listenAndServe(ctx context.Context, ln net.Listener, h http.Handler) error 
 
 ## 数据 <!-- #data -->
 
-smoke 数据集包含 20 张原图、5 个近重复变体和 5 条文字查询，来自 `datasets/smoke/05-image-library-search/`（`assets/smoke/` 链接到它）。照片来自 Open Images V7 验证集（图片以 CC BY 2.0 由作者发布，标签为 CC BY 4.0）；变体由它们按记录的变换派生。作者和许可证见 `assets/smoke/ATTRIBUTION.csv`。完整数据集（400 张图片、100 个变体、40 条查询）是发布附件，说明见 `datasets/README.md`。
+smoke 数据集包含 20 张原图、5 个近重复变体和 5 条文字查询，来自 `datasets/smoke/05-image-library-search/`（`assets/smoke/` 链接到它）。照片来自 Open Images V7 验证集（图片以 CC BY 2.0 由作者发布，标签为 CC BY 4.0）；变体由它们按记录的变换派生。作者和许可证见 `assets/smoke/ATTRIBUTION.csv`。完整数据集（400 张图片、100 个变体、40 条查询）是发布附件，说明见 `datasets/README.md`。权利人如需移除某张图片或某个数据集，可通过[联系页面](https://foldbun.com/zh/contact/)提出。

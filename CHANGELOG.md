@@ -2,6 +2,11 @@
 
 All notable changes to this repository. Versions follow [Semantic Versioning](https://semver.org/); the client files carry their own version (`VERSION` in each file).
 
+## Unreleased
+
+- Site: the footer carries the legal links (terms of service, privacy policy, acceptable use policy, refund policy, contact), pointing to the pages of record on foldbun.com in the page language and opening in a new tab; the copyright line names Foldbun Technologies Limited.
+- Docs: where the Cookbook documents its datasets and image attributions (the READMEs, `ATTRIBUTION.md`, `datasets/README.md`, the dataset sections of the use cases, here and on the site), rights holders are told they can request removal through the contact page on foldbun.com.
+
 ## 0.3.2 - 2026-11-18
 
 - Site: search and link-preview metadata. Unique page titles (`<page> | Stack Cookbook`; the home page title is no longer repeated), a default Open Graph / Twitter image per language, `hreflang="zh"` next to `zh-CN`, TechArticle and BreadcrumbList JSON-LD, and a `<lastmod>` in the sitemap taken from git history. `usecase.toml` gets an optional `seo_title`.

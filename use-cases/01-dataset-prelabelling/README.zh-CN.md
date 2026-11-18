@@ -1,4 +1,4 @@
-<!-- en-sha: bd59a5dbe32e -->
+<!-- en-sha: a9542bb24710 -->
 # 用文字提示词预标注图像数据集
 
 [English](README.md) | 简体中文
@@ -1112,4 +1112,4 @@ func writeCosts(path string, items []itemResult) error {
 
 ## 数据 <!-- #data -->
 
-60 张图取自 Open Images Dataset V7 验证集。标注为 CC BY 4.0（Google LLC），图片为 CC BY 2.0，版权归各作者；提交在仓库中的 smoke 图片及其署名在 `datasets/smoke/01-dataset-prelabelling/`，其余见 `datasets/attribution/ATTRIBUTION-01-dataset-prelabelling.csv`。`fixtures/` 中的离线夹具是合成的：由 `fixtures/synthesize.py` 按真值框画出，不是模型输出。
+60 张图取自 Open Images Dataset V7 验证集。标注为 CC BY 4.0（Google LLC），图片为 CC BY 2.0，版权归各作者；提交在仓库中的 smoke 图片及其署名在 `datasets/smoke/01-dataset-prelabelling/`，其余见 `datasets/attribution/ATTRIBUTION-01-dataset-prelabelling.csv`。`fixtures/` 中的离线夹具是合成的：由 `fixtures/synthesize.py` 按真值框画出，不是模型输出。权利人如需移除某张图片或某个数据集，可通过[联系页面](https://foldbun.com/zh/contact/)提出。

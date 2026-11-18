@@ -1,4 +1,4 @@
-<!-- en-sha: 41c77d7b8121 -->
+<!-- en-sha: 2a1e002c2944 -->
 # 扫描文档转为可入索引的 Markdown 切块
 
 [English](README.md) | 简体中文
@@ -446,4 +446,4 @@ smoke 集（2 页）：
 
 ## 数据 <!-- #data -->
 
-数据集是合成的，由 `datasets/generators/documents.py` 生成（CC0）：6 份虚构文档，每份 2 到 3 页，用 Pillow 排版，共 15 页，每页都有干净渲染和翻拍变体（透视、旋转、光照不均、模糊、噪点、JPEG），共 30 张、长边不超过 1754 px 的图片。正文节选自公有领域的书（Adam Smith、Charles Darwin、Henry David Thoreau，以及 Albert Einstein 1920 年的英译本）；标题、页眉、页脚、表格（数字为虚构，并已注明）和公式都是生成的。每页的真值：按阅读顺序的块及其框、表格单元格，以及整页 Markdown。smoke 集是 `d01` 的第 2 页（干净版，带表格）和翻拍版的第 3 页。署名：`assets/smoke/ATTRIBUTION.csv`；来源和许可证：`datasets/LICENSES.md`。
+数据集是合成的，由 `datasets/generators/documents.py` 生成（CC0）：6 份虚构文档，每份 2 到 3 页，用 Pillow 排版，共 15 页，每页都有干净渲染和翻拍变体（透视、旋转、光照不均、模糊、噪点、JPEG），共 30 张、长边不超过 1754 px 的图片。正文节选自公有领域的书（Adam Smith、Charles Darwin、Henry David Thoreau，以及 Albert Einstein 1920 年的英译本）；标题、页眉、页脚、表格（数字为虚构，并已注明）和公式都是生成的。每页的真值：按阅读顺序的块及其框、表格单元格，以及整页 Markdown。smoke 集是 `d01` 的第 2 页（干净版，带表格）和翻拍版的第 3 页。署名：`assets/smoke/ATTRIBUTION.csv`；来源和许可证：`datasets/LICENSES.md`。权利人如需移除某张图片或某个数据集，可通过[联系页面](https://foldbun.com/zh/contact/)提出。

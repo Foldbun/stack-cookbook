@@ -1,4 +1,4 @@
-<!-- en-sha: 0808e6055159 -->
+<!-- en-sha: f3c91ed08594 -->
 # Foldbun Stack Cookbook
 
 [English](README.md) | 简体中文
@@ -67,7 +67,7 @@ curl：`bash ../curl/run.sh`。TypeScript：`cd ../typescript && pnpm install &&
 
 ## 数据与许可证 <!-- #data -->
 
-每张图片和每个数据集都采用允许再分发的许可证，署名表中逐个文件列出。参见 [ATTRIBUTION.md](ATTRIBUTION.md)。
+每张图片和每个数据集都采用允许再分发的许可证，署名表中逐个文件列出。参见 [ATTRIBUTION.md](ATTRIBUTION.md)。权利人如需移除某张图片或某个数据集，可通过[联系页面](https://foldbun.com/zh/contact/)提出。
 
 ## 帮助与反馈 <!-- #help -->
 

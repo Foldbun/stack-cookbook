@@ -2,6 +2,8 @@
 
 The code in this repository is MIT licensed (see `LICENSE`). Images, datasets and model outputs are listed here with their own licences. Each use case keeps a row per file in `use-cases/<id>/assets/**/ATTRIBUTION*.csv`; `harness check` fails when a file has no row.
 
+Rights holders can request removal of an image or dataset through the [contact page](https://foldbun.com/contact/).
+
 ## Images and datasets
 
 | Files | Source | Licence |

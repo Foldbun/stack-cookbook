@@ -3,6 +3,7 @@
 Inputs and ground truth for the first four cookbook use cases. Smoke sets are committed here; full sets are built
 into release tarballs. Everything is reproducible from the builders: fixed seeds, pinned source URLs, and the sha256 of
 every download in `sources.lock.json`. Licences and attribution: [LICENSES.md](LICENSES.md) and `attribution/`.
+Rights holders can request removal of an image or dataset through the [contact page](https://foldbun.com/contact/).
 
 | Use case | Set | Source | Smoke (committed) | Full (release tarball) |
 |---|---|---|---|---|

@@ -1608,4 +1608,4 @@ See [Text recognition](https://stack.foldbun.com/docs/use-cases/text-recognition
 
 ## Data <!-- #data -->
 
-The smoke set is 3 receipts from CORD v2 (NAVER Clova, CC BY 4.0, re-encoded as JPEG) and one synthetic invoice (CC0), generated for this repository, rendered with the perspective of a photograph. Attribution: `assets/smoke/ATTRIBUTION.csv`. The CORD ground truth has no merchant and no date.
+The smoke set is 3 receipts from CORD v2 (NAVER Clova, CC BY 4.0, re-encoded as JPEG) and one synthetic invoice (CC0), generated for this repository, rendered with the perspective of a photograph. Attribution: `assets/smoke/ATTRIBUTION.csv`. The CORD ground truth has no merchant and no date. Rights holders can request removal of an image or dataset through the [contact page](https://foldbun.com/contact/).
