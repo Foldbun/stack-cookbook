@@ -33,8 +33,9 @@ The metrics, all prefixed `stack_`:
 
 | Metric | Labels | Source |
 |---|---|---|
-| `stack_credits_total` | `model`, `unit`, `charged` | every priced line of `billing.lines[]`; `charged="false"` is the list price of work that ran free on the free tier |
+| `stack_credits_total` | `model`, `unit`, `charged` | every priced line of `billing.lines[]`; `charged="false"` is the list price of work that ran free on the free tier; an item of an async job is counted at its own cost (a tenth of the list price) under `async_<unit>`, for example `async_image` |
 | `stack_calls_total` | `model`, `status`, `code` | `status` is `ok`, `replayed`, `error`, `expired` or `refused` (never sent: credit cap or guard); `code` is the API error code, `none` for `ok` |
+| `stack_async_jobs_total` | `model`, `status` | async jobs that reached a final status (`completed`, `partial`, `failed`, `cancelled` or `expired`), counted once per job; the metric exists from the first job on |
 | `stack_cache_hits_total`, `stack_cache_misses_total` | `model` | `cache` of SAM answers |
 | `stack_cache_saved_credits_total` | `model` | list price of the lines with `waived: true` |
 | `stack_latency_ms` (histogram) | `model`, `phase` | `queue` and `processing` from `timing`; `client_total` is the time this process measured around the call, for your own dashboards |
@@ -77,18 +78,19 @@ Alerting rules and a Grafana dashboard for these metrics are in `assets/alerts.r
 
 ## Code <!-- #code -->
 
-The wrapper. `post` and `batch` are measured; every other attribute (`upload`, `models`, `get`, `calls`, `summary`) is the wrapped client's.
+The wrapper. `post`, `batch` and the async job methods are measured; every other attribute (`upload`, `models`, `get`, `calls`, `summary`) is the wrapped client's.
 
 <!-- code: wrapper -->
 <details><summary>Python (python/monitoring.py)</summary>
 
 ```python
 class MonitoredClient:
-    """Wraps a StackClient. `post` and `batch` are measured; every other attribute (`upload`, `models`, `get`, `calls`,
-    `summary`, `ledger`, ...) is the wrapped client's."""
+    """Wraps a StackClient. `post`, `batch` and the async jobs (`create_job`, `get_job`, `job_results`) are measured; every
+    other attribute (`upload`, `models`, `get`, `calls`, `summary`, `ledger`, ...) is the wrapped client's."""
 
     def __init__(self, client, monitor):
         self._client, self.monitor = client, monitor
+        self._job_models, self._job_items, self._jobs_done = {}, set(), set()  # job id -> model; (job id, index) and job ids already counted
 
     def __getattr__(self, name):
         return getattr(self._client, name)
@@ -144,6 +146,49 @@ class MonitoredClient:
             self.monitor.failure(model, err)
             raise
 
+    def create_job(self, model, items, idempotency_key=None, *, metadata=None):
+        """Like StackClient.create_job. Nothing is spent yet: an async job is charged as its items finish, so its cost is
+        counted when `job_results` reads them. A guard in mode "reject" refuses the submit while the window is over its limit."""
+        try:
+            if self.monitor.guard:
+                self.monitor.guard.check()
+            job = self._client.create_job(model, items, idempotency_key, metadata=metadata)
+        except Exception as err:  # refused by the guard or the credit cap, or an API error (402 insufficient_balance, 429 too_many_jobs, ...)
+            self.monitor.failure(model, err)
+            raise
+        self._job_models[job["id"]] = model
+        return job
+
+    def get_job(self, job_id):
+        """Like StackClient.get_job; the first time a job is seen in a final status it is counted in `stack_async_jobs_total`."""
+        return self._seen(self._client.get_job(job_id))
+
+    def cancel_job(self, job_id):
+        return self._seen(self._client.cancel_job(job_id))
+
+    def _seen(self, job):
+        if job["status"] not in ("queued", "running") and job["id"] not in self._jobs_done:
+            self._jobs_done.add(job["id"])
+            self.monitor.job_finished(job)
+        return job
+
+    def job_results(self, job_id, *, tag=None, **kwargs):
+        """Like StackClient.job_results (yields every finished item). Each item is counted once, however often it is read: an
+        `ok` item at its own `cost` (0 for a cache hit) and timing, any other item as a failed call with its error code."""
+        model = self._job_models.get(job_id, "unknown")
+        if self.monitor.guard:
+            self.monitor.guard.check()
+        for item in self._client.job_results(job_id, tag=tag, **kwargs):
+            if (job_id, item["index"]) not in self._job_items:
+                self._job_items.add((job_id, item["index"]))
+                if item["status"] == "ok":
+                    self.monitor.observe(model, item["result"], asynchronous=True)
+                else:
+                    error = item.get("error") or {}
+                    status = item["status"] if item["status"] in ("expired", "cancelled") else "error"
+                    self.monitor.failure(model, sc.StackError(0, error.get("code") or item["status"], error.get("message", "")), status=status)
+            yield item
+
     def whoami(self):
         return self.monitor.refresh_account(self._client)
 ```
@@ -151,14 +196,17 @@ class MonitoredClient:
 </details>
 <!-- /code -->
 
+Async jobs are not charged when they are submitted but as their items finish, at a tenth of the list price, so the wrapper counts them when the results are read: each item once, however often it is read, at its own `cost` (0 for a cache hit) and `timing`; an item that ended as an error, expired or was cancelled counts as a failed call with its code. `stack_async_jobs_total` counts a job once, when it is first seen in a final status. A spend guard in mode `reject` refuses a submit and a results read while the window is over its limit, and async spend counts in the guard's window like any other.
+
 What is read from one answer, and what becomes a metric:
 
 <!-- code: observe -->
 <details><summary>Python (python/monitoring.py)</summary>
 
 ```python
-def observe(self, model, result, *, replayed=False, client_ms=None):
-    """One successful call (or `ok` batch item): `result` is the answer body."""
+def observe(self, model, result, *, replayed=False, client_ms=None, asynchronous=False):
+    """One successful call (or `ok` batch or async job item): `result` is the answer body. An async item is counted at its
+    own `cost`, under the unit `async_<unit>`: the async price is a tenth of the list price and is what was charged."""
     model = result.get("model") or model
     self.calls.labels(model, "replayed" if replayed else "ok", "none").inc()
     if client_ms is not None:
@@ -171,11 +219,14 @@ def observe(self, model, result, *, replayed=False, client_ms=None):
             if key in timing:
                 self.latency.labels(model, phase).observe(timing[key])
         charged = "true" if billing.get("charged", cost > 0) else "false"
-        for line in billing.get("lines") or [{"unit": "unknown", "amount": cost, "waived": False}]:
+        lines = billing.get("lines") or [{"unit": "unknown", "amount": cost, "waived": False}]
+        for line in lines:
             if line.get("waived"):
                 self.cache_saved.labels(model).inc(round(line["unitPrice"] * line["quantity"], 6))
-            elif line["amount"]:
+            elif line["amount"] and not asynchronous:
                 self.credits.labels(model, line["unit"], charged).inc(line["amount"])
+        if asynchronous and cost:
+            self.credits.labels(model, "async_" + lines[0]["unit"], charged).inc(cost)
         if result.get("cache") == "hit":
             self.cache_hits.labels(model).inc()
         elif result.get("cache") == "miss":
@@ -184,7 +235,6 @@ def observe(self, model, result, *, replayed=False, client_ms=None):
             self._set_balance(result["balance"])
     by_list = self.guard is not None and self.guard.basis == "list"
     self._guard_record(0 if replayed else billing.get("total", cost) if by_list else cost)
-
 
 def failure(self, model, error, *, status="error", client_ms=None):
     """One failed call: `error` is a StackError (or anything with `.code`). Local refusals count as "refused"."""
@@ -196,6 +246,13 @@ def failure(self, model, error, *, status="error", client_ms=None):
         self.latency.labels(model, "client_total").observe(client_ms)
     self._guard_record(0)
 
+def job_finished(self, job):
+    """A job reached a final status (call once per job). The metric `stack_async_jobs_total{model,status}` exists from the
+    first job on: a run that never uses async jobs does not expose it."""
+    with self._balance_lock:
+        if self.jobs is None:
+            self.jobs = Counter("stack_async_jobs_total", "Async jobs that reached a final status.", ["model", "status"], registry=self.registry)
+    self.jobs.labels(job.get("model") or "unknown", job["status"]).inc()
 
 def _set_balance(self, value):
     with self._balance_lock:
@@ -204,7 +261,6 @@ def _set_balance(self, value):
             self.balance_at = Gauge("stack_balance_updated_timestamp_seconds", "When stack_balance_credits was last set.", registry=self.registry)
     self.balance.set(value)
     self.balance_at.set(self.wall())
-
 
 def _guard_record(self, amount):
     if self.guard:
@@ -307,7 +363,6 @@ def refresh_account(self, client):
         self._set_balance(info["balance"])
     return info
 
-
 def refresh_every(self, client, seconds):
     """Refresh in a background thread; `.set()` the returned event to stop it. Errors are swallowed: the gauges just go stale."""
     stop = threading.Event()
@@ -351,6 +406,9 @@ if args.metrics_port:
     except OSError as err:
         print(f"metrics not served: {err}", file=sys.stderr)
 ```
+
+</details>
+<!-- /code -->
 
 </details>
 <!-- /code -->
@@ -460,6 +518,7 @@ The list price of a smoke run is 2.55 credits; it is free on the free tier and c
 - **Your own service**: you only need `monitoring.py` and `stack_client.py`. Create one `Monitor` per process, use one `MonitoredClient` where you used the client, and serve `/metrics` or return `monitor.exposition()` from your own endpoint. Several processes: each is its own Prometheus target; sum them in queries, as the dashboard does.
 - **Limits and modes**: `SpendGuard(max_per_hour, mode="reject")` refuses calls with `SpendGuardTripped` (code `spend_guard_tripped`); catch it where you can degrade gracefully. `basis="list"` counts the list price, which includes calls that ran free on the free tier. Choose the limit from your normal hourly spend with some headroom.
 - **Labels**: `model` has seven values and `unit` a handful, so the series count stays small. Do not add image ids, call ids or request ids as labels.
+- **Async work**: submit and read jobs through the `MonitoredClient` (`create_job`, `get_job`, `job_results`); the credits show under `unit="async_image"` (or the unit of the line) next to the synchronous ones, so a query such as `sum(rate(stack_credits_total{unit=~"async_.*"}[1h]))` gives the hourly spend on jobs.
 - **Other languages**: any client that reads `billing`, `cost`, `cache`, `timing` and `balance` of an answer can export the same metric names; the dashboard and the rules would carry over.
 
 ## Limits and when not to use this <!-- #limits -->
@@ -467,6 +526,7 @@ The list price of a smoke run is 2.55 credits; it is free on the free tier and c
 - **No end-to-end latency here.** Latency seen from a client depends on its network path to the API, so the measurements of this use case do not include it; the queue and processing figures are the server's own `timing`. The layer exports `client_total` (the time around the call in your process) so that you can watch your own environment, but this page publishes no such number.
 - **The balance is as old as the last answer or refresh, and only exists for a key.** `stack_balance_credits` moves when a call finishes or `whoami` is read, nothing else; a process that makes no calls shows a stale number (`stack_balance_updated_timestamp_seconds` tells how stale). Other keys of the same account move it too, and only a refresh sees that.
 - **Not the bill.** The metrics are your process's view of the answers it received. The account console is the authority: calls made by other processes or keys never appear, and an answer that was lost on its way back was charged but never counted. Use the metrics to notice, and the console to settle.
+- **Async jobs are counted when you read them.** Nothing is metered at submit time: an item is counted (and its credits added) the first time `job_results` returns it, so a job nobody reads is not seen, and the spend guard sees its cost late. The metric for a job needs `get_job` or `cancel_job` to be called through the wrapper after it ended. Async items have no per-item client time.
 - **Batches (SSE) are counted per item.** The cost and timing of each `item` event are read from the event itself, as one call each; a batch has no per-item client time, so `client_total` is not recorded for items. A stream that is cut before its summary event is counted as one failed call, and the items that arrived before the cut stay counted.
 - **Replays are recognised through the client's ledger**, which marks the answer of a retried call as `replayed`; they are counted as `status="replayed"` and add no credits. With several threads and no `tag`, that lookup can attribute the flag to a neighbouring call in rare cases.
 - **A guard in one process.** The sliding window lives in memory of one process and is lost on restart; for a fleet, alert from Prometheus on the sum (`assets/alerts.rules.yml`), and keep the guard as a local safety net.

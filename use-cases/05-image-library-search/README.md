@@ -81,6 +81,22 @@ uv run python -m harness refresh --size full --uc 05 --max-credits 51          #
 
 The Go implementation is the same pipeline as one command: `cd use-cases/05-image-library-search/go && go run . --manifest ../assets/smoke/manifest.json --out out`. It uses only the standard library and reads and writes the same index format, so an index built by one language can be continued by the other with `--resume`. It has no counterpart of `imgsearch.py` (the folder commands are in Python only), and in Go `--limit 0` means all items.
 
+### When nobody is waiting: async jobs <!-- #run-async -->
+
+Indexing a library is work nobody sits and waits for. With a key, add `--async` and each model gets one async job (`POST /v1/jobs`) instead of batches: the images are uploaded as before, the jobs run on idle capacity at a tenth of the price, and the code polls them (every 30 seconds, `--poll-seconds`), reads their results and commits the vectors.
+
+```bash
+cd use-cases/05-image-library-search/python
+export FOLDBUN_API_KEY="fbs_..."
+uv run imgsearch.py index ~/photos --async               # the folder version
+uv run main.py --manifest ../assets/full.json --out out --async   # the full set (after extracting it, see below)
+cd ../go && go run . --manifest ../assets/smoke/manifest.json --out out --async   # the same in Go
+```
+
+- **The price.** Async items cost a tenth: the 500 images of the full set are about 50 credits with batches and about 5 with async jobs (500 x 0.10 x 0.1). The text queries are still sent as they are, so a full run is about 5.4 credits instead of 50.4.
+- **No promise of when it finishes.** A job runs when there is idle capacity: it may take minutes or hours, so use `--async` for a library you index in the background, not for one a user is waiting for. An item that has not started after 24 hours expires and is not charged, and the results of a finished job are kept for 7 days. Items that expire or fail stay missing in the index; run the same command again and they are submitted as a new job. Interrupt the run and run it again within 24 hours: the job is found by its idempotency key instead of being submitted twice.
+- **A key is needed.** Async jobs are not part of the free tier: without `FOLDBUN_API_KEY`, `--async` prints `FOLDBUN_API_KEY is not set, and this needs a key: async jobs are not part of the free tier.` and exits with code 2.
+
 ## Code <!-- #code -->
 
 The client file (`stack_client.py`, `stackclient/client.go`) is a copy of the one in `clients/` (retries and waits that follow the server's `429` and rate-limit headers, idempotency keys for keyed calls, the credit cap and the ledger). The code below is what this use case adds.
@@ -91,11 +107,26 @@ The client file (`stack_client.py`, `stackclient/client.go`) is a copy of the on
 <details><summary>Python (python/embedder.py)</summary>
 
 ```python
-def index_library(client, index: LibraryIndex, root: Path, models=("dinov3", "siglip2"), *, batch_size=50, workers=4, log=print) -> Report:
-    """Embed every library image that is missing from the index, with every model, a chunk at a time."""
+def index_library(
+    client,
+    index: LibraryIndex,
+    root: Path,
+    models=("dinov3", "siglip2"),
+    *,
+    batch_size=50,
+    workers=4,
+    log=print,
+    async_mode=False,
+    poll_s=POLL_SECONDS,
+    sleep=time.sleep,
+) -> Report:
+    """Embed every library image that is missing from the index, with every model, a chunk at a time (or as async jobs)."""
     check_free_size(client, len(index.items))
     report = Report()
     paths = {it["sha256"]: root / it["path"] for it in index.items}
+    if async_mode:
+        run_async(client, index, models, paths, report, workers=workers, poll_s=poll_s, log=log, sleep=sleep)
+        return report
     for model in models:
         pending = index.missing(model)  # sha256 of the images that lack this model's vector, in catalogue order
         log(f"{len(index.items)} images in the library, {len(pending)} to embed with {model}")
@@ -766,8 +797,13 @@ func DuplicateGroups(m Matrix, threshold float64) [][]int {
 
 ```python
 calls_before = len(client.ledger)
-again = embedder.index_library(client, index, base, MODELS, batch_size=args.batch_size, workers=args.concurrency, log=lambda *_: None)
-stats["reindex"] = {"apiCalls": len(client.ledger) - calls_before, "embedded": again.embedded}  # nothing is missing, so nothing is sent
+if args.use_async and (report.stopped or report.failed):
+    again = None  # what is missing would only be submitted as new jobs; the next run does that
+else:
+    again = embedder.index_library(client, index, base, MODELS, batch_size=args.batch_size, workers=args.concurrency, log=lambda *_: None, **mode)
+stats["reindex"] = (
+    {"apiCalls": len(client.ledger) - calls_before, "embedded": again.embedded} if again else None
+)  # nothing is missing, so nothing is sent
 ```
 
 </details>
@@ -777,7 +813,11 @@ stats["reindex"] = {"apiCalls": len(client.ledger) - calls_before, "embedded": a
 ```go
 callsBefore := len(client.Calls(""))
 var again *Report
-again, err = indexLibrary(client, index, base, models, *batchSize, *concurrency, func(string) {})
+if *useAsync && (report.Stopped != nil || len(report.Failed) > 0) {
+	again = newReport() // what is missing would only be submitted as new jobs; the next run does that
+} else {
+	again, err = runIndex(func(string) {})
+}
 if err == nil {
 	st.Reindex.APICalls, st.Reindex.Embedded = len(client.Calls(""))-callsBefore, again.Embedded // nothing is missing, so nothing is sent
 }
@@ -966,7 +1006,7 @@ The numbers below are generated from `expected/full-summary.json`, which a maint
 
 ## Cost <!-- #cost -->
 
-An image costs 0.05 credits with `dinov3` and 0.05 with `siglip2`; a text costs 0.01 with `siglip2`. The smoke set (25 images, 5 queries) is 25 x 0.10 + 5 x 0.01 = 2.55 credits at list price, in 55 calls: 25 for `dinov3`, 25 for `siglip2` and 5 text queries. On the free tier the smoke run is not charged: it prints that list price labelled "free tier, not charged". The full set (about 500 images, 40 queries) is 50.4 credits at list price, in about 1,040 calls, charged to a key; indexing resumes after each stop.
+An image costs 0.05 credits with `dinov3` and 0.05 with `siglip2`; a text costs 0.01 with `siglip2`. The smoke set (25 images, 5 queries) is 25 x 0.10 + 5 x 0.01 = 2.55 credits at list price, in 55 calls: 25 for `dinov3`, 25 for `siglip2` and 5 text queries. On the free tier the smoke run is not charged: it prints that list price labelled "free tier, not charged". The full set (about 500 images, 40 queries) is 50.4 credits at list price, in about 1,040 calls, charged to a key; indexing resumes after each stop. With `--async` the 500 images cost a tenth, 5 instead of 50 credits (about 5.4 credits with the queries); the measured table below is of the batch run.
 
 Each run records its own list price and charge:
 

@@ -323,7 +323,6 @@ class MonitoredClient:
             self.monitor.failure(model, err)
             raise
 
-    # region jobs
     def create_job(self, model, items, idempotency_key=None, *, metadata=None):
         """Like StackClient.create_job. Nothing is spent yet: an async job is charged as its items finish, so its cost is
         counted when `job_results` reads them. A guard in mode "reject" refuses the submit while the window is over its limit."""

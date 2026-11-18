@@ -909,10 +909,8 @@ client = sc.StackClient()
 models = [m.strip() for m in (os.environ.get("SEGMENTER_MODELS") or "sam-lite").split(",") if m.strip()]
 server = Server(args.host, args.port, Backend(client, models=models, static_dir=args.static))
 
-
 def stop(signum, frame):
     threading.Thread(target=server.shutdown).start()  # serve_forever runs in this thread: shutdown must be called from another
-
 
 for sig in (signal.SIGTERM, signal.SIGINT):
     signal.signal(sig, stop)

@@ -1,4 +1,4 @@
-<!-- en-sha: 4f9692bd2a8b -->
+<!-- en-sha: 782c3d709593 -->
 # 监控线上集成的成本与时延
 
 [English](README.md) | 简体中文
@@ -34,8 +34,9 @@
 
 | 指标 | 标签 | 来源 |
 |---|---|---|
-| `stack_credits_total` | `model`、`unit`、`charged` | `billing.lines[]` 的每一行；`charged="false"` 是在免费层上免费运行的工作的标价 |
+| `stack_credits_total` | `model`、`unit`、`charged` | `billing.lines[]` 的每一行；`charged="false"` 是在免费层上免费运行的工作的标价；异步作业的每个条目按它自己的成本（标价的十分之一）计入 `async_<unit>`，例如 `async_image` |
 | `stack_calls_total` | `model`、`status`、`code` | `status` 为 `ok`、`replayed`、`error`、`expired` 或 `refused`（没有发出：额度上限或守卫）；`code` 是 API 错误码，`ok` 时为 `none` |
+| `stack_async_jobs_total` | `model`、`status` | 到达终态的异步作业（`completed`、`partial`、`failed`、`cancelled` 或 `expired`），每个作业只计一次；第一个作业出现后该指标才存在 |
 | `stack_cache_hits_total`、`stack_cache_misses_total` | `model` | SAM 应答的 `cache` |
 | `stack_cache_saved_credits_total` | `model` | `waived: true` 的行的标价 |
 | `stack_latency_ms`（直方图） | `model`、`phase` | `queue` 和 `processing` 来自 `timing`；`client_total` 是本进程在调用外围测到的时间，供你自己的看板使用 |
@@ -78,18 +79,19 @@ monitor.refresh_every(client, 60)  # 余额（有密钥）或免费层用量，�
 
 ## 代码 <!-- #code -->
 
-包装器。`post` 和 `batch` 被度量；其余属性（`upload`、`models`、`get`、`calls`、`summary`）都是被包住的客户端的。
+包装器。`post`、`batch` 和异步作业的几个方法被度量；其余属性（`upload`、`models`、`get`、`calls`、`summary`）都是被包住的客户端的。
 
 <!-- code: wrapper -->
 <details><summary>Python (python/monitoring.py)</summary>
 
 ```python
 class MonitoredClient:
-    """Wraps a StackClient. `post` and `batch` are measured; every other attribute (`upload`, `models`, `get`, `calls`,
-    `summary`, `ledger`, ...) is the wrapped client's."""
+    """Wraps a StackClient. `post`, `batch` and the async jobs (`create_job`, `get_job`, `job_results`) are measured; every
+    other attribute (`upload`, `models`, `get`, `calls`, `summary`, `ledger`, ...) is the wrapped client's."""
 
     def __init__(self, client, monitor):
         self._client, self.monitor = client, monitor
+        self._job_models, self._job_items, self._jobs_done = {}, set(), set()  # job id -> model; (job id, index) and job ids already counted
 
     def __getattr__(self, name):
         return getattr(self._client, name)
@@ -145,6 +147,49 @@ class MonitoredClient:
             self.monitor.failure(model, err)
             raise
 
+    def create_job(self, model, items, idempotency_key=None, *, metadata=None):
+        """Like StackClient.create_job. Nothing is spent yet: an async job is charged as its items finish, so its cost is
+        counted when `job_results` reads them. A guard in mode "reject" refuses the submit while the window is over its limit."""
+        try:
+            if self.monitor.guard:
+                self.monitor.guard.check()
+            job = self._client.create_job(model, items, idempotency_key, metadata=metadata)
+        except Exception as err:  # refused by the guard or the credit cap, or an API error (402 insufficient_balance, 429 too_many_jobs, ...)
+            self.monitor.failure(model, err)
+            raise
+        self._job_models[job["id"]] = model
+        return job
+
+    def get_job(self, job_id):
+        """Like StackClient.get_job; the first time a job is seen in a final status it is counted in `stack_async_jobs_total`."""
+        return self._seen(self._client.get_job(job_id))
+
+    def cancel_job(self, job_id):
+        return self._seen(self._client.cancel_job(job_id))
+
+    def _seen(self, job):
+        if job["status"] not in ("queued", "running") and job["id"] not in self._jobs_done:
+            self._jobs_done.add(job["id"])
+            self.monitor.job_finished(job)
+        return job
+
+    def job_results(self, job_id, *, tag=None, **kwargs):
+        """Like StackClient.job_results (yields every finished item). Each item is counted once, however often it is read: an
+        `ok` item at its own `cost` (0 for a cache hit) and timing, any other item as a failed call with its error code."""
+        model = self._job_models.get(job_id, "unknown")
+        if self.monitor.guard:
+            self.monitor.guard.check()
+        for item in self._client.job_results(job_id, tag=tag, **kwargs):
+            if (job_id, item["index"]) not in self._job_items:
+                self._job_items.add((job_id, item["index"]))
+                if item["status"] == "ok":
+                    self.monitor.observe(model, item["result"], asynchronous=True)
+                else:
+                    error = item.get("error") or {}
+                    status = item["status"] if item["status"] in ("expired", "cancelled") else "error"
+                    self.monitor.failure(model, sc.StackError(0, error.get("code") or item["status"], error.get("message", "")), status=status)
+            yield item
+
     def whoami(self):
         return self.monitor.refresh_account(self._client)
 ```
@@ -152,14 +197,17 @@ class MonitoredClient:
 </details>
 <!-- /code -->
 
+异步作业在提交时不扣费，而是在条目完成时按标价的十分之一计费，所以包装器在读取结果时统计：每个条目只计一次，无论读多少遍，按它自己的 `cost`（缓存命中为 0）和 `timing` 计；以错误结束、已过期或已取消的条目记为一次失败调用并带上错误码。`stack_async_jobs_total` 在作业第一次被看到处于终态时计一次。处于 `reject` 模式的花费护栏在窗口超限时拒绝提交和读取结果，异步花费和其他花费一样计入护栏的窗口。
+
 从一次应答里读什么，变成哪些指标：
 
 <!-- code: observe -->
 <details><summary>Python (python/monitoring.py)</summary>
 
 ```python
-def observe(self, model, result, *, replayed=False, client_ms=None):
-    """One successful call (or `ok` batch item): `result` is the answer body."""
+def observe(self, model, result, *, replayed=False, client_ms=None, asynchronous=False):
+    """One successful call (or `ok` batch or async job item): `result` is the answer body. An async item is counted at its
+    own `cost`, under the unit `async_<unit>`: the async price is a tenth of the list price and is what was charged."""
     model = result.get("model") or model
     self.calls.labels(model, "replayed" if replayed else "ok", "none").inc()
     if client_ms is not None:
@@ -172,11 +220,14 @@ def observe(self, model, result, *, replayed=False, client_ms=None):
             if key in timing:
                 self.latency.labels(model, phase).observe(timing[key])
         charged = "true" if billing.get("charged", cost > 0) else "false"
-        for line in billing.get("lines") or [{"unit": "unknown", "amount": cost, "waived": False}]:
+        lines = billing.get("lines") or [{"unit": "unknown", "amount": cost, "waived": False}]
+        for line in lines:
             if line.get("waived"):
                 self.cache_saved.labels(model).inc(round(line["unitPrice"] * line["quantity"], 6))
-            elif line["amount"]:
+            elif line["amount"] and not asynchronous:
                 self.credits.labels(model, line["unit"], charged).inc(line["amount"])
+        if asynchronous and cost:
+            self.credits.labels(model, "async_" + lines[0]["unit"], charged).inc(cost)
         if result.get("cache") == "hit":
             self.cache_hits.labels(model).inc()
         elif result.get("cache") == "miss":
@@ -185,7 +236,6 @@ def observe(self, model, result, *, replayed=False, client_ms=None):
             self._set_balance(result["balance"])
     by_list = self.guard is not None and self.guard.basis == "list"
     self._guard_record(0 if replayed else billing.get("total", cost) if by_list else cost)
-
 
 def failure(self, model, error, *, status="error", client_ms=None):
     """One failed call: `error` is a StackError (or anything with `.code`). Local refusals count as "refused"."""
@@ -197,6 +247,13 @@ def failure(self, model, error, *, status="error", client_ms=None):
         self.latency.labels(model, "client_total").observe(client_ms)
     self._guard_record(0)
 
+def job_finished(self, job):
+    """A job reached a final status (call once per job). The metric `stack_async_jobs_total{model,status}` exists from the
+    first job on: a run that never uses async jobs does not expose it."""
+    with self._balance_lock:
+        if self.jobs is None:
+            self.jobs = Counter("stack_async_jobs_total", "Async jobs that reached a final status.", ["model", "status"], registry=self.registry)
+    self.jobs.labels(job.get("model") or "unknown", job["status"]).inc()
 
 def _set_balance(self, value):
     with self._balance_lock:
@@ -205,7 +262,6 @@ def _set_balance(self, value):
             self.balance_at = Gauge("stack_balance_updated_timestamp_seconds", "When stack_balance_credits was last set.", registry=self.registry)
     self.balance.set(value)
     self.balance_at.set(self.wall())
-
 
 def _guard_record(self, amount):
     if self.guard:
@@ -307,7 +363,6 @@ def refresh_account(self, client):
     elif "balance" in info:
         self._set_balance(info["balance"])
     return info
-
 
 def refresh_every(self, client, seconds):
     """Refresh in a background thread; `.set()` the returned event to stop it. Errors are swallowed: the gauges just go stale."""
@@ -461,6 +516,7 @@ def run_call(mc, entry, images):
 - **自己的服务**：只需要 `monitoring.py` 和 `stack_client.py`。每个进程一个 `Monitor`，在原来用客户端的地方用一个 `MonitoredClient`，提供 `/metrics`，或在自己的端点里返回 `monitor.exposition()`。多个进程：每个进程是一个独立的 Prometheus 抓取目标，在查询里求和，看板就是这样做的。
 - **上限与模式**：`SpendGuard(max_per_hour, mode="reject")` 用 `SpendGuardTripped`（错误码 `spend_guard_tripped`）拒绝调用；在能降级的地方捕获它。`basis="list"` 按标价计，包含在免费层上免费运行的调用。上限按你平时的每小时花费再留一些余量来定。
 - **标签**：`model` 只有七个取值，`unit` 也只有几个，序列数很少。不要把图片 id、调用 id 或请求 id 当标签。
+- **异步工作**：通过 `MonitoredClient` 提交和读取作业（`create_job`、`get_job`、`job_results`）；其 credits 记在 `unit="async_image"`（或该行的单位）下，和同步调用并列，所以 `sum(rate(stack_credits_total{unit=~"async_.*"}[1h]))` 就是每小时花在作业上的钱。
 - **其他语言**：任何能读取应答里 `billing`、`cost`、`cache`、`timing`、`balance` 的客户端都能导出同名指标，看板和规则可以直接沿用。
 
 ## 局限与不适用的情况 <!-- #limits -->
@@ -468,6 +524,7 @@ def run_call(mc, entry, images):
 - **这里不提供端到端时延。** 客户端看到的时延取决于它到 API 的网络路径，所以本用例的测量不包含它；排队和处理时间是服务端自己的 `timing`。监控层导出 `client_total`（本进程在调用外围测到的时间），方便你监视自己的环境，但本页不公布这样的数字。
 - **余额只和最近一次应答或刷新一样新，而且只有使用密钥时才有余额。** `stack_balance_credits` 只在调用结束或读取 `whoami` 时变化；一个不发调用的进程显示的是旧数字（`stack_balance_updated_timestamp_seconds` 告诉你旧了多久）。同一账户的其他密钥也会改变余额，只有刷新才能看到。
 - **不是账单。** 指标是你的进程对它收到的应答的看法，权威是账户控制台：其他进程或密钥发的调用不会出现，在回程中丢失的应答已被扣费却不会被计入。指标用来发现问题，对账以控制台为准。
+- **异步作业在读取时统计。** 提交时什么都不计：条目第一次由 `job_results` 返回时才被统计（credits 才累加），所以没人读取的作业看不到，花费护栏也会晚一步看到它的花费。一个作业的指标需要在它结束之后通过包装器调用 `get_job` 或 `cancel_job`。异步条目没有单项的客户端耗时。
 - **批处理（SSE）按项统计。** 每个 `item` 事件里的成本和耗时按一次调用读取；批内的单项没有客户端耗时，所以不记录 `client_total`。在 summary 事件之前断开的流计为一次失败调用，断开前已收到的项仍保留在统计里。
 - **重放通过客户端的账本识别**：账本把重试调用得到的存档应答标为 `replayed`；它们计为 `status="replayed"`，不增加 credits。多线程又没有 `tag` 时，这个查找在极少数情况下可能把标记算到相邻的调用上。
 - **守卫只在单个进程内。** 滑动窗口在一个进程的内存里，重启即丢失；多个进程时，用 Prometheus 对总和告警（`assets/alerts.rules.yml`），守卫只作为本地的保险。

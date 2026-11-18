@@ -1,4 +1,4 @@
-<!-- en-sha: af66e99ce63a -->
+<!-- en-sha: 6f1503b32faa -->
 # 按图、按文字搜索图库，并找出近重复图片
 
 [English](README.md) | 简体中文
@@ -82,6 +82,22 @@ uv run python -m harness refresh --size full --uc 05 --max-credits 51          #
 
 Go 实现是同一条管线的单个命令：`cd use-cases/05-image-library-search/go && go run . --manifest ../assets/smoke/manifest.json --out out`。它只用标准库，读写的索引格式与 Python 相同，因此一种语言建好的索引可以用 `--resume` 交给另一种语言继续。Go 没有对应 `imgsearch.py` 的部分（针对文件夹的命令只有 Python 版），并且在 Go 中 `--limit 0` 表示全部条目。
 
+### 没人等结果时用异步作业 <!-- #run-async -->
+
+给图库建索引是没人守着等结果的活。有密钥时加上 `--async`，每个模型提交一个异步作业（`POST /v1/jobs`），不再走批处理：图片照常先上传，作业在空闲算力上运行，价格是标价的十分之一，代码每 30 秒（`--poll-seconds`）轮询一次，读出结果并写入向量。
+
+```bash
+cd use-cases/05-image-library-search/python
+export FOLDBUN_API_KEY="fbs_..."
+uv run imgsearch.py index ~/photos --async               # 文件夹版本
+uv run main.py --manifest ../assets/full.json --out out --async   # 完整数据集（先解压，见下文）
+cd ../go && go run . --manifest ../assets/smoke/manifest.json --out out --async   # Go 里同样如此
+```
+
+- **价格。** 异步条目只要十分之一：完整数据集的 500 张图片用批处理约 50 credits，用异步作业约 5 credits（500 x 0.10 x 0.1）。文字查询仍然照原样发送，所以一次完整运行约 5.4 credits，而不是 50.4。
+- **不承诺什么时候完成。** 作业在有空闲算力时才运行，可能要几分钟，也可能要几个小时，所以 `--async` 适合在后台建库，不适合有用户在等的场景。24 小时内还没开始的条目会过期且不扣费，已完成作业的结果保留 7 天。过期或失败的条目在索引里仍然缺着；再运行同一条命令，它们会作为新作业提交。运行中断后在 24 小时内重新运行：作业会按幂等键找到，不会重复提交。
+- **需要密钥。** 异步作业不属于免费层：没有 `FOLDBUN_API_KEY` 时，`--async` 会打印 `FOLDBUN_API_KEY is not set, and this needs a key: async jobs are not part of the free tier.` 并以退出码 2 结束。
+
 ## 代码 <!-- #code -->
 
 客户端文件（`stack_client.py`、`stackclient/client.go`）是 `clients/` 中对应文件的副本（遵循服务端 `429` 和限速响应头的重试与等待、带密钥调用的幂等键、额度上限和账本）。以下是本用例新增的部分。
@@ -92,11 +108,26 @@ Go 实现是同一条管线的单个命令：`cd use-cases/05-image-library-sear
 <details><summary>Python (python/embedder.py)</summary>
 
 ```python
-def index_library(client, index: LibraryIndex, root: Path, models=("dinov3", "siglip2"), *, batch_size=50, workers=4, log=print) -> Report:
-    """Embed every library image that is missing from the index, with every model, a chunk at a time."""
+def index_library(
+    client,
+    index: LibraryIndex,
+    root: Path,
+    models=("dinov3", "siglip2"),
+    *,
+    batch_size=50,
+    workers=4,
+    log=print,
+    async_mode=False,
+    poll_s=POLL_SECONDS,
+    sleep=time.sleep,
+) -> Report:
+    """Embed every library image that is missing from the index, with every model, a chunk at a time (or as async jobs)."""
     check_free_size(client, len(index.items))
     report = Report()
     paths = {it["sha256"]: root / it["path"] for it in index.items}
+    if async_mode:
+        run_async(client, index, models, paths, report, workers=workers, poll_s=poll_s, log=log, sleep=sleep)
+        return report
     for model in models:
         pending = index.missing(model)  # sha256 of the images that lack this model's vector, in catalogue order
         log(f"{len(index.items)} images in the library, {len(pending)} to embed with {model}")
@@ -767,8 +798,13 @@ func DuplicateGroups(m Matrix, threshold float64) [][]int {
 
 ```python
 calls_before = len(client.ledger)
-again = embedder.index_library(client, index, base, MODELS, batch_size=args.batch_size, workers=args.concurrency, log=lambda *_: None)
-stats["reindex"] = {"apiCalls": len(client.ledger) - calls_before, "embedded": again.embedded}  # nothing is missing, so nothing is sent
+if args.use_async and (report.stopped or report.failed):
+    again = None  # what is missing would only be submitted as new jobs; the next run does that
+else:
+    again = embedder.index_library(client, index, base, MODELS, batch_size=args.batch_size, workers=args.concurrency, log=lambda *_: None, **mode)
+stats["reindex"] = (
+    {"apiCalls": len(client.ledger) - calls_before, "embedded": again.embedded} if again else None
+)  # nothing is missing, so nothing is sent
 ```
 
 </details>
@@ -778,7 +814,11 @@ stats["reindex"] = {"apiCalls": len(client.ledger) - calls_before, "embedded": a
 ```go
 callsBefore := len(client.Calls(""))
 var again *Report
-again, err = indexLibrary(client, index, base, models, *batchSize, *concurrency, func(string) {})
+if *useAsync && (report.Stopped != nil || len(report.Failed) > 0) {
+	again = newReport() // what is missing would only be submitted as new jobs; the next run does that
+} else {
+	again, err = runIndex(func(string) {})
+}
 if err == nil {
 	st.Reindex.APICalls, st.Reindex.Embedded = len(client.Calls(""))-callsBefore, again.Embedded // nothing is missing, so nothing is sent
 }
@@ -967,7 +1007,7 @@ func listenAndServe(ctx context.Context, ln net.Listener, h http.Handler) error 
 
 ## 成本 <!-- #cost -->
 
-`dinov3` 每张图 0.05 credits，`siglip2` 每张图 0.05 credits，每条文本 0.01 credits。smoke 数据集（25 张图片、5 条查询）按标价为 25 x 0.10 + 5 x 0.01 = 2.55 credits，共 55 次调用：`dinov3` 25 次、`siglip2` 25 次、文字查询 5 次。在免费层上 smoke 运行不扣费：运行时会打印这笔标价并标注“免费层，不扣费”。完整数据集（约 500 张图片、40 条查询）按标价为 50.4 credits，约 1,040 次调用，由密钥扣费；每次停止后建库可继续。
+`dinov3` 每张图 0.05 credits，`siglip2` 每张图 0.05 credits，每条文本 0.01 credits。smoke 数据集（25 张图片、5 条查询）按标价为 25 x 0.10 + 5 x 0.01 = 2.55 credits，共 55 次调用：`dinov3` 25 次、`siglip2` 25 次、文字查询 5 次。在免费层上 smoke 运行不扣费：运行时会打印这笔标价并标注“免费层，不扣费”。完整数据集（约 500 张图片、40 条查询）按标价为 50.4 credits，约 1,040 次调用，由密钥扣费；每次停止后建库可继续。用 `--async` 时 500 张图片只要十分之一，即 5 credits 而不是 50 credits（加上查询约 5.4 credits）；下表是批处理那次运行的实测值。
 
 每次运行记录各自的标价和实扣：
 
