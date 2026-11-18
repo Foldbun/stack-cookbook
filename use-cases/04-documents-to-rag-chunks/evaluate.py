@@ -210,7 +210,12 @@ def evaluate(result, truth):
     for e in entries:
         t = truth["items"][e["id"]]
         blocks = e["output"]["blocks"]
-        row = {"variant": t["variant"], "ned": ned(page_text(blocks), page_text(t["blocks"])), "tau": reading_order(blocks, t["blocks"]), "formula": formula_recall(blocks, t["blocks"])}
+        row = {
+            "variant": t["variant"],
+            "ned": ned(page_text(blocks), page_text(t["blocks"])),
+            "tau": reading_order(blocks, t["blocks"]),
+            "formula": formula_recall(blocks, t["blocks"]),
+        }
         pt = [b for b in sorted(blocks, key=lambda b: b["order"]) if b["type"] == "table"]
         tt = [b for b in t["blocks"] if b["type"] == "table"]
         counts = [0, 0, 0]
@@ -227,7 +232,11 @@ def evaluate(result, truth):
         tp, p, r = (sum(x["table"][n] for x in rows if x["table"]) for n in range(3))
         return round(2 * tp / (p + r), ROUND) if p + r else None
 
-    groups = {"": list(per.values()), "_clean": [r for r in per.values() if r["variant"] == "clean"], "_photographed": [r for r in per.values() if r["variant"] == "photographed"]}
+    groups = {
+        "": list(per.values()),
+        "_clean": [r for r in per.values() if r["variant"] == "clean"],
+        "_photographed": [r for r in per.values() if r["variant"] == "photographed"],
+    }
     for suffix, rows in groups.items():
         metrics[f"text_ned{suffix}"] = mean(r["ned"] for r in rows)
         metrics[f"table_cell_f1{suffix}"] = f1(rows)

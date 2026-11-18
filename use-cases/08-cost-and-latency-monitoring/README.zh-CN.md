@@ -67,11 +67,11 @@ smoke 回放不需要密钥，也不需要注册；完整运行需要 `FOLDBUN_A
 from stack_client import StackClient
 from monitoring import Monitor, MonitoredClient, SpendGuard
 
-guard = SpendGuard(max_per_hour=50, mode="alert", on_alert=notify)   # notify(info) 拿到调用序号、花费和上限
+guard = SpendGuard(max_per_hour=50, mode="alert", on_alert=notify)  # notify(info) 拿到调用序号、花费和上限
 monitor = Monitor(guard=guard)
-client = MonitoredClient(StackClient(), monitor)                     # 用在原来用 StackClient 的地方
-monitor.serve(9108)                                                  # 或在自己的 Web 应用里返回 monitor.exposition()
-monitor.refresh_every(client, 60)                                    # 余额（有密钥）或免费层用量，每分钟刷新
+client = MonitoredClient(StackClient(), monitor)  # 用在原来用 StackClient 的地方
+monitor.serve(9108)  # 或在自己的 Web 应用里返回 monitor.exposition()
+monitor.refresh_every(client, 60)  # 余额（有密钥）或免费层用量，每分钟刷新
 ```
 
 这些指标对应的告警规则和 Grafana 看板在 `assets/alerts.rules.yml` 和 `assets/grafana-dashboard.json`（导入看板，选你的 Prometheus 数据源）。`assets/metrics.sample.prom` 是对本地假 API 回放一次得到的指标输出。
@@ -186,6 +186,7 @@ def observe(self, model, result, *, replayed=False, client_ms=None):
     by_list = self.guard is not None and self.guard.basis == "list"
     self._guard_record(0 if replayed else billing.get("total", cost) if by_list else cost)
 
+
 def failure(self, model, error, *, status="error", client_ms=None):
     """One failed call: `error` is a StackError (or anything with `.code`). Local refusals count as "refused"."""
     code = getattr(error, "code", None) or type(error).__name__
@@ -196,6 +197,7 @@ def failure(self, model, error, *, status="error", client_ms=None):
         self.latency.labels(model, "client_total").observe(client_ms)
     self._guard_record(0)
 
+
 def _set_balance(self, value):
     with self._balance_lock:
         if self.balance is None:
@@ -203,6 +205,7 @@ def _set_balance(self, value):
             self.balance_at = Gauge("stack_balance_updated_timestamp_seconds", "When stack_balance_credits was last set.", registry=self.registry)
     self.balance.set(value)
     self.balance_at.set(self.wall())
+
 
 def _guard_record(self, amount):
     if self.guard:
@@ -304,6 +307,7 @@ def refresh_account(self, client):
     elif "balance" in info:
         self._set_balance(info["balance"])
     return info
+
 
 def refresh_every(self, client, seconds):
     """Refresh in a background thread; `.set()` the returned event to stop it. Errors are swallowed: the gauges just go stale."""

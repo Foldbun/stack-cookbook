@@ -66,11 +66,11 @@ To wire it into your own service, copy `monitoring.py` and use it like this:
 from stack_client import StackClient
 from monitoring import Monitor, MonitoredClient, SpendGuard
 
-guard = SpendGuard(max_per_hour=50, mode="alert", on_alert=notify)   # notify(info) gets the call number, the spend and the limit
+guard = SpendGuard(max_per_hour=50, mode="alert", on_alert=notify)  # notify(info) gets the call number, the spend and the limit
 monitor = Monitor(guard=guard)
-client = MonitoredClient(StackClient(), monitor)                     # use it where you used StackClient
-monitor.serve(9108)                                                  # or mount monitor.exposition() in your own web app
-monitor.refresh_every(client, 60)                                    # balance (key) or free-tier use, every minute
+client = MonitoredClient(StackClient(), monitor)  # use it where you used StackClient
+monitor.serve(9108)  # or mount monitor.exposition() in your own web app
+monitor.refresh_every(client, 60)  # balance (key) or free-tier use, every minute
 ```
 
 Alerting rules and a Grafana dashboard for these metrics are in `assets/alerts.rules.yml` and `assets/grafana-dashboard.json` (import the dashboard, pick your Prometheus data source). `assets/metrics.sample.prom` is the exposition of one replay against the local fake API.
@@ -185,6 +185,7 @@ def observe(self, model, result, *, replayed=False, client_ms=None):
     by_list = self.guard is not None and self.guard.basis == "list"
     self._guard_record(0 if replayed else billing.get("total", cost) if by_list else cost)
 
+
 def failure(self, model, error, *, status="error", client_ms=None):
     """One failed call: `error` is a StackError (or anything with `.code`). Local refusals count as "refused"."""
     code = getattr(error, "code", None) or type(error).__name__
@@ -195,6 +196,7 @@ def failure(self, model, error, *, status="error", client_ms=None):
         self.latency.labels(model, "client_total").observe(client_ms)
     self._guard_record(0)
 
+
 def _set_balance(self, value):
     with self._balance_lock:
         if self.balance is None:
@@ -202,6 +204,7 @@ def _set_balance(self, value):
             self.balance_at = Gauge("stack_balance_updated_timestamp_seconds", "When stack_balance_credits was last set.", registry=self.registry)
     self.balance.set(value)
     self.balance_at.set(self.wall())
+
 
 def _guard_record(self, amount):
     if self.guard:
@@ -303,6 +306,7 @@ def refresh_account(self, client):
     elif "balance" in info:
         self._set_balance(info["balance"])
     return info
+
 
 def refresh_every(self, client, seconds):
     """Refresh in a background thread; `.set()` the returned event to stop it. Errors are swallowed: the gauges just go stale."""
