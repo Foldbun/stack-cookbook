@@ -2,6 +2,12 @@
 
 All notable changes to this repository. Versions follow [Semantic Versioning](https://semver.org/); the client files carry their own version (`VERSION` in each file).
 
+## Unreleased
+
+- Client files 1.2.0 (Python, TypeScript, Go): asynchronous jobs. `create_job` (`POST /v1/jobs`, with an idempotency key and metadata), `get_job`, `cancel_job`, `job_results` (all finished items by cursor, each charged at a tenth of the list price) and a polling helper; the client files in every use case are synced. The vendored API description `harness/vendor/openapi.yaml` and the fake API cover jobs (embedding models only, items that expire after 24 hours, results kept 7 days, no free tier).
+- Use case 05: `--async` (Python `main.py` and `imgsearch.py index`, Go `main.go`) embeds the library with one async job per model instead of batches: the 500 images of the full set cost about 5 credits instead of 50, with no promise of when the jobs finish. Items that expire or fail stay missing and the next run embeds them. The README (English and Chinese) has a section on when to use it. Needs a key (exit code 2 without).
+- Use case 08: the monitoring layer counts async job items at their own cost under `async_<unit>` in `stack_credits_total`, adds `stack_async_jobs_total{model,status}`, and the spend guard covers `create_job` and `job_results`.
+
 ## 0.3.3 - 2026-11-18
 
 - Site: the footer carries the legal links (terms of service, privacy policy, acceptable use policy, refund policy, contact), pointing to the pages of record on foldbun.com in the page language and opening in a new tab; the copyright line names Foldbun Technologies Limited.
