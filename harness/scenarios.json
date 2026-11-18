@@ -38,5 +38,13 @@
   "batch-dropped": {
     "description": "The event stream of the first batch closes after 2 items without a summary. Repeating the batch with the same Idempotency-Key replays the finished items (replayed: true, not charged) and runs the rest.",
     "rules": [{"path": "/v1/batch/*", "times": 1, "disconnectAfterItems": 2}]
+  },
+  "job-partial": {
+    "description": "A job of 4 or more items: the first poll sees it running with part of the items done, the second sees it completed; item 1 fails with bad_model_output. A client reads the results by cursor, records the ok items in the ledger once and counts the failed one as an error.",
+    "jobs": {"polls": 1, "itemErrors": {"1": "bad_model_output"}}
+  },
+  "job-too-many": {
+    "description": "The first POST /v1/jobs answers 429 too_many_jobs with retryAfterMs 1200. A client waits at least 1.2 s and repeats the request with the same Idempotency-Key; the second attempt creates the job.",
+    "rules": [{"path": "/v1/jobs", "method": "POST", "times": 1, "error": {"code": "too_many_jobs", "retryAfterMs": 1200}}]
   }
 }

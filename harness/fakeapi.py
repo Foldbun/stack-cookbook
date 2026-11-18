@@ -24,6 +24,7 @@ import struct
 import threading
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import zlib
 from datetime import UTC, datetime, timedelta
@@ -64,7 +65,12 @@ STATUS = {
     "free_tier_unavailable": 403,
     "not_found": 404,
     "image_not_found": 404,
+    "async_unsupported": 400,
     "idempotency_conflict": 409,
+    "job_finished": 409,
+    "free_tier_unsupported": 403,
+    "too_many_jobs": 429,
+    "async_unavailable": 503,
     "request_in_progress": 409,
     "payload_too_large": 413,
     "rate_limited": 429,
@@ -79,7 +85,12 @@ STATUS = {
     "unavailable": 503,
     "upstream_timeout": 504,
 }
-RETRYABLE = {"rate_limited", "free_busy", "too_many_batches", "upstream_error", "model_unavailable", "model_busy", "unavailable", "upstream_timeout"}
+RETRYABLE = {"rate_limited", "free_busy", "too_many_batches", "too_many_jobs", "async_unavailable", "upstream_error", "model_unavailable", "model_busy", "unavailable", "upstream_timeout"}
+# Async jobs (POST /v1/jobs): embedding models only, at a tenth of the list price.
+ASYNC_FACTOR = 0.1
+ASYNC_MODELS = ("siglip2", "dinov3")
+JOB_MAX_ITEMS = 10000
+JOB_PATH = re.compile(r"/v1/jobs/(job_[0-9a-f]{32})(/results|/cancel)?")
 PROCESSING_MS = {"segment": 600, "ocr": 700, "parse": 3000, "embed": 80, "remove-background": 900}
 EMBED_DIMS = 16  # the real models return longer vectors; implementations must read `dimensions`
 MAX_BODY = 28 * 1024 * 1024
@@ -179,6 +190,9 @@ class Fake:
             self.images, self.encoded, self.idem, self.running = {}, set(), {}, set()
             self.daily, self.open_batches, self.log, self.violations = {}, {}, [], []
             self.recorded, self.upstream_ids, self.calls = [], {}, 0
+            self.jobs, self.job_idem, self.job_hold = {}, {}, {}
+            self.jobs_lock = threading.RLock()  # serialises job operations; taken before `lock`, never inside it
+            self.job_cfg = sc.get("jobs") or {}
 
     # ---- scenario rules ----
     def rule(self, method, path):
@@ -217,6 +231,7 @@ class Fake:
             "prices": [{"unit": u, "price": p} for u, p in prices.items()],
             "available": True,
             "free": free,
+            "asyncPrices": [{"unit": u, "price": r6(p * ASYNC_FACTOR)} for u, p in prices.items()] if mid in ASYNC_MODELS else [],
         }
         if self.tier(who) == "funded":
             info.update(pool="paid", freeDailyCalls=None, perMinute=None, unlockedBy=None)
@@ -297,7 +312,7 @@ class Fake:
             "X-RateLimit-Scope": scope,
         }
 
-    def price_lines(self, path, body, mid, cache_hit):
+    def price_lines(self, path, body, mid, cache_hit, factor=1, cache_unit="encode_image"):
         prices, units = MODEL[mid][5], []
         if path in ("/v1/segment", "/v1/refine"):
             units.append(("encode_image", 1))
@@ -317,17 +332,18 @@ class Fake:
         lines = []
         for unit, q in units:
             if q:
-                waived = unit == "encode_image" and cache_hit
-                lines.append({"unit": unit, "quantity": q, "unitPrice": prices[unit], "amount": 0 if waived else r6(prices[unit] * q), "waived": waived})
+                waived = unit == cache_unit and cache_hit
+                lines.append({"unit": unit, "quantity": q, "unitPrice": r6(prices[unit] * factor), "amount": 0 if waived else r6(prices[unit] * factor * q), "waived": waived})
         return lines
 
-    def bill(self, who, mid, lines):
+    def bill(self, who, mid, lines, job=None):
         """Settle one call; returns (cost, billing) or raises 402. A free call is priced but not charged."""
         total = r6(sum(ln["amount"] for ln in lines))
         if self.tier(who) == "free":
             return 0, {"tier": "free", "project": who, "listPrice": total, "lines": lines, "total": total, "charged": False, "pool": None}
         with self.lock:
-            if self.balance["funded"] < total:
+            others = sum(v for k, v in self.job_hold.items() if k != job)  # the hold of the job being charged is its own
+            if self.balance["funded"] - others < total:
                 raise ApiError("insufficient_balance", f"insufficient balance: this call can cost up to {total:g} credits")
             self.balance["funded"] = r6(self.balance["funded"] - total)
             source = getattr(self.request, "source", None)
@@ -406,7 +422,8 @@ class Fake:
                 with self.lock:
                     self.running.discard(ik)
 
-    def run_call(self, key, path, body, mid, rule):
+    def run_call(self, key, path, body, mid, rule, job=None):
+        asyncjob = job is not None
         image = self.resolve(body["image"], self.tier(key) == "free") if "image" in body else None
         family = MODEL[mid][2] == "segment"
         cache_key = (key, mid, image["id"]) if image else None
@@ -417,13 +434,14 @@ class Fake:
         if fx and fx.get("error"):
             e = fx["error"]
             raise ApiError(e["code"], e.get("message", e["code"]), e.get("retryAfterMs", 0))
+        track = bool(family or (asyncjob and image))  # SAM encodings, and the embeddings of async image items, are cached per image
         with self.lock:
-            hit = bool(family and cache_key in self.encoded)
+            hit = bool(track and cache_key in self.encoded)
         if rule and rule.get("cache"):
             hit = rule["cache"] == "hit"
-        lines = self.price_lines(path, body, mid, hit)
-        cost, billing = self.bill(key, mid, lines)
-        if family:
+        lines = self.price_lines(path, body, mid, hit, ASYNC_FACTOR if asyncjob else 1, "image" if asyncjob else "encode_image")
+        cost, billing = self.bill(key, mid, lines, job)
+        if track:
             with self.lock:
                 self.encoded.add(cache_key)
         out = self.synthesise(path, body, mid, image) if not fx else json.loads(json.dumps(fx["response"]))
@@ -439,8 +457,9 @@ class Fake:
         meta = {"id": f"call_00000000-0000-7000-8000-{n:012d}", "model": mid}
         if image:
             meta["image"] = image
-        if family:
+        if track:
             out["cache"] = "hit" if hit else "miss"
+        if family:
             out["imageFee"] = next((ln["amount"] for ln in lines if ln["unit"] == "encode_image"), 0)
         meta.update(out)
         meta.update(cost=cost, timing=timing, billing=billing)
@@ -525,6 +544,170 @@ class Fake:
         if path == "/v1/segment":
             out["dropStats"] = []
         return out
+
+    # ---- async jobs ----
+    @staticmethod
+    def stamp(t):
+        return None if t is None else t.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    def job_json(self, job):
+        n = len(job["items"])
+        count = lambda st: sum(1 for r in job["results"].values() if r["status"] == st)  # noqa: E731
+        counts = {"total": n, "pending": n - len(job["results"]), "running": 0, "ok": count("ok"), "error": count("error"), "expired": count("expired"), "cancelled": count("cancelled")}
+        return {
+            "id": job["id"],
+            "object": "job",
+            "endpoint": "embeddings",
+            "model": job["model"],
+            "status": job["status"],
+            "counts": counts,
+            "estimate": job["estimate"],
+            "cost": r6(job["cost"]),
+            "createdAt": self.stamp(job["created"]),
+            "startedAt": self.stamp(job["started"]),
+            "finishedAt": self.stamp(job["finished"]),
+            "expiresAt": self.stamp(job["created"] + timedelta(hours=24)),
+            "resultsExpireAt": self.stamp(job["finished"] + timedelta(days=7)) if job["finished"] else None,
+            "metadata": job["metadata"],
+        }
+
+    def set_hold(self, jid, amount):
+        with self.lock:
+            if amount:
+                self.job_hold[jid] = amount
+            else:
+                self.job_hold.pop(jid, None)
+
+    def create_job(self, key, body, idem_key, rule):
+        """Returns (job JSON, replayed). Scenario `jobs`: `polls` (polls that still see the job unfinished, default 1),
+        `itemErrors` ({"index": code}), `expireFrom` (items from this index expire), `maxUnfinished`, `maxQueuedItems`."""
+        if rule and rule.get("error"):
+            e = rule["error"]
+            raise ApiError(e["code"], e.get("message", f"scripted {e['code']}"), e.get("retryAfterMs", 0), e.get("status"), e.get("retryable"))
+        model, items = body.get("model"), body.get("items")
+        if body.get("endpoint") != "embeddings" or model not in ASYNC_MODELS:
+            raise ApiError("async_unsupported", f"{body.get('endpoint')} with model {model} is not open for async jobs")
+        if not isinstance(items, list) or not 1 <= len(items) <= JOB_MAX_ITEMS:
+            raise ApiError("invalid_request", f"items: give 1 to {JOB_MAX_ITEMS} items")
+        prices, est = MODEL[model][5], 0.0
+        for i, it in enumerate(items):
+            if not isinstance(it, dict) or ("texts" in it) == ("image" in it) or set(it) - {"texts", "image"}:
+                raise ApiError("invalid_request", f"items[{i}]: give exactly one of image and texts, and no model")
+            if "image" in it:
+                ref = it["image"]
+                if "id" not in ref:
+                    raise ApiError("invalid_request", f"items[{i}]: async jobs take image handles only (upload the image first)")
+                with self.lock:
+                    known = ref["id"] in self.images
+                if not known:
+                    raise ApiError("image_not_found", f"items[{i}]: image {ref['id']} not found; upload it again", status=400)
+                est += prices["image"] * ASYNC_FACTOR
+            else:
+                if model != "siglip2":
+                    raise ApiError("invalid_request", f"items[{i}]: {model} embeds images only")
+                est += prices["text"] * ASYNC_FACTOR * len(it["texts"])
+        est = r6(est)
+        h = hashlib.sha256(canon(body).encode()).hexdigest()
+        with self.jobs_lock:
+            ik = (key, idem_key) if idem_key else None
+            if ik and ik in self.job_idem:
+                stored_h, jid = self.job_idem[ik]
+                if stored_h != h:
+                    raise ApiError("idempotency_conflict", "this Idempotency-Key was used with a different request body")
+                return self.job_json(self.jobs[jid]), True
+            open_jobs = [j for j in self.jobs.values() if j["key"] == key and j["status"] in ("queued", "running")]
+            queued = sum(len(j["items"]) - len(j["results"]) for j in open_jobs)
+            if len(open_jobs) >= self.job_cfg.get("maxUnfinished", 10) or queued + len(items) > self.job_cfg.get("maxQueuedItems", 100000):
+                raise ApiError("too_many_jobs", "too many unfinished jobs or queued items; retry when some finish", 30000)
+            with self.lock:
+                available = self.balance["funded"] - sum(self.job_hold.values())
+            if available < est:
+                raise ApiError("insufficient_balance", f"insufficient balance: this job can cost up to {est:g} credits")
+            jid = "job_" + f"{len(self.jobs) + 1:032x}"
+            job = {
+                "id": jid, "key": key, "model": model, "items": items, "metadata": body.get("metadata"), "estimate": est, "created": datetime.now(UTC),
+                "started": None, "finished": None, "results": {}, "status": "queued", "polls": 0, "done": 0, "cost": 0.0,
+            }
+            self.jobs[jid] = job
+            self.set_hold(jid, est)
+            if ik:
+                self.job_idem[ik] = (h, jid)
+            return self.job_json(job), False
+
+    def own_job(self, key, jid):
+        job = self.jobs.get(jid)
+        if not job or job["key"] != key:
+            raise ApiError("not_found", f"job {jid} not found")
+        return job
+
+    def advance(self, job):
+        """One poll: the first `polls` polls process a growing share of the items, the next one finishes the job."""
+        if job["status"] not in ("queued", "running"):
+            return
+        steps = int(self.job_cfg.get("polls", 1))
+        job["polls"] += 1
+        n = len(job["items"])
+        upto = n if job["polls"] > steps else max(1, n * job["polls"] // (steps + 1))
+        item_errors = {int(k): v for k, v in (self.job_cfg.get("itemErrors") or {}).items()}
+        expire_from = self.job_cfg.get("expireFrom")
+        if job["started"] is None:
+            job["started"] = datetime.now(UTC)
+        job["status"] = "running"
+        for i in range(job["done"], upto):
+            if i in job["results"]:
+                continue
+            if expire_from is not None and i >= expire_from:
+                job["results"][i] = {"index": i, "status": "expired"}
+            elif i in item_errors:
+                job["results"][i] = {"index": i, "status": "error", "error": {"code": item_errors[i], "message": f"scripted {item_errors[i]}"}}
+            else:
+                try:
+                    out = self.run_call(job["key"], "/v1/embeddings", dict(job["items"][i], model=job["model"]), job["model"], None, job["id"])
+                    job["results"][i] = {"index": i, "status": "ok", "result": out}
+                    job["cost"] += out["cost"]
+                except ApiError as err:
+                    job["results"][i] = {"index": i, "status": "error", "error": {"code": err.code, "message": err.message}}
+                    if err.code == "insufficient_balance":
+                        job["stopped"] = True
+        job["done"] = upto
+        if job.get("stopped"):
+            for i in range(n):
+                job["results"].setdefault(i, {"index": i, "status": "error", "error": {"code": "insufficient_balance", "message": "the balance no longer covers the job"}})
+        if len(job["results"]) == n:
+            expired = any(r["status"] == "expired" for r in job["results"].values())
+            job["status"] = "stopped" if job.get("stopped") else "expired" if expired else "completed"
+            job["finished"] = datetime.now(UTC)
+            self.set_hold(job["id"], 0)
+
+    def get_job(self, key, jid):
+        with self.jobs_lock:
+            job = self.own_job(key, jid)
+            self.advance(job)
+            return self.job_json(job)
+
+    def cancel_job(self, key, jid):
+        with self.jobs_lock:
+            job = self.own_job(key, jid)
+            if job["status"] not in ("queued", "running"):
+                raise ApiError("job_finished", f"job {jid} has already ended")
+            for i in range(len(job["items"])):
+                job["results"].setdefault(i, {"index": i, "status": "cancelled"})
+            job["status"], job["finished"] = "cancelled", datetime.now(UTC)
+            self.set_hold(jid, 0)
+            return self.job_json(job)
+
+    def job_results(self, key, jid, cursor, limit):
+        with self.jobs_lock:
+            job = self.own_job(key, jid)
+            try:
+                start = int(cursor) if cursor else 0
+                if start < 0 or not 1 <= limit <= 1000:
+                    raise ValueError
+            except ValueError as exc:
+                raise ApiError("invalid_request", "invalid cursor or limit") from exc
+            done = [job["results"][i] for i in sorted(job["results"]) if i >= start][:limit]
+            nxt = str(done[-1]["index"] + 1) if len(done) == limit else None
+            return {"items": json.loads(json.dumps(done)), "next": nxt}
 
     # ---- batch ----
     def batch_items(self, key, endpoint, body, idem_key, rule):
@@ -653,6 +836,8 @@ class Handler(BaseHTTPRequestHandler):
                 info, new = self.fake.store_image(raw)
                 self.check_response(201 if new else 200, info)
                 return self.send_json(201 if new else 200, info)
+            if path == "/v1/jobs" or JOB_PATH.fullmatch(path):
+                return self.jobs_route(method, path, key, raw, rule)
             if method != "POST" or not (path in INFERENCE or path[len("/v1/batch/") :] in BATCHABLE and path.startswith("/v1/batch/")):
                 raise ApiError("not_found", f"no such endpoint: {method} {path}")
             if len(raw) > MAX_BODY:
@@ -692,6 +877,55 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error_body(err)
         finally:
             self.record()
+
+    def jobs_route(self, method, path, key, raw, rule):
+        if self.free_request:
+            raise ApiError("free_tier_unsupported", "async jobs need an API key; the free tier does not offer them")
+        extra = {}
+        m = JOB_PATH.fullmatch(path)
+        if path == "/v1/jobs" and method == "POST":
+            try:
+                body = json.loads(raw)
+            except ValueError as exc:
+                raise ApiError("invalid_request", "the body is not valid JSON") from exc
+            if self.fake.validate:
+                from harness import openapi
+
+                errs = openapi.request_errors(path, body)
+                if errs:
+                    with self.fake.lock:
+                        self.fake.violations.append(f"request {path}: {errs[0]}")
+                    raise ApiError("invalid_request", f"invalid request: {errs[0]}")
+            idem = self.headers.get("Idempotency-Key")
+            if idem is not None and not re.fullmatch(r"[\x21-\x7e]{1,128}", idem):
+                raise ApiError("invalid_request", "Idempotency-Key must be 1 to 128 printable ASCII characters")
+            out, replayed = self.fake.create_job(key, body, idem, rule)
+            self.replayed = replayed
+            extra["Location"] = f"/v1/jobs/{out['id']}"
+            if replayed:
+                extra["Idempotent-Replayed"] = "true"
+            status = 202
+        elif m and not m.group(2) and method == "GET":
+            out, status = self.fake.get_job(key, m.group(1)), 200
+        elif m and m.group(2) == "/cancel" and method == "POST":
+            out, status = self.fake.cancel_job(key, m.group(1)), 200
+        elif m and m.group(2) == "/results" and method == "GET":
+            q = urllib.parse.parse_qs(self.path.partition("?")[2])
+            out, status = self.fake.job_results(key, m.group(1), (q.get("cursor") or [""])[0], int((q.get("limit") or ["100"])[0])), 200
+        else:
+            raise ApiError("not_found", f"no such endpoint: {method} {path}")
+        self.check_response(status, out)
+        if self.fake.validate and path.endswith("/results"):
+            from harness import openapi
+
+            for it in out["items"]:
+                for err in openapi.errors(openapi.schema("BatchItem"), it):
+                    self.fake.violations.append(f"job item: {err}")
+                if it["status"] == "ok":
+                    for err in openapi.errors(openapi.schema("EmbedResponse"), it["result"]):
+                        if ("/v1/embeddings", err) not in openapi.KNOWN_SPEC_ISSUES:
+                            self.fake.violations.append(f"job item result: {err}")
+        self.send_json(status, out, extra)
 
     def record(self):
         """Write the log entry of this request (once). It goes in before the response is sent, never after."""

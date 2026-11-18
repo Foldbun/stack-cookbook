@@ -315,3 +315,123 @@ def test_network_errors_retry_only_with_key(monkeypatch):
     with pytest.raises(sc.StackError) as exc:
         c._send("POST", "/v1/ocr", b"{}", retry_network=False)
     assert exc.value.code == "network_error"
+
+
+# region async jobs
+def _job_items(c, n):
+    return [{"image": sc.image_handle(c.upload(png(i), "image/png")["id"])} for i in range(n)]
+
+
+def test_job_runs_to_completion_and_lands_in_the_ledger(server):
+    c = client(server)
+    items = _job_items(c, 5)
+    job = c.create_job("siglip2", items, "job-key", metadata={"dataset": "t"})
+    assert (job["status"], job["counts"]["total"], job["estimate"], job["metadata"]) == ("queued", 5, 0.025, {"dataset": "t"})
+    (entry,) = calls(server, "/v1/jobs")
+    assert (entry["status"], entry["idempotencyKey"], entry["hasAuthorization"]) == (202, "job-key", True)
+    assert c._reserved == pytest.approx(0.025)  # the worst case is held until the job is final
+    running = c.get_job(job["id"])
+    assert running["status"] == "running" and 0 < running["counts"]["ok"] < 5 and c._reserved > 0
+    done = c.get_job(job["id"])
+    assert (done["status"], done["counts"]["ok"], done["cost"]) == ("completed", 5, 0.025)
+    assert c._reserved == pytest.approx(0) and c._spent == pytest.approx(0.025)
+    got = list(c.job_results(job["id"], tag="j"))
+    assert [i["index"] for i in got] == [0, 1, 2, 3, 4] and {i["status"] for i in got} == {"ok"}
+    assert len(got[0]["result"]["embeddings"][0]["vector"]) == got[0]["result"]["dimensions"]
+    rows = c.calls("j")
+    assert len(rows) == 5 and rows[0] == {"endpoint": "/v1/jobs", "model": "siglip2", "list": 0.005, "charged": 0.005, "cache": "miss", "queueMs": 4, "processingMs": 80, "replayed": False}
+    assert c.summary() == {"calls": 5, "listTotal": 0.025, "chargedTotal": 0.025}
+    assert c._spent == pytest.approx(0.025)  # reading the results does not count the spend twice
+    assert len(list(c.job_results(job["id"]))) == 5 and c.summary()["calls"] == 5  # nor does reading them again
+
+
+def test_job_results_page_by_cursor_and_cache_hits_are_free(server):
+    c = client(server)
+    items = _job_items(c, 4)
+    first = c.create_job("siglip2", items)
+    while c.get_job(first["id"])["status"] != "completed":
+        pass
+    list(c.job_results(first["id"]))
+    second = c.create_job("siglip2", items)  # the same four images again: cached, so free
+    while c.get_job(second["id"])["status"] != "completed":
+        pass
+    got = list(c.job_results(second["id"], limit=2, tag="again"))
+    assert [i["index"] for i in got] == [0, 1, 2, 3]
+    assert len(calls(server, f"/v1/jobs/{second['id']}/results")) == 3  # 2 + 2 + the empty last page
+    assert [r["cache"] for r in c.calls("again")] == ["hit"] * 4 and c.summary()["chargedTotal"] == 0.02
+
+
+def test_job_with_failed_items(server):
+    scenario(server, "job-partial")
+    c = client(server)
+    job = c.create_job("siglip2", _job_items(c, 4))
+    while c.get_job(job["id"])["status"] != "completed":
+        pass
+    items = list(c.job_results(job["id"], tag="p"))
+    assert [i["status"] for i in items] == ["ok", "error", "ok", "ok"] and items[1]["error"]["code"] == "bad_model_output"
+    assert len(c.calls("p")) == 3 and c.get_job(job["id"])["counts"] == {"total": 4, "pending": 0, "running": 0, "ok": 3, "error": 1, "expired": 0, "cancelled": 0}
+
+
+def test_job_text_items_and_idempotent_replay(server):
+    c = client(server)
+    items = [{"texts": ["a dog", "a cat"]}, {"texts": ["a bird"]}]
+    a = c.create_job("siglip2", items, "same")
+    b = c.create_job("siglip2", items, "same")
+    assert a["id"] == b["id"] and [e["replayed"] for e in calls(server, "/v1/jobs")] == [False, True]
+    assert c._reserved == pytest.approx(a["estimate"]) == pytest.approx(0.003)  # one hold, not two
+    with pytest.raises(sc.StackError) as exc:
+        c.create_job("siglip2", items[:1], "same")
+    assert (exc.value.status, exc.value.code) == (409, "idempotency_conflict")
+    c.cancel_job(a["id"])
+    assert c._reserved == pytest.approx(0)
+
+
+def test_cancel_job(server):
+    c = client(server)
+    job = c.create_job("dinov3", _job_items(c, 3))
+    c.get_job(job["id"])  # one poll: part of the items ran
+    cancelled = c.cancel_job(job["id"])
+    assert cancelled["status"] == "cancelled" and cancelled["counts"]["cancelled"] > 0
+    assert [i["status"] for i in c.job_results(job["id"])].count("cancelled") == cancelled["counts"]["cancelled"]
+    assert c._reserved == pytest.approx(0) and c._spent == pytest.approx(cancelled["cost"])
+    with pytest.raises(sc.StackError) as exc:
+        c.cancel_job(job["id"])
+    assert (exc.value.status, exc.value.code) == (409, "job_finished")
+
+
+def test_job_is_refused_locally_without_a_key_or_over_the_cap(server):
+    f = free(server)
+    gone = "job_" + "0" * 32
+    for fn in (lambda: f.create_job("siglip2", []), lambda: f.get_job(gone), lambda: list(f.job_results(gone)), lambda: f.cancel_job(gone)):
+        with pytest.raises(sc.MissingApiKey):
+            fn()
+    c = client(server, max_credits=0.01)
+    items = _job_items(c, 3)  # the worst case is 3 x 0.005
+    with pytest.raises(sc.BudgetExceeded) as exc:
+        c.create_job("siglip2", items)
+    assert exc.value.message == "call refused: up to 0.015 credits would pass FOLDBUN_MAX_CREDITS=0.01 (spent 0)"
+    assert calls(server, "/v1/jobs") == []
+
+
+def test_job_submit_retries_too_many_jobs(server, monkeypatch):
+    scenario(server, "job-too-many")
+    c = client(server)
+    items = _job_items(c, 1)
+    slept = []
+    monkeypatch.setattr(sc.time, "sleep", slept.append)
+    job = c.create_job("siglip2", items, "retry-key")
+    assert job["status"] == "queued" and len(slept) == 1 and slept[0] >= 1.2
+    first, second = calls(server, "/v1/jobs")
+    assert (first["status"], second["status"]) == (429, 202) and first["idempotencyKey"] == second["idempotencyKey"] == "retry-key"
+
+
+def test_job_submit_without_balance_is_402(server):
+    scenario(server, {"balance": 0.001})
+    c = client(server)
+    items = _job_items(c, 2)
+    with pytest.raises(sc.StackError) as exc:
+        c.create_job("siglip2", items)
+    assert (exc.value.status, exc.value.code) == (402, "insufficient_balance") and c._reserved == 0
+
+
+# endregion

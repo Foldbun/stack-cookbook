@@ -1,6 +1,7 @@
 """Validation against the public API description (harness/vendor/openapi.yaml)."""
 
 import functools
+import re
 from pathlib import Path
 
 import jsonschema
@@ -15,6 +16,7 @@ REQUEST_SCHEMAS = {
     "/v1/documents/parse": "ParseRequest",
     "/v1/embeddings": "EmbedRequest",
     "/v1/remove-background": "RemoveBackgroundRequest",
+    "/v1/jobs": "AsyncJobRequest",
 }
 RESPONSE_SCHEMAS = {
     "/v1/images": "ImageInfo",
@@ -91,6 +93,10 @@ def _response_errors(path, status, body):
         return errors(MODELS_RESPONSE, body)
     if path == "/v1/whoami":
         return errors(WHOAMI_RESPONSE, body)
+    if path == "/v1/jobs" or re.fullmatch(r"/v1/jobs/job_[0-9a-f]{32}(/cancel)?", path):
+        return errors(schema("AsyncJob"), body)
+    if re.fullmatch(r"/v1/jobs/job_[0-9a-f]{32}/results", path):
+        return errors(schema("AsyncResultsPage"), body)
     name = RESPONSE_SCHEMAS.get(path)
     if path.startswith("/v1/batch/"):
         return errors(schema("BatchResponse"), body)
