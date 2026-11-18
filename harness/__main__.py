@@ -105,6 +105,14 @@ def lint():
     return problems
 
 
+def check_site():
+    """Build the site (Astro): the README pages become MDX there, and an unbalanced tag only fails at this step (0.4.0)."""
+    if not shutil.which("pnpm"):
+        return ["site: needs `pnpm` on PATH"]
+    p = subprocess.run(["pnpm", "--dir", "site", "build"], cwd=ROOT, capture_output=True, text=True)
+    return [] if p.returncode == 0 else ["site build failed:\n" + (p.stdout + p.stderr)[-2000:]]
+
+
 def cmd_check(args):
     steps = [
         ("contract", check_contract),
@@ -122,6 +130,8 @@ def cmd_check(args):
         ("i18n", i18n.check),
         ("scan", scan.run),
     ]
+    if not args.skip_site:
+        steps.append(("site build", check_site))
     if not args.skip_tests:
         steps.append(
             (
@@ -156,6 +166,7 @@ def main(argv=None):
     c.add_argument("--uc", type=csv, help="use cases, e.g. 00,03")
     c.add_argument("--lang", type=csv, help="languages, e.g. python,go")
     c.add_argument("--skip-tests", action="store_true", help="skip pytest")
+    c.add_argument("--skip-site", action="store_true", help="skip the site build")
     c.add_argument("--write-offline", action="store_true", help="write expected/offline.json from the reference language")
     for name, helptext in (("live", "run against the real API (needs FOLDBUN_API_KEY)"), ("refresh", "live, then write expected/ (needs FOLDBUN_API_KEY)")):
         p = sub.add_parser(name, help=helptext, description=helptext + ". The planned list price is checked against the cap before anything is sent.")
