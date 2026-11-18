@@ -11,3 +11,12 @@ export const BRAND = {
   /** Action colour (light theme); the dark theme uses the --accent token. */
   color: '#8b502d',
 }
+
+/** Legal pages and the contact page. The text of record lives on the organisation site (foldbun.com); every Foldbun product links to it. */
+export const LEGAL_URLS = {
+  terms: { en: 'https://foldbun.com/terms/', zh: 'https://foldbun.com/zh/terms/' },
+  privacy: { en: 'https://foldbun.com/privacy/', zh: 'https://foldbun.com/zh/privacy/' },
+  acceptableUse: { en: 'https://foldbun.com/acceptable-use/', zh: 'https://foldbun.com/zh/acceptable-use/' },
+  refunds: { en: 'https://foldbun.com/refunds/', zh: 'https://foldbun.com/zh/refunds/' },
+  contact: { en: 'https://foldbun.com/contact/', zh: 'https://foldbun.com/zh/contact/' },
+}
