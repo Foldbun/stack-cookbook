@@ -11,6 +11,11 @@ package main
 //     single /v1/embeddings call. The free tier is meant for trying the recipe, so a library of more than
 //     freeMaxImages images needs a key. The client waits and retries on 429 by itself, so this code does not pace anything.
 //
+//   - With -async (a key is needed) nobody waits for the answer: the images are uploaded as before, then each model gets
+//     one async job (at most jobItems images each) at a tenth of the price. The job runs on idle capacity with no promise
+//     of when it ends; the code polls it, reads its results and commits them. An image whose item ended as an error,
+//     expired or cancelled stays missing and is embedded by the next run, like a failed image of a batch.
+//
 // Either way the run can stop cleanly (the credit cap, or the free tier's daily limit): what was embedded is committed,
 // the rest stays missing, and the same command run again continues where it stopped, because only missing images are
 // embedded.
@@ -26,6 +31,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"stack-cookbook/05-image-library-search/stackclient"
 )
@@ -41,6 +47,11 @@ const attempts = 3 // a chunk is sent at most this many times; only the images t
 // The library of the smoke run has 25 images, so 25 is also what the free tier accepts: 25 images x 2 models = 50 light-class
 // calls. A bigger library is real work and needs a key (it would also run into the daily limit of the free tier).
 const freeMaxImages = 25
+
+const (
+	jobItems    = 10000 // items one async job may hold
+	pollSeconds = 30    // the pace the API documents for polling a job: every 30 seconds to a few minutes
+)
 
 // ErrInfo is the code and message of an item that failed, or of the reason a run stopped.
 type ErrInfo struct {
@@ -343,6 +354,131 @@ func checkFreeSize(client *stackclient.Client, images int) error {
 	}
 	return nil
 }
+
+// region async-jobs
+
+// jobKey is the idempotency key of a job, derived from its content: running the same command again within 24 hours finds the same job.
+func jobKey(model string, handles []string) string {
+	sum := sha256.Sum256([]byte(strings.Join(append([]string{model}, handles...), "|")))
+	return "job-" + hex.EncodeToString(sum[:])[:40]
+}
+
+type submittedJob struct {
+	model string
+	shas  []string
+	job   stackclient.Job
+}
+
+// indexLibraryAsync embeds what is missing with one async job per model (more when a model has over jobItems images
+// missing): upload, submit them all so they run side by side, wait for each, read the results by cursor and commit
+// what arrived. It never stops a job early: it ends when every job has a final status.
+func indexLibraryAsync(client *stackclient.Client, index *LibraryIndex, root string, models []string, workers int, poll time.Duration, log func(string)) (*Report, error) {
+	if err := client.RequireKey("async jobs are not part of the free tier"); err != nil {
+		return nil, err
+	}
+	report := newReport()
+	paths := map[string]string{}
+	for _, it := range index.Items {
+		paths[it.Sha256] = filepath.Join(root, it.Path)
+	}
+	var submitted []submittedJob
+submit:
+	for _, model := range models {
+		pending := index.Missing(model)
+		log(fmt.Sprintf("%d images in the library, %d to embed with %s", len(index.Items), len(pending), model))
+		for start := 0; start < len(pending); start += jobItems {
+			shas := pending[start:min(start+jobItems, len(pending))]
+			handles, err := uploadAll(client, shas, paths, workers) // free of charge
+			if err != nil {
+				return report, err
+			}
+			items := make([]map[string]any, len(handles))
+			for i, h := range handles {
+				items[i] = map[string]any{"image": stackclient.ImageHandle(h)}
+			}
+			job, err := client.CreateJob(model, items, map[string]string{"source": "cookbook-05"}, stackclient.Opts{Key: jobKey(model, handles)})
+			var apiErr *stackclient.Error
+			if errors.As(err, &apiErr) && (stopCodes[apiErr.Code] || apiErr.Retryable) {
+				// not enough balance or credit cap, or too many jobs: keep the jobs that were submitted
+				report.Stopped = &Stopped{apiErr.Code, apiErr.Message, model}
+				break submit
+			}
+			if err != nil {
+				return report, err
+			}
+			log(fmt.Sprintf("  submitted %s: %d images with %s, at most %g credits", job.ID, len(shas), model, job.Estimate))
+			submitted = append(submitted, submittedJob{model, shas, job})
+		}
+	}
+	for _, s := range submitted {
+		job := s.job
+		for !job.Final() {
+			time.Sleep(poll)
+			var err error
+			if job, err = client.GetJob(job.ID); err != nil {
+				return report, err
+			}
+			c := job.Counts
+			log(fmt.Sprintf("  %s %s: %d/%d done, %d failed, cost %g", job.ID, job.Status, c.OK, c.Total, c.Error, job.Cost))
+		}
+		tag := s.model + ":" + job.ID
+		var done []embedding
+		var okShas []string
+		err := client.JobResults(job.ID, stackclient.Opts{Tag: tag}, func(item stackclient.JobItem) error {
+			sha := s.shas[item.Index]
+			switch {
+			case item.Status == "ok":
+				var r struct {
+					Embeddings []struct {
+						Vector []float32 `json:"vector"`
+					} `json:"embeddings"`
+				}
+				if err := json.Unmarshal(item.Result, &r); err != nil {
+					return err
+				}
+				if len(r.Embeddings) == 0 {
+					return errors.New("job item without an embedding")
+				}
+				done = append(done, embedding{sha, r.Embeddings[0].Vector})
+				okShas = append(okShas, sha)
+			case item.Status == "error" && item.Error != nil && stopCodes[item.Error.Code]:
+				if report.Stopped == nil {
+					report.Stopped = &Stopped{item.Error.Code, item.Error.Message, s.model}
+				}
+			case item.Error != nil: // not charged, and still missing, so the next run embeds it
+				report.Failed[sha] = ErrInfo{item.Error.Code, item.Error.Message}
+			default: // expired, cancelled or deleted
+				report.Failed[sha] = ErrInfo{item.Status, "the item ended as " + item.Status}
+			}
+			return nil
+		})
+		if err != nil {
+			return report, err
+		}
+		if rows := client.Calls(tag); len(rows) == len(okShas) {
+			for i, sha := range okShas {
+				report.Rows[sha] = append(report.Rows[sha], rows[i])
+			}
+		}
+		if len(done) > 0 {
+			shas, vectors := make([]string, len(done)), make([][]float32, len(done))
+			for i, d := range done {
+				shas[i], vectors[i] = d.sha, d.vector
+			}
+			if err := index.Add(s.model, shas, vectors); err != nil {
+				return report, err
+			}
+			if err := index.Commit(); err != nil {
+				return report, err
+			}
+			report.Embedded += len(done)
+		}
+		log(fmt.Sprintf("  %s: %d vectors from %s (%s)", s.model, len(done), job.ID, job.Status))
+	}
+	return report, nil
+}
+
+// endregion
 
 // region index-library
 

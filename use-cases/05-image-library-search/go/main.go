@@ -254,6 +254,8 @@ func run() int {
 	limit := flag.Int("limit", 0, "only the first N items (0: all)")
 	resume := flag.Bool("resume", false, "continue from the index in <out>/index (without it the index is rebuilt from scratch)")
 	batchSize := flag.Int("batch-size", 50, "images per batch request")
+	useAsync := flag.Bool("async", false, "embed with one async job per model at a tenth of the price (needs a key; no completion time is promised)")
+	pollSecs := flag.Float64("poll-seconds", pollSeconds, "seconds between two polls of a job")
 	flag.Parse()
 	raw, err := os.ReadFile(*manifestPath)
 	if err != nil {
@@ -305,14 +307,25 @@ func run() int {
 	{
 		// region run-index
 		tIndex := time.Now()
-		report, err = indexLibrary(client, index, base, models, *batchSize, *concurrency, func(s string) { fmt.Println(s) })
+		poll := time.Duration(*pollSecs * float64(time.Second))
+		runIndex := func(log func(string)) (*Report, error) {
+			if *useAsync {
+				return indexLibraryAsync(client, index, base, models, *concurrency, poll, log)
+			}
+			return indexLibrary(client, index, base, models, *batchSize, *concurrency, log)
+		}
+		report, err = runIndex(func(s string) { fmt.Println(s) })
 		st.IndexSeconds = round3(time.Since(tIndex).Seconds())
 		// endregion
 		if err == nil {
 			// region reindex-check
 			callsBefore := len(client.Calls(""))
 			var again *Report
-			again, err = indexLibrary(client, index, base, models, *batchSize, *concurrency, func(string) {})
+			if *useAsync && (report.Stopped != nil || len(report.Failed) > 0) {
+				again = newReport() // what is missing would only be submitted as new jobs; the next run does that
+			} else {
+				again, err = runIndex(func(string) {})
+			}
 			if err == nil {
 				st.Reindex.APICalls, st.Reindex.Embedded = len(client.Calls(""))-callsBefore, again.Embedded // nothing is missing, so nothing is sent
 			}
