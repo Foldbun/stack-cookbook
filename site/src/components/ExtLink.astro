@@ -1,0 +1,15 @@
+---
+// A template link. Links that leave the Cookbook frame (see src/lib/external.mjs) open in a new tab and carry the
+// external-link icon and visually hidden "(opens in a new tab)" text; links inside the Cookbook render as a plain <a>.
+import { T } from '../i18n.ts'
+import { localeOf } from '../lib/site.ts'
+import { isCrossApp, EXT_ATTRS, extIconHtml } from '../lib/external.mjs'
+
+const { href, locale, ...attrs } = Astro.props
+const cross = isCrossApp(href)
+const text = T[locale ?? localeOf(Astro.url.pathname)]['link.newTab']
+---
+
+{cross
+  ? <a href={href} {...EXT_ATTRS} {...attrs}><slot /><Fragment set:html={extIconHtml()} /><span class="vh"> {text}</span></a>
+  : <a href={href} {...attrs}><slot /></a>}

@@ -2,6 +2,7 @@
 // Compact footer of the Foldbun Stack docs: copyright, links to the Foldbun sites, the language links
 // (data-set-lang writes the foldbun_lang cookie, see src/scripts/site.js).
 import { T } from '../i18n.ts'
+import ExtLink from './ExtLink.astro'
 import { is404, lpath, type Locale } from '../lib/site.ts'
 import { LEGAL_URLS } from '../lib/brand.ts'
 
@@ -26,8 +27,8 @@ const legal = (['terms', 'privacy', 'acceptableUse', 'refunds', 'contact'] as co
   <div class="wrap">
     <div class="foot-base">
       <span>{t['footer.copyright']}</span>
-      <nav class="foot-org" aria-label={t['footer.org']}>{foldbun.map((l) => <a href={l.href}>{l.label}</a>)}</nav>
-      <nav class="foot-org" aria-label={t['footer.legal']}>{legal.map((l) => <a href={l.href} target="_blank" rel="noopener">{l.label}</a>)}</nav>
+      <nav class="foot-org" aria-label={t['footer.org']}>{foldbun.map((l) => <ExtLink href={l.href} locale={locale}>{l.label}</ExtLink>)}</nav>
+      <nav class="foot-org" aria-label={t['footer.legal']}>{legal.map((l) => <ExtLink href={l.href} locale={locale}>{l.label}</ExtLink>)}</nav>
       <span class="grow"></span>
       <a href={enHref} hreflang="en-US" lang="en-US" aria-current={locale === 'en' ? 'true' : undefined} data-set-lang="en">English</a>
       <a href={zhHref} hreflang="zh-CN" lang="zh-CN" aria-current={locale === 'zh' ? 'true' : undefined} data-set-lang="zh">简体中文</a>

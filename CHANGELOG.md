@@ -5,6 +5,7 @@ All notable changes to this repository. Versions follow [Semantic Versioning](ht
 ## Unreleased
 
 - Site: the footer carries the legal links (terms of service, privacy policy, acceptable use policy, refund policy, contact), pointing to the pages of record on foldbun.com in the page language and opening in a new tab; the copyright line names Foldbun Technologies Limited.
+- Site: every link that leaves the Cookbook (Stack site pages, console, Playground, foldbun.com including the footer legal links, other Foldbun hosts, GitHub and third-party URLs) opens in a new tab with an external-link icon and a visually hidden "(opens in a new tab)" note, in English and Chinese; Cookbook pages and in-page anchors stay in the same tab. One helper `isCrossApp()` serves the `ExtLink` component (header, footer) and a Markdown plugin (use-case content), so the READMEs are unchanged. `pnpm test` checks it on the built pages.
 - Docs: where the Cookbook documents its datasets and image attributions (the READMEs, `ATTRIBUTION.md`, `datasets/README.md`, the dataset sections of the use cases, here and on the site), rights holders are told they can request removal through the contact page on foldbun.com.
 
 ## 0.3.2 - 2026-11-18

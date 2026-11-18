@@ -3,6 +3,7 @@ import starlight from '@astrojs/starlight'
 import { BRAND } from './src/lib/brand.ts'
 import { satteri } from '@astrojs/markdown-satteri'
 import { headingAnchors } from './src/plugins/heading-anchors.mjs'
+import { externalLinks } from './src/plugins/external-links.mjs'
 
 // Foldbun Stack Cookbook: use cases (Starlight) under /cookbook/ (en-US) and /cookbook/zh/ (zh-CN). The pages under
 // src/content/docs are generated from the use case sources by scripts/sync-usecases.mjs (pnpm build runs it first).
@@ -14,7 +15,7 @@ export default defineConfig({
   prefetch: false,
   build: { format: 'directory', inlineStylesheets: 'never' },
   vite: { build: { assetsInlineLimit: 0 } },
-  markdown: { processor: satteri({ hastPlugins: [headingAnchors] }) },
+  markdown: { processor: satteri({ hastPlugins: [headingAnchors, externalLinks] }) },
   integrations: [
     starlight({
       // The site title is the suffix of every <title> ("<page> | Stack Cookbook"); the product name sits in the page title
