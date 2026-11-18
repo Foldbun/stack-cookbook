@@ -410,9 +410,6 @@ if args.metrics_port:
 </details>
 <!-- /code -->
 
-</details>
-<!-- /code -->
-
 <!-- code: replay -->
 <details><summary>Python (python/main.py)</summary>
 

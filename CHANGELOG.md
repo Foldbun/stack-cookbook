@@ -2,6 +2,10 @@
 
 All notable changes to this repository. Versions follow [Semantic Versioning](https://semver.org/); the client files carry their own version (`VERSION` in each file).
 
+## 0.4.1 - 2026-11-19
+
+- Use case 08: the English README had a stray closing `</details>` that broke the site build; 0.4.0 has no site release.
+
 ## 0.4.0 - 2026-11-19
 
 - Client files 1.2.0 (Python, TypeScript, Go): asynchronous jobs. `create_job` (`POST /v1/jobs`, with an idempotency key and metadata), `get_job`, `cancel_job`, `job_results` (all finished items by cursor, each charged at a tenth of the list price); the client files in every use case are synced. The vendored API description `harness/vendor/openapi.yaml` and the fake API cover jobs (embedding models only, items that expire after 24 hours, results kept 7 days, no free tier).
