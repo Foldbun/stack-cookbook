@@ -10,12 +10,18 @@ Two modes, chosen by the client (`client.free`, true when there is no API key):
   FREE_MAX_IMAGES images needs a key. Calls are spaced by the free tier's per-minute limits; the client waits and
   retries on 429 by itself, so this code does not pace anything.
 
+* With `async_mode` (a key is needed) nobody waits for the answer: the images are uploaded as before, then each model gets
+  one async job (at most JOB_ITEMS images each) at a tenth of the price. The job runs on idle capacity with no promise
+  of when it ends; the code polls it, reads its results and commits them. An image whose item ended as an error, expired
+  or cancelled stays missing and is embedded by the next run, like a failed image of a batch.
+
 Either way the run can stop cleanly (the credit cap, or the free tier's daily limit): what was embedded is committed,
 the rest stays missing, and the same command run again continues where it stopped, because only missing images are
 embedded.
 """
 
 import hashlib
+import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
 from dataclasses import dataclass, field
@@ -40,6 +46,8 @@ ATTEMPTS = 3  # a chunk is sent at most this many times; only the images that fa
 # The library of the smoke run has 25 images, so 25 is also what the free tier accepts: 25 images x 2 models = 50 light-class
 # calls. A bigger library is real work and needs a key (it would also run into the daily limit of the free tier).
 FREE_MAX_IMAGES = 25
+JOB_ITEMS = 10000  # items one async job may hold
+POLL_SECONDS = 30  # the pace the API documents for polling a job: every 30 seconds to a few minutes
 
 
 @dataclass
@@ -169,12 +177,86 @@ def check_free_size(client, images: int) -> None:
         client.require_key(f"the free tier is meant for trying a recipe on a small library of up to {FREE_MAX_IMAGES} images, and this one has {images}")
 
 
+# region async-jobs
+def _job_key(model: str, handles: list[str]) -> str:
+    """Idempotency key of a job, derived from its content: running the same command again within 24 hours finds the same job."""
+    return "job-" + hashlib.sha256("|".join([model, *handles]).encode()).hexdigest()[:40]
+
+
+def run_async(client, index, models, paths, report, *, workers, poll_s, log, sleep=time.sleep):
+    """One async job per model (more when a model has over JOB_ITEMS images missing): upload, submit them all so they run
+    side by side, wait for each, read the results by cursor and commit what arrived. The run never stops a job early: it
+    ends when every job has a final status."""
+    client.require_key("async jobs are not part of the free tier")
+    submitted, model = [], ""  # (model, shas, job)
+    try:
+        for model in models:
+            pending = index.missing(model)
+            log(f"{len(index.items)} images in the library, {len(pending)} to embed with {model}")
+            for start in range(0, len(pending), JOB_ITEMS):
+                shas = pending[start : start + JOB_ITEMS]
+                with ThreadPoolExecutor(workers) as pool:
+                    handles = list(pool.map(lambda sha: _upload(client, paths[sha]), shas))  # free of charge
+                job = client.create_job(model, [{"image": sc.image_handle(h)} for h in handles], _job_key(model, handles), metadata={"source": "cookbook-05"})
+                log(f"  submitted {job['id']}: {len(shas)} images with {model}, at most {job['estimate']:g} credits")
+                submitted.append((model, shas, job))
+    except sc.StackError as err:
+        if err.code in STOP_CODES or err.retryable:  # not enough balance or credit cap, or too many jobs: keep what was submitted
+            report.stopped = {"code": err.code, "message": err.message, "model": model}
+        else:
+            raise
+    for model, shas, job in submitted:
+        while job["status"] in ("queued", "running"):
+            sleep(poll_s)
+            job = client.get_job(job["id"])
+            c = job["counts"]
+            log(f"  {job['id']} {job['status']}: {c['ok']}/{c['total']} done, {c['error']} failed, cost {job['cost']:g}")
+        tag = f"{model}:{job['id']}"
+        done, ok_shas = [], []
+        for item in client.job_results(job["id"], tag=tag):
+            sha = shas[item["index"]]
+            if item["status"] == "ok":
+                done.append((sha, item["result"]["embeddings"][0]["vector"]))
+                ok_shas.append(sha)
+            elif item["status"] == "error" and item["error"]["code"] in STOP_CODES:
+                report.stopped = report.stopped or {**item["error"], "model": model}
+            else:  # error, expired, cancelled or deleted: not charged, and still missing, so the next run embeds it
+                report.failed[sha] = item.get("error") or {"code": item["status"], "message": f"the item ended as {item['status']}"}
+        rows = client.calls(tag)
+        if len(rows) == len(ok_shas):
+            for sha, row in zip(ok_shas, rows, strict=True):
+                report.rows.setdefault(sha, []).append(row)
+        if done:
+            index.add(model, [s for s, _ in done], [v for _, v in done])
+            index.commit()
+            report.embedded += len(done)
+        log(f"  {model}: {len(done)} vectors from {job['id']} ({job['status']})")
+
+
+# endregion
+
+
 # region index-library
-def index_library(client, index: LibraryIndex, root: Path, models=("dinov3", "siglip2"), *, batch_size=50, workers=4, log=print) -> Report:
-    """Embed every library image that is missing from the index, with every model, a chunk at a time."""
+def index_library(
+    client,
+    index: LibraryIndex,
+    root: Path,
+    models=("dinov3", "siglip2"),
+    *,
+    batch_size=50,
+    workers=4,
+    log=print,
+    async_mode=False,
+    poll_s=POLL_SECONDS,
+    sleep=time.sleep,
+) -> Report:
+    """Embed every library image that is missing from the index, with every model, a chunk at a time (or as async jobs)."""
     check_free_size(client, len(index.items))
     report = Report()
     paths = {it["sha256"]: root / it["path"] for it in index.items}
+    if async_mode:
+        run_async(client, index, models, paths, report, workers=workers, poll_s=poll_s, log=log, sleep=sleep)
+        return report
     for model in models:
         pending = index.missing(model)  # sha256 of the images that lack this model's vector, in catalogue order
         log(f"{len(index.items)} images in the library, {len(pending)} to embed with {model}")

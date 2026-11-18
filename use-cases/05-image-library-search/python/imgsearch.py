@@ -37,7 +37,9 @@ def cmd_index(args, client) -> int:
     index.set_items(scan_folder(root, index.items))
     index.commit()  # drops the rows of files that were removed
     t0 = time.monotonic()
-    report = embedder.index_library(client, index, root, batch_size=args.batch_size, workers=args.concurrency)
+    report = embedder.index_library(
+        client, index, root, batch_size=args.batch_size, workers=args.concurrency, async_mode=args.use_async, poll_s=args.poll_seconds
+    )
     print(f"embedded {report.embedded} vectors in {time.monotonic() - t0:.1f} s")
     print_cost(client)
     for sha, err in report.failed.items():
@@ -107,6 +109,13 @@ def main(argv=None) -> int:
     p.add_argument("folder", type=Path)
     p.add_argument("--batch-size", type=int, default=50, help="images per batch request; the index is saved after each (default 50, at most 1000)")
     p.add_argument("--concurrency", type=int, default=4, help="parallel uploads (with a key) or calls (free tier)")
+    p.add_argument(
+        "--async",
+        dest="use_async",
+        action="store_true",
+        help="one async job per model at a tenth of the price; nobody waits, no completion time is promised (needs a key)",
+    )
+    p.add_argument("--poll-seconds", type=float, default=embedder.POLL_SECONDS, help="seconds between two polls of a job (default 30)")
     p.set_defaults(run=cmd_index)
     p = sub.add_parser("image", help="the images that look most like a given image")
     p.add_argument("image", type=Path)

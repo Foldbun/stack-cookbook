@@ -8,7 +8,8 @@ own photos, see imgsearch.py. Next to result.json this writes:
 
 Without FOLDBUN_API_KEY the run uses the free tier: images go inline as base64, one call each, and the library may
 hold at most embedder.FREE_MAX_IMAGES images (the smoke library has 25). With a key the images are uploaded and
-embedded in batches, charged at list price.
+embedded in batches, charged at list price. With `--async` (a key is needed) every model gets one async job instead,
+at a tenth of the price and with no promise of when it finishes; the text queries after it are still sent as they are.
 """
 
 import argparse
@@ -87,6 +88,13 @@ def main() -> int:
     ap.add_argument("--limit", type=int)
     ap.add_argument("--resume", action="store_true", help="continue from the index in <out>/index (without it the index is rebuilt from scratch)")
     ap.add_argument("--batch-size", type=int, default=50)
+    ap.add_argument(
+        "--async",
+        dest="use_async",
+        action="store_true",
+        help="embed with one async job per model at a tenth of the price (needs a key; no completion time is promised)",
+    )
+    ap.add_argument("--poll-seconds", type=float, default=embedder.POLL_SECONDS, help="seconds between two polls of a job (default 30)")
     args = ap.parse_args()
     manifest = json.loads(args.manifest.read_text())  # not resolved: the images are found next to it, also behind a symlink
     base = args.manifest.parent
@@ -95,6 +103,8 @@ def main() -> int:
         client = sc.StackClient(max_concurrency=args.concurrency)
         client.whoami()  # works with and without a key: confirms the credentials and the project
         embedder.check_free_size(client, len(manifest["items"][: args.limit]))  # a big library needs a key
+        if args.use_async:
+            client.require_key("async jobs are not part of the free tier")
     except sc.MissingApiKey as err:
         print(err.message, file=sys.stderr)
         return EXIT_NO_KEY
@@ -112,13 +122,19 @@ def main() -> int:
     try:
         # region run-index
         t_index = time.monotonic()
-        report = embedder.index_library(client, index, base, MODELS, batch_size=args.batch_size, workers=args.concurrency)
+        mode = {"async_mode": args.use_async, "poll_s": args.poll_seconds}
+        report = embedder.index_library(client, index, base, MODELS, batch_size=args.batch_size, workers=args.concurrency, **mode)
         stats["indexSeconds"] = round(time.monotonic() - t_index, 3)
         # endregion
         # region reindex-check
         calls_before = len(client.ledger)
-        again = embedder.index_library(client, index, base, MODELS, batch_size=args.batch_size, workers=args.concurrency, log=lambda *_: None)
-        stats["reindex"] = {"apiCalls": len(client.ledger) - calls_before, "embedded": again.embedded}  # nothing is missing, so nothing is sent
+        if args.use_async and (report.stopped or report.failed):
+            again = None  # what is missing would only be submitted as new jobs; the next run does that
+        else:
+            again = embedder.index_library(client, index, base, MODELS, batch_size=args.batch_size, workers=args.concurrency, log=lambda *_: None, **mode)
+        stats["reindex"] = (
+            {"apiCalls": len(client.ledger) - calls_before, "embedded": again.embedded} if again else None
+        )  # nothing is missing, so nothing is sent
         # endregion
         if not report.stopped and not report.failed and stats["reindex"]["apiCalls"]:
             print("second indexing pass made API calls: incremental indexing is broken", file=sys.stderr)
@@ -173,6 +189,7 @@ def main() -> int:
         library={"images": len(index.items), "uniqueImages": len({it["sha256"] for it in index.items}), "vectorsEmbedded": report.embedded},
         stopped=report.stopped,
         tier="free" if client.free else "key",
+        mode="async" if args.use_async else "batch" if not client.free else "single",
         failed=len(report.failed),
     )
     result = {

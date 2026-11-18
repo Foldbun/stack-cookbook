@@ -138,3 +138,77 @@ def test_index_file_is_row_major_float32(server, make_library, tmp_path):
     info = meta["models"]["siglip2"]
     raw = np.fromfile(tmp_path / "idx" / info["file"], dtype="<f4")
     assert raw.size == 3 * info["dimensions"] and np.allclose(np.linalg.norm(raw.reshape(3, -1), axis=1), 1, atol=1e-5)
+
+
+# region async
+def async_build(server, folder, index_dir, key=KEY, **kw):
+    return build(server, folder, index_dir, key=key, async_mode=True, poll_s=0, **kw)
+
+
+def test_async_embeds_with_one_job_per_model(server, make_library, tmp_path):
+    folder = make_library(8)
+    client, index, report = async_build(server, folder, tmp_path / "idx")
+    assert report.embedded == 16 and not report.stopped and not report.failed
+    submits = [e for e in api_calls(server, "/v1/jobs") if e["path"] == "/v1/jobs"]
+    assert len(submits) == 2 and all(e["idempotencyKey"] for e in submits)  # one job per model
+    assert not api_calls(server, "/v1/batch")
+    assert client.summary() == {"calls": 16, "listTotal": 0.08, "chargedTotal": 0.08}  # a tenth of the 0.8 of the batch run
+    assert all(len(rows) == 2 and all(r["endpoint"] == "/v1/jobs" for r in rows) for rows in report.rows.values())
+    assert index.dimensions("dinov3") == 16 and len(index.models["siglip2"]["sha256s"]) == 8
+
+
+def test_async_matches_batch_vectors_at_a_tenth_of_the_price(server, make_library, tmp_path):
+    folder = make_library(6)
+    c1, batch_index, _ = build(server, folder, tmp_path / "b")
+    c2, async_index, _ = async_build(server, folder, tmp_path / "a")
+    for model in ("dinov3", "siglip2"):
+        assert np.allclose(batch_index.matrix(model)[1], async_index.matrix(model)[1])
+    assert c1.summary()["listTotal"] == 0.6 and c2.summary()["listTotal"] == 0.06
+
+
+def test_async_second_run_submits_nothing(server, make_library, tmp_path):
+    folder = make_library(5)
+    async_build(server, folder, tmp_path / "idx")
+    before = len(api_calls(server, "/v1/jobs"))
+    _, _, report = async_build(server, folder, tmp_path / "idx")
+    assert report.embedded == 0 and len(api_calls(server, "/v1/jobs")) == before
+
+
+def test_async_failed_item_is_left_for_the_next_run(server, make_library, tmp_path):
+    folder = make_library(5)
+    server.fake.reset({"jobs": {"polls": 1, "itemErrors": {"1": "bad_model_output"}}})
+    _, index, report = async_build(server, folder, tmp_path / "idx")
+    assert len(report.failed) == 1 and next(iter(report.failed.values()))["code"] == "bad_model_output"
+    assert len(index.models["dinov3"]["sha256s"]) == 4 and report.embedded == 8
+    server.fake.reset({})
+    _, index, report = async_build(server, folder, tmp_path / "idx")  # only the image that failed (with each model) is embedded
+    assert report.embedded == 2 and not report.failed and len(index.models["dinov3"]["sha256s"]) == 5
+
+
+def test_async_expired_items_stay_missing(server, make_library, tmp_path):
+    folder = make_library(5)
+    server.fake.reset({"jobs": {"polls": 1, "expireFrom": 3}})
+    _, index, report = async_build(server, folder, tmp_path / "idx")
+    assert report.embedded == 6 and {f["code"] for f in report.failed.values()} == {"expired"}
+    assert len(index.models["dinov3"]["sha256s"]) == 3
+
+
+def test_async_stops_when_the_balance_does_not_cover_a_job(server, make_library, tmp_path):
+    folder = make_library(6)
+    server.fake.reset({"balance": 0.04})  # a job needs 0.03
+    _, index, report = async_build(server, folder, tmp_path / "idx")
+    assert report.stopped["code"] == "insufficient_balance" and len(index.models["dinov3"]["sha256s"]) == 6
+    assert not index.models.get("siglip2", {}).get("sha256s")  # the second job was refused; the first one is kept
+    server.fake.reset({})
+    _, index, report = async_build(server, folder, tmp_path / "idx")
+    assert report.embedded == 6 and not report.stopped
+
+
+def test_async_needs_a_key(server, make_library, tmp_path):
+    folder = make_library(3)
+    with pytest.raises(sc.MissingApiKey):
+        async_build(server, folder, tmp_path / "idx", key=None)
+    assert api_calls(server, "/v1/jobs") == []
+
+
+# endregion
