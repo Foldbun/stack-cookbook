@@ -85,7 +85,18 @@ STATUS = {
     "unavailable": 503,
     "upstream_timeout": 504,
 }
-RETRYABLE = {"rate_limited", "free_busy", "too_many_batches", "too_many_jobs", "async_unavailable", "upstream_error", "model_unavailable", "model_busy", "unavailable", "upstream_timeout"}
+RETRYABLE = {
+    "rate_limited",
+    "free_busy",
+    "too_many_batches",
+    "too_many_jobs",
+    "async_unavailable",
+    "upstream_error",
+    "model_unavailable",
+    "model_busy",
+    "unavailable",
+    "upstream_timeout",
+}
 # Async jobs (POST /v1/jobs): embedding models only, at a tenth of the list price.
 ASYNC_FACTOR = 0.1
 ASYNC_MODELS = ("siglip2", "dinov3")
@@ -333,7 +344,15 @@ class Fake:
         for unit, q in units:
             if q:
                 waived = unit == cache_unit and cache_hit
-                lines.append({"unit": unit, "quantity": q, "unitPrice": r6(prices[unit] * factor), "amount": 0 if waived else r6(prices[unit] * factor * q), "waived": waived})
+                lines.append(
+                    {
+                        "unit": unit,
+                        "quantity": q,
+                        "unitPrice": r6(prices[unit] * factor),
+                        "amount": 0 if waived else r6(prices[unit] * factor * q),
+                        "waived": waived,
+                    }
+                )
         return lines
 
     def bill(self, who, mid, lines, job=None):
@@ -553,7 +572,15 @@ class Fake:
     def job_json(self, job):
         n = len(job["items"])
         count = lambda st: sum(1 for r in job["results"].values() if r["status"] == st)  # noqa: E731
-        counts = {"total": n, "pending": n - len(job["results"]), "running": 0, "ok": count("ok"), "error": count("error"), "expired": count("expired"), "cancelled": count("cancelled")}
+        counts = {
+            "total": n,
+            "pending": n - len(job["results"]),
+            "running": 0,
+            "ok": count("ok"),
+            "error": count("error"),
+            "expired": count("expired"),
+            "cancelled": count("cancelled"),
+        }
         return {
             "id": job["id"],
             "object": "job",
@@ -625,8 +652,20 @@ class Fake:
                 raise ApiError("insufficient_balance", f"insufficient balance: this job can cost up to {est:g} credits")
             jid = "job_" + f"{len(self.jobs) + 1:032x}"
             job = {
-                "id": jid, "key": key, "model": model, "items": items, "metadata": body.get("metadata"), "estimate": est, "created": datetime.now(UTC),
-                "started": None, "finished": None, "results": {}, "status": "queued", "polls": 0, "done": 0, "cost": 0.0,
+                "id": jid,
+                "key": key,
+                "model": model,
+                "items": items,
+                "metadata": body.get("metadata"),
+                "estimate": est,
+                "created": datetime.now(UTC),
+                "started": None,
+                "finished": None,
+                "results": {},
+                "status": "queued",
+                "polls": 0,
+                "done": 0,
+                "cost": 0.0,
             }
             self.jobs[jid] = job
             self.set_hold(jid, est)
@@ -672,7 +711,9 @@ class Fake:
         job["done"] = upto
         if job.get("stopped"):
             for i in range(n):
-                job["results"].setdefault(i, {"index": i, "status": "error", "error": {"code": "insufficient_balance", "message": "the balance no longer covers the job"}})
+                job["results"].setdefault(
+                    i, {"index": i, "status": "error", "error": {"code": "insufficient_balance", "message": "the balance no longer covers the job"}}
+                )
         if len(job["results"]) == n:
             expired = any(r["status"] == "expired" for r in job["results"].values())
             job["status"] = "stopped" if job.get("stopped") else "expired" if expired else "completed"

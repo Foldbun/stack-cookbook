@@ -339,7 +339,16 @@ def test_job_runs_to_completion_and_lands_in_the_ledger(server):
     assert [i["index"] for i in got] == [0, 1, 2, 3, 4] and {i["status"] for i in got} == {"ok"}
     assert len(got[0]["result"]["embeddings"][0]["vector"]) == got[0]["result"]["dimensions"]
     rows = c.calls("j")
-    assert len(rows) == 5 and rows[0] == {"endpoint": "/v1/jobs", "model": "siglip2", "list": 0.005, "charged": 0.005, "cache": "miss", "queueMs": 4, "processingMs": 80, "replayed": False}
+    assert len(rows) == 5 and rows[0] == {
+        "endpoint": "/v1/jobs",
+        "model": "siglip2",
+        "list": 0.005,
+        "charged": 0.005,
+        "cache": "miss",
+        "queueMs": 4,
+        "processingMs": 80,
+        "replayed": False,
+    }
     assert c.summary() == {"calls": 5, "listTotal": 0.025, "chargedTotal": 0.025}
     assert c._spent == pytest.approx(0.025)  # reading the results does not count the spend twice
     assert len(list(c.job_results(job["id"]))) == 5 and c.summary()["calls"] == 5  # nor does reading them again
@@ -369,7 +378,15 @@ def test_job_with_failed_items(server):
         pass
     items = list(c.job_results(job["id"], tag="p"))
     assert [i["status"] for i in items] == ["ok", "error", "ok", "ok"] and items[1]["error"]["code"] == "bad_model_output"
-    assert len(c.calls("p")) == 3 and c.get_job(job["id"])["counts"] == {"total": 4, "pending": 0, "running": 0, "ok": 3, "error": 1, "expired": 0, "cancelled": 0}
+    assert len(c.calls("p")) == 3 and c.get_job(job["id"])["counts"] == {
+        "total": 4,
+        "pending": 0,
+        "running": 0,
+        "ok": 3,
+        "error": 1,
+        "expired": 0,
+        "cancelled": 0,
+    }
 
 
 def test_job_text_items_and_idempotent_replay(server):
