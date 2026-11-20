@@ -2,6 +2,12 @@
 
 All notable changes to this repository. Versions follow [Semantic Versioning](https://semver.org/); the client files carry their own version (`VERSION` in each file).
 
+## 0.4.2 - 2026-11-21
+
+- Client files 1.2.1 (Python, TypeScript, Go): a reservation against `FOLDBUN_MAX_CREDITS` now becomes spend in one critical section (and is released on failure), so concurrent paid calls can no longer slip past the cap between the two steps. Without a key the list price stays in the ledger but no longer counts against the cap, so a small cap no longer refuses the second free call. The client files in every use case are synced.
+- Use case 05: a batch item with an unknown outcome (the stream ended before its event) is recovered by re-sending the same batch under the same idempotency key; only items the server reported as failed or expired go to a new batch, and items still unknown end as `outcome_unknown`. The fake API gets a `disconnectBeforeItem` rule to test this.
+- Use case 01: items that still have no result after the same-key reconnects end as `outcome_unknown` instead of being sent under a new key in the next round.
+
 ## 0.4.1 - 2026-11-19
 
 - Use case 08: the English README had a stray closing `</details>` that broke the site build; 0.4.0 has no site release.

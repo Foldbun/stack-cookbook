@@ -16,7 +16,7 @@
  */
 import { randomUUID } from "node:crypto";
 
-export const VERSION = "1.2.0";
+export const VERSION = "1.2.1";
 export const DEFAULT_BASE = "https://api.stack.foldbun.com";
 export const USER_AGENT = `foldbun-stack-cookbook/${VERSION} (typescript; +https://github.com/Foldbun/stack-cookbook)`;
 // The Cookbook's own project. A project ID is not a secret: it names who is calling and authorises nothing beyond

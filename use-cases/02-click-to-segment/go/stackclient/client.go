@@ -44,7 +44,7 @@ import (
 )
 
 const (
-	Version     = "1.2.0"
+	Version     = "1.2.1"
 	DefaultBase = "https://api.stack.foldbun.com"
 	UserAgent   = "foldbun-stack-cookbook/" + Version + " (go; +https://github.com/Foldbun/stack-cookbook)"
 	// CookbookProject is the Cookbook's own project. A project ID is not a secret: it names who is calling and

@@ -27,7 +27,7 @@ import time
 import urllib.parse
 import uuid
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 DEFAULT_BASE = "https://api.stack.foldbun.com"
 USER_AGENT = f"foldbun-stack-cookbook/{VERSION} (python; +https://github.com/Foldbun/stack-cookbook)"
 # The Cookbook's own project. A project ID is not a secret: it names who is calling and authorises nothing beyond
