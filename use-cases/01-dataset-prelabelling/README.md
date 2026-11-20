@@ -392,7 +392,7 @@ func batchKey(round, index int, body any) string {
 </details>
 <!-- /code -->
 
-The batch loop reads the event stream. A stream that ends without its `summary` was cut, so the same body is sent again under the same key. Each `ok` item gets the ledger row the client has just written; items that came back `expired` or `error` are recorded as such:
+The batch loop reads the event stream. A stream that ends without its `summary` was cut, so the same body is sent again under the same key (up to three sends). An item that still has no outcome after that may already be charged, so it is never sent under a new key: it ends as the error `outcome_unknown`. Each `ok` item gets the ledger row the client has just written; items that came back `expired` or `error` are recorded as such:
 
 <!-- code: batch-run -->
 <details><summary>Python (python/batches.py)</summary>
@@ -426,7 +426,15 @@ for attempt in range(1, STREAM_ATTEMPTS + 1):
         log(f"  batch {tag}: {err.code}, attempt {attempt} of {STREAM_ATTEMPTS}")
     if summary is not None:
         break
-    time.sleep(min(2**attempt, 10))
+    if attempt < STREAM_ATTEMPTS:
+        time.sleep(min(2**attempt, 10))
+# An item that still has no outcome may already be run and charged, so it is not sent under a new key in a later
+# round: it ends as an error that says so, and running the same command again replays it from the same key.
+for unit in units:
+    cur = out[unit.id]
+    if cur["status"] == "no_result":
+        message = "the stream ended before this item's outcome arrived, and every repeat under the same key failed too"
+        cur.update(status="error", error=local_error("outcome_unknown", message + "; it was not sent under a new key because it may already be charged"))
 ```
 
 </details>
@@ -486,7 +494,15 @@ for attempt := 1; attempt <= streamAttempts; attempt++ {
 		break
 	}
 	if attempt < streamAttempts {
-		time.Sleep(min(time.Duration(1<<attempt)*time.Second, 10*time.Second))
+		pause(min(time.Duration(1<<attempt)*time.Second, 10*time.Second))
+	}
+}
+// An item that still has no outcome may already be run and charged, so it is not sent under a new key in a later
+// round: it ends as an error that says so, and running the same command again replays it from the same key.
+for _, u := range units {
+	if cur := out[u.ID()]; cur.Status == "no_result" {
+		cur.Status = "error"
+		cur.Err = localError("outcome_unknown", "the stream ended before this item's outcome arrived, and every repeat under the same key failed too; it was not sent under a new key because it may already be charged")
 	}
 }
 ```
@@ -494,7 +510,7 @@ for attempt := 1; attempt <= streamAttempts; attempt++ {
 </details>
 <!-- /code -->
 
-Rounds: images that expired or failed with a retryable code go into new batches (new body, new key). Non-retryable errors, such as `invalid_image`, stay as errors and are listed in `result.json`:
+Rounds: images that expired or failed with a retryable code (the server did not charge them) go into new batches (new body, new key); an image whose outcome never arrived does not, see above. Non-retryable errors, such as `invalid_image`, stay as errors and are listed in `result.json`:
 
 <!-- code: requeue -->
 <details><summary>Python (python/batches.py)</summary>

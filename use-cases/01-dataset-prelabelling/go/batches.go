@@ -42,7 +42,7 @@ const (
 )
 
 var retryableItemErrors = map[string]bool{"model_busy": true, "model_unavailable": true, "upstream_error": true, "upstream_timeout": true,
-	"internal_error": true, "unavailable": true, "rate_limited": true, "free_busy": true, "no_result": true}
+	"internal_error": true, "unavailable": true, "rate_limited": true, "free_busy": true}
 
 // fatalCodes end the run instead of being recorded on one item: the tier, the budget, the balance, the free tier's
 // daily limit, or a feature that needs a key.
@@ -89,6 +89,9 @@ type outcome struct {
 	Err    *itemError
 	Calls  []stackclient.Row
 }
+
+// pause waits between two sends of the same batch; tests replace it.
+var pause = time.Sleep
 
 func logf(format string, args ...any) { fmt.Fprintf(os.Stderr, format+"\n", args...) }
 
@@ -286,7 +289,15 @@ func runBatch(client *stackclient.Client, model string, units []*Unit, key, tag 
 			break
 		}
 		if attempt < streamAttempts {
-			time.Sleep(min(time.Duration(1<<attempt)*time.Second, 10*time.Second))
+			pause(min(time.Duration(1<<attempt)*time.Second, 10*time.Second))
+		}
+	}
+	// An item that still has no outcome may already be run and charged, so it is not sent under a new key in a later
+	// round: it ends as an error that says so, and running the same command again replays it from the same key.
+	for _, u := range units {
+		if cur := out[u.ID()]; cur.Status == "no_result" {
+			cur.Status = "error"
+			cur.Err = localError("outcome_unknown", "the stream ended before this item's outcome arrived, and every repeat under the same key failed too; it was not sent under a new key because it may already be charged")
 		}
 	}
 	// endregion
@@ -294,7 +305,7 @@ func runBatch(client *stackclient.Client, model string, units []*Unit, key, tag 
 }
 
 func retryable(o *outcome) bool {
-	return o.Status == "expired" || o.Status == "no_result" || (o.Status == "error" && retryableItemErrors[o.Err.Code])
+	return o.Status == "expired" || (o.Status == "error" && retryableItemErrors[o.Err.Code])
 }
 
 // checkpoint is an append-only file with one JSON line per finished item. The last line of an item wins, and a line cut

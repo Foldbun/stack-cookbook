@@ -43,7 +43,7 @@ func TestRetryable(t *testing.T) {
 	}{
 		{outcome{Status: "ok"}, false},
 		{outcome{Status: "expired"}, true},
-		{outcome{Status: "no_result"}, true},
+		{outcome{Status: "error", Err: &itemError{Code: "outcome_unknown"}}, false},
 		{outcome{Status: "error", Err: &itemError{Code: "model_busy"}}, true},
 		{outcome{Status: "error", Err: &itemError{Code: "bad_model_output"}}, false},
 	} {

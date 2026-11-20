@@ -1,4 +1,4 @@
-<!-- en-sha: a9542bb24710 -->
+<!-- en-sha: f5f5db4b36a2 -->
 # 用文字提示词预标注图像数据集
 
 [English](README.md) | 简体中文
@@ -393,7 +393,7 @@ func batchKey(round, index int, body any) string {
 </details>
 <!-- /code -->
 
-批循环读取事件流。流在没有 `summary` 的情况下结束，说明被切断，此时用同一个 key 重发同一个请求体。每个 `ok` 项取得客户端刚写入的账本行；返回 `expired` 或 `error` 的项照实记录：
+批循环读取事件流。流在没有 `summary` 的情况下结束，说明被切断，此时用同一个 key 重发同一个请求体（最多发三次）。此后仍没有结果的项可能已经扣费，因此绝不用新 key 重发，而是记为错误 `outcome_unknown`。每个 `ok` 项取得客户端刚写入的账本行；返回 `expired` 或 `error` 的项照实记录：
 
 <!-- code: batch-run -->
 <details><summary>Python (python/batches.py)</summary>
@@ -427,7 +427,15 @@ for attempt in range(1, STREAM_ATTEMPTS + 1):
         log(f"  batch {tag}: {err.code}, attempt {attempt} of {STREAM_ATTEMPTS}")
     if summary is not None:
         break
-    time.sleep(min(2**attempt, 10))
+    if attempt < STREAM_ATTEMPTS:
+        time.sleep(min(2**attempt, 10))
+# An item that still has no outcome may already be run and charged, so it is not sent under a new key in a later
+# round: it ends as an error that says so, and running the same command again replays it from the same key.
+for unit in units:
+    cur = out[unit.id]
+    if cur["status"] == "no_result":
+        message = "the stream ended before this item's outcome arrived, and every repeat under the same key failed too"
+        cur.update(status="error", error=local_error("outcome_unknown", message + "; it was not sent under a new key because it may already be charged"))
 ```
 
 </details>
@@ -487,7 +495,15 @@ for attempt := 1; attempt <= streamAttempts; attempt++ {
 		break
 	}
 	if attempt < streamAttempts {
-		time.Sleep(min(time.Duration(1<<attempt)*time.Second, 10*time.Second))
+		pause(min(time.Duration(1<<attempt)*time.Second, 10*time.Second))
+	}
+}
+// An item that still has no outcome may already be run and charged, so it is not sent under a new key in a later
+// round: it ends as an error that says so, and running the same command again replays it from the same key.
+for _, u := range units {
+	if cur := out[u.ID()]; cur.Status == "no_result" {
+		cur.Status = "error"
+		cur.Err = localError("outcome_unknown", "the stream ended before this item's outcome arrived, and every repeat under the same key failed too; it was not sent under a new key because it may already be charged")
 	}
 }
 ```
@@ -495,7 +511,7 @@ for attempt := 1; attempt <= streamAttempts; attempt++ {
 </details>
 <!-- /code -->
 
-轮次：过期或以可重试错误码失败的图进入新的批（新的请求体、新的 key）。不可重试的错误，例如 `invalid_image`，保持为错误并列在 `result.json` 中：
+轮次：过期或以可重试错误码失败的图（服务端未对其扣费）进入新的批（新的请求体、新的 key）；结果从未到达的图不进入，见上文。不可重试的错误，例如 `invalid_image`，保持为错误并列在 `result.json` 中：
 
 <!-- code: requeue -->
 <details><summary>Python (python/batches.py)</summary>

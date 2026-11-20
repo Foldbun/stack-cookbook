@@ -6,7 +6,9 @@ as `POST /v1/batch/segment` event streams. Every step can be repeated without pa
 * uploads are free and the handle is `img_` + the sha256 of the image, so uploading again returns the same handle;
 * a batch has an idempotency key derived from its round, its index and the sha256 of its request body, so sending
   the same batch again replays the items that finished (`replayed: true`, no charge) and runs the rest;
-* items that came back `expired`, or failed with a retryable error, go into a new batch in the next round;
+* items that came back `expired`, or failed with a retryable error (the server did not charge them), go into a new batch
+  in the next round; an item whose outcome never arrived may already be charged, so it is never sent under a new key
+  (see `run_batch`);
 * every finished item is written to `<out>/raw/<id>.json`, so `--resume` does not even ask the API again.
 
 Without an API key (the free tier) there are no uploads, handles or batches: each image goes inline as base64 in its
@@ -34,7 +36,6 @@ RETRYABLE_ITEM_ERRORS = {
     "unavailable",
     "rate_limited",
     "free_busy",
-    "no_result",
 }
 FATAL_CODES = {"model_locked", "budget_exceeded", "insufficient_balance", "daily_limit_reached", "free_tier_unavailable", "missing_api_key"}
 STREAM_ATTEMPTS = 3
@@ -167,17 +168,21 @@ def run_batch(client, model, units, key, tag, on_ok):
             log(f"  batch {tag}: {err.code}, attempt {attempt} of {STREAM_ATTEMPTS}")
         if summary is not None:
             break
-        time.sleep(min(2**attempt, 10))
+        if attempt < STREAM_ATTEMPTS:
+            time.sleep(min(2**attempt, 10))
+    # An item that still has no outcome may already be run and charged, so it is not sent under a new key in a later
+    # round: it ends as an error that says so, and running the same command again replays it from the same key.
+    for unit in units:
+        cur = out[unit.id]
+        if cur["status"] == "no_result":
+            message = "the stream ended before this item's outcome arrived, and every repeat under the same key failed too"
+            cur.update(status="error", error=local_error("outcome_unknown", message + "; it was not sent under a new key because it may already be charged"))
     # endregion
     return out
 
 
 def retryable(outcome):
-    return (
-        outcome["status"] == "expired"
-        or outcome["status"] == "no_result"
-        or (outcome["status"] == "error" and outcome["error"]["code"] in RETRYABLE_ITEM_ERRORS)
-    )
+    return outcome["status"] == "expired" or (outcome["status"] == "error" and outcome["error"]["code"] in RETRYABLE_ITEM_ERRORS)
 
 
 def request_digest(unit):

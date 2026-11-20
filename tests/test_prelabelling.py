@@ -133,6 +133,30 @@ def test_cut_stream_is_repeated_under_the_same_key(api, tmp_path):
     assert sum(c["replayed"] for i in result["items"] for c in i["calls"]) == 2
 
 
+def test_item_charged_but_event_lost_is_recovered_under_the_same_key(api, tmp_path):
+    # the server runs and charges item 1, then the connection drops before its event is written
+    api.fake.reset({"rules": [{"path": "/v1/batch/*", "times": 1, "disconnectBeforeItem": 1}]})
+    funded = api.fake.balance["funded"]
+    _, result = run(api, tmp_path)
+    assert [i["status"] for i in result["items"]] == ["ok"] * 4
+    batches = [e for e in fake_log(api)["log"] if e["path"] == "/v1/batch/segment"]
+    assert len(batches) == 2 and batches[0]["idempotencyKey"] == batches[1]["idempotencyKey"]
+    assert round(funded - api.fake.balance["funded"], 6) == 2.8  # four items, each charged once on the server
+    assert sum(c["replayed"] for i in result["items"] for c in i["calls"]) == 2  # item 0 repeated by the replay, and the lost item 1 (its only row)
+
+
+def test_item_with_unknown_outcome_is_not_sent_under_a_new_key(api, tmp_path):
+    # every send of the batch loses the event of item 1: its outcome stays unknown
+    api.fake.reset({"rules": [{"path": "/v1/batch/*", "times": 3, "disconnectBeforeItem": 1}]})
+    funded = api.fake.balance["funded"]
+    _, result = run(api, tmp_path)
+    assert [i["status"] for i in result["items"]] == ["ok", "error", "error", "error"]
+    assert {i["error"]["code"] for i in result["items"][1:]} == {"outcome_unknown"}
+    batches = [e for e in fake_log(api)["log"] if e["path"] == "/v1/batch/segment"]
+    assert len(batches) == 3 and len({b["idempotencyKey"] for b in batches}) == 1  # no second round under a new key
+    assert round(funded - api.fake.balance["funded"], 6) == 1.4  # item 0 and the item whose event was lost, once each
+
+
 def test_exemplar_and_boxes_modes(api, tmp_path):
     ids = [i["id"] for i in json.loads(MANIFEST.read_text())["items"]]
     ex = tmp_path / "ex.json"
