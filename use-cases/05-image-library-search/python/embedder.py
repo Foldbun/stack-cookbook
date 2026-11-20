@@ -43,6 +43,7 @@ RETRY_CODES = {
     "free_busy",
 }
 ATTEMPTS = 3  # a chunk is sent at most this many times; only the images that failed are sent again
+RECOVERY_SENDS = 3  # how often the same batch (same body, same key) is sent again for images whose outcome never arrived
 # The library of the smoke run has 25 images, so 25 is also what the free tier accepts: 25 images x 2 models = 50 light-class
 # calls. A bigger library is real work and needs a key (it would also run into the daily limit of the free tier).
 FREE_MAX_IMAGES = 25
@@ -71,38 +72,59 @@ def _key(model: str, handles: list[str], attempt: int) -> str:
 
 
 # region embed-chunk
+def _pause(seconds):
+    time.sleep(seconds)
+
+
 def run_batch(client, model, shas, handles, attempt, report):
-    """One batch request (needs a key). Returns ([(sha256, vector)] that succeeded, [sha256] to send again)."""
+    """One batch request (needs a key). Returns ([(sha256, vector)] that succeeded, [sha256] to send again).
+
+    A stream can end early (a dropped connection, a timeout) without a summary event. An image that got no outcome
+    may already have been embedded and charged on the server, so it is never sent under a new key: the same batch
+    is sent again with the same body and the same idempotency key, which replays what finished (no charge) and runs
+    the rest. Only images the server reported as failed or expired, which are not charged, go into the next attempt."""
     tag = f"{model}:{shas[0][:12]}:{attempt}"
+    key = _key(model, handles, attempt)
     body = {"model": model, "items": [{"image": sc.image_handle(h)} for h in handles]}
-    done, retry = [], []
-    try:
-        with closing(client.batch("embeddings", body, _key(model, handles, attempt), tag=tag)) as events:
-            for event, data in events:
-                if event != "item":
-                    continue  # progress heartbeats; the summary ends the stream
-                sha = shas[data["index"]]
-                if data["status"] == "ok":
-                    done.append((sha, data["result"]["embeddings"][0]["vector"]))
-                    report.rows.setdefault(sha, []).append(client.calls(tag)[-1])  # the ledger row of the item that just arrived
-                elif data["status"] == "expired" or data["error"]["code"] in RETRY_CODES:
-                    retry.append(sha)  # not billed; goes into the next attempt (an evicted handle is uploaded again)
-                elif data["error"]["code"] in STOP_CODES:
-                    report.stopped = {**data["error"], "model": model}
-                    break  # closing the stream stops the batch; the items that already finished are kept
-                else:
-                    report.failed[sha] = data["error"]  # for example an image the API cannot read: no retry helps
-    except sc.StackError as err:
-        if err.code in STOP_CODES:  # refused before the stream started, or by the credit cap
-            report.stopped = {"code": err.code, "message": err.message, "model": model}
-        elif not err.retryable:
-            raise
+    vectors, retry, failed = {}, set(), {}  # by sha256; an image in none of them has no outcome yet
+    for send in range(1 + RECOVERY_SENDS):
+        try:
+            with closing(client.batch("embeddings", body, key, tag=tag)) as events:
+                for event, data in events:
+                    if event != "item":
+                        continue  # progress heartbeats; the summary ends the stream
+                    sha = shas[data["index"]]
+                    if sha in vectors or sha in failed:
+                        continue  # a replay repeats the items we already hold
+                    if data["status"] == "ok":
+                        vectors[sha] = data["result"]["embeddings"][0]["vector"]
+                        retry.discard(sha)
+                        report.rows.setdefault(sha, []).append(client.calls(tag)[-1])  # the ledger row of the item that just arrived
+                    elif data["status"] == "expired" or data["error"]["code"] in RETRY_CODES:
+                        retry.add(sha)  # not billed; goes into the next attempt (an evicted handle is uploaded again)
+                    elif data["error"]["code"] in STOP_CODES:
+                        report.stopped = {**data["error"], "model": model}
+                        break  # closing the stream stops the batch; the items that already finished are kept
+                    else:
+                        failed[sha] = data["error"]  # for example an image the API cannot read: no retry helps
+        except sc.StackError as err:
+            if err.code in STOP_CODES:  # refused before the stream started, or by the credit cap
+                report.stopped = {"code": err.code, "message": err.message, "model": model}
+            elif not err.retryable:
+                raise
+        if report.stopped or all(s in vectors or s in retry or s in failed for s in shas):
+            break
+        _pause(min(2**send, 10))
+    report.failed.update(failed)
     if not report.stopped:
-        # A stream can end early (a dropped connection, a timeout) without a summary event: whatever never got an
-        # outcome is sent again. The finished items are kept, so nothing is embedded or paid twice.
-        seen = {s for s, _ in done} | set(retry) | set(report.failed)
-        retry += [s for s in shas if s not in seen]
-    return done, retry
+        for sha in shas:
+            if sha not in vectors and sha not in retry and sha not in failed:
+                report.failed[sha] = {
+                    "code": "outcome_unknown",
+                    "message": "the stream ended before this image's outcome arrived, and every repeat under the same key failed too; "
+                    "it was not sent under a new key because it may already be charged",
+                }
+    return [(s, vectors[s]) for s in shas if s in vectors], [s for s in shas if s in retry]
 
 
 def run_singles(client, model, paths, shas, report, workers):

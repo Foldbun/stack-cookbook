@@ -111,12 +111,45 @@ def test_partial_batch_is_retried(server, make_library, tmp_path):
     assert len(index.models["dinov3"]["sha256s"]) == 5
 
 
-def test_stream_that_drops_is_resumed_without_charging_twice(server, make_library, tmp_path):
+def test_stream_that_drops_is_resumed_without_charging_twice(server, make_library, tmp_path, monkeypatch):
+    monkeypatch.setattr(embedder, "_pause", lambda _s: None)
     folder = make_library(6)
     server.fake.reset({"rules": [{"path": "/v1/batch/*", "times": 1, "disconnectAfterItems": 2}]})
     client, index, report = build(server, folder, tmp_path / "idx", batch_size=6)
     assert not report.failed and len(index.models["dinov3"]["sha256s"]) == 6
     assert client.summary()["listTotal"] == 0.6  # 12 images at 0.05, each billed once
+
+
+def batch_keys(server):
+    return [e["idempotencyKey"] for e in api_calls(server, "/v1/batch/embeddings")]
+
+
+def test_item_charged_but_event_lost_is_recovered_under_the_same_key(server, make_library, tmp_path, monkeypatch):
+    monkeypatch.setattr(embedder, "_pause", lambda _s: None)
+    folder = make_library(6)
+    # the server runs and charges item 2, then the connection drops before its event is written
+    server.fake.reset({"rules": [{"path": "/v1/batch/*", "times": 1, "disconnectBeforeItem": 2}]})
+    funded = server.fake.balance["funded"]
+    client, index, report = build(server, folder, tmp_path / "idx", batch_size=6, models=("dinov3",))
+    assert not report.failed and report.embedded == 6 and len(index.models["dinov3"]["sha256s"]) == 6
+    keys = batch_keys(server)
+    assert len(keys) == 2 and len(set(keys)) == 1  # the unknown item is asked again under the key of the first batch
+    assert round(funded - server.fake.balance["funded"], 6) == 0.3  # six images at 0.05, each charged once
+    rows = [r for rs in report.rows.values() for r in rs]
+    assert len(rows) == 6 and sum(1 for r in rows if r["replayed"]) == 1  # only the item whose event was lost comes back as a replay
+
+
+def test_item_with_unknown_outcome_is_never_sent_under_a_new_key(server, make_library, tmp_path, monkeypatch):
+    monkeypatch.setattr(embedder, "_pause", lambda _s: None)
+    folder = make_library(4)
+    # every send of the batch loses the event of item 1: the outcome stays unknown
+    server.fake.reset({"rules": [{"path": "/v1/batch/*", "times": 1 + embedder.RECOVERY_SENDS, "disconnectBeforeItem": 1}]})
+    funded = server.fake.balance["funded"]
+    _, index, report = build(server, folder, tmp_path / "idx", batch_size=4, models=("dinov3",))
+    assert len(index.models["dinov3"]["sha256s"]) == 1  # only item 0 arrived
+    assert {v["code"] for v in report.failed.values()} == {"outcome_unknown"} and len(report.failed) == 3
+    assert len(batch_keys(server)) == 1 + embedder.RECOVERY_SENDS and len(set(batch_keys(server))) == 1
+    assert round(funded - server.fake.balance["funded"], 6) == 0.1  # item 0 and the item whose event was lost, once each
 
 
 def test_top_k_and_duplicate_groups():

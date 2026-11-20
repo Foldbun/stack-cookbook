@@ -1021,7 +1021,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.status, self.close_connection = 200, True
                 self.event(path, "progress", {"done": 0, "remaining": n})
             drop_after = (rule or {}).get("disconnectAfterItems")
+            lose_at = (rule or {}).get("disconnectBeforeItem")  # the item ran and was charged, but its event never arrives
             for entry in self.fake.batch_items(key, endpoint, body, idem, rule):
+                if sse and lose_at is not None and entry["index"] == lose_at:
+                    return
                 items.append(entry)
                 if sse:
                     self.event(path, "item", entry)
