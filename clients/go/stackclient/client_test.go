@@ -12,6 +12,8 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -475,6 +477,58 @@ func TestBudgetRefusesBeforeSending(t *testing.T) {
 	h := uploadPNG(t, c, 0)
 	_, err = c.Post("/v1/segment", map[string]any{"model": "sam3", "image": ImageHandle(h), "prompts": []any{map[string]string{"text": "x"}}}, Opts{})
 	wantCode(t, err, "budget_exceeded")
+}
+
+func TestFreeTierListPriceNeverCountsAgainstTheCap(t *testing.T) {
+	limit := 0.01
+	c := freeClient(t, scenario(t, ""), Config{MaxCredits: &limit})
+	for i := 0; i < 4; i++ { // each call lists 0.25 credits, far over the cap, and none is charged
+		if _, err := c.Post("/v1/ocr", ocr(ImageBase64(pngOf(i))), Opts{}); err != nil {
+			t.Fatalf("free call %d refused: %v", i, err)
+		}
+	}
+	rows := c.Calls("")
+	if len(rows) != 4 {
+		t.Fatalf("rows %+v", rows)
+	}
+	for _, r := range rows {
+		if r.List != 0.25 || r.Charged != 0 {
+			t.Errorf("row %+v", r)
+		}
+	}
+	if s := c.Summary(); s.Calls != 4 || s.ListTotal != 1.0 || s.ChargedTotal != 0 {
+		t.Errorf("summary %+v", s)
+	}
+}
+
+func TestConcurrentCallsNeverPassTheCap(t *testing.T) {
+	limit := 0.5
+	c := newClient(t, scenario(t, ""), Config{MaxCredits: &limit})
+	var wg sync.WaitGroup
+	var ok, refused atomic.Int32
+	for i := 0; i < 8; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			_, err := c.Post("/v1/ocr", ocr(ImageBase64(pngOf(i))), Opts{})
+			if Code(err) == "budget_exceeded" {
+				refused.Add(1)
+			} else if err == nil {
+				ok.Add(1)
+			} else {
+				t.Error(err)
+			}
+		}(i)
+	}
+	wg.Wait()
+	if ok.Load() != 2 || refused.Load() != 6 || len(calls(t, "/v1/ocr")) != 2 || c.Summary().ListTotal != 0.5 {
+		t.Errorf("ok %d refused %d sent %d", ok.Load(), refused.Load(), len(calls(t, "/v1/ocr")))
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.reserved != 0 || c.spent != 0.5 {
+		t.Errorf("reserved %g spent %g", c.reserved, c.spent)
+	}
 }
 
 func TestEstimateMatchesBillingExamples(t *testing.T) {

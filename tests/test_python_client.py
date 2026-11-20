@@ -1,6 +1,7 @@
 """The canonical Python client against the fake API. The scenarios come from harness/scenarios.json, which the
 TypeScript and Go client tests use as well."""
 
+import threading
 import time
 
 import pytest
@@ -227,6 +228,62 @@ def test_budget_refuses_before_sending(server):
     h = c.upload(png(), "image/png")["id"]
     with pytest.raises(sc.BudgetExceeded):  # 0.5 + 0.05 > 0.3, counted before anything is sent
         c.post("/v1/segment", {"model": "sam3", "image": {"id": h}, "prompts": [{"text": "x"}]})
+
+
+def test_free_tier_list_price_is_shown_but_never_counted_against_the_cap(server):
+    c = free(server, max_credits=0.01)
+    for _ in range(4):  # each call lists 0.25 credits, far over the cap, and none is charged
+        assert c.post("/v1/ocr", {"image": sc.image_base64(png())})["cost"] == 0
+    assert len(calls(server, "/v1/ocr")) == 4
+    rows = c.calls()
+    assert [(r["list"], r["charged"]) for r in rows] == [(0.25, 0)] * 4
+    assert c.summary() == {"calls": 4, "listTotal": 1.0, "chargedTotal": 0}
+
+
+class _SnapshotLock:
+    """A lock that records `spent + reserved` whenever the lock is released, i.e. every state another thread can see."""
+
+    def __init__(self, c):
+        self._lock, self._c, self.seen = threading.Lock(), c, []
+
+    def __enter__(self):
+        self._lock.acquire()
+
+    def __exit__(self, *exc):
+        self.seen.append(self._c._spent + self._c._reserved)
+        self._lock.release()
+
+
+def test_reservation_turns_into_spend_in_one_step(server):
+    c = client(server, max_credits=1.0)
+    c.models()
+    c._lock = lock = _SnapshotLock(c)
+    c.post("/v1/ocr", {"image": sc.image_base64(png())})
+    # reserve (worst case 0.25), then the ledger step swaps it for the list price: never a state in between where the
+    # budget looks empty, which a concurrent call could use to slip past the cap
+    assert set(lock.seen) == {0.25}
+    with pytest.raises(sc.StackError):
+        c.post("/v1/ocr", {"image": {"id": "img_" + "0" * 64}})  # a refused call gives its reservation back
+    assert (c._spent, c._reserved) == (0.25, 0)
+
+
+def test_concurrent_calls_never_pass_the_cap(server):
+    c = client(server, max_credits=0.5)
+    done, errors = [], []
+
+    def one():
+        try:
+            done.append(c.post("/v1/ocr", {"image": sc.image_base64(png())}))
+        except sc.BudgetExceeded:
+            errors.append(1)
+
+    threads = [threading.Thread(target=one) for _ in range(8)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert len(done) == 2 and len(errors) == 6 and len(calls(server, "/v1/ocr")) == 2
+    assert c.summary()["listTotal"] == 0.5
 
 
 def test_estimate_matches_billing_examples():

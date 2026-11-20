@@ -249,6 +249,23 @@ describe("TypeScript client", () => {
     assert.equal((await calls("/v1/images")).length, 2);
   });
 
+  it("does not count the free tier's list price against the credit cap", async () => {
+    const c = free({ maxCredits: 0.01 });
+    for (let i = 0; i < 4; i++) assert.equal((await c.post("/v1/ocr", OCR())).cost, 0); // each lists 0.25, none is charged
+    assert.equal((await calls("/v1/ocr")).length, 4);
+    assert.deepEqual(c.calls().map((r) => [r.list, r.charged]), [[0.25, 0], [0.25, 0], [0.25, 0], [0.25, 0]]);
+    assert.deepEqual(c.summary(), { calls: 4, listTotal: 1, chargedTotal: 0 });
+  });
+
+  it("never lets concurrent calls pass the credit cap", async () => {
+    const c = client({ maxCredits: 0.5 });
+    const results = await Promise.allSettled(Array.from({ length: 8 }, () => c.post("/v1/ocr", { image: sc.imageBase64(png()) })));
+    assert.equal(results.filter((r) => r.status === "fulfilled").length, 2);
+    assert.equal(results.filter((r) => r.status === "rejected" && r.reason instanceof sc.BudgetExceeded).length, 6);
+    assert.equal((await calls("/v1/ocr")).length, 2);
+    assert.equal(c.summary().listTotal, 0.5);
+  });
+
   it("refuses before sending when the credit cap would be passed", async () => {
     const c = client({ maxCredits: 0.3 });
     await c.post("/v1/ocr", { image: sc.imageBase64(png()) });

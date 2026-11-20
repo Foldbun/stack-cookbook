@@ -382,6 +382,7 @@ export class StackClient {
     const data = JSON.stringify(body);
     const timeout = opts.timeout ?? T_CALL;
     let reply: Reply;
+    let held = true;
     try {
       await this.sem.acquire();
       try {
@@ -400,12 +401,15 @@ export class StackClient {
       } finally {
         this.sem.release();
       }
+      const result = JSON.parse(new TextDecoder().decode(reply.raw));
+      // On success the reservation turns into spend in one step, so the budget never sees the reservation gone
+      // before the spend is counted (the other clients do this in one critical section).
+      this.record(path, result, reply.headers.get("Idempotent-Replayed") === "true", opts.tag, true, worst);
+      held = false;
+      return result;
     } finally {
-      this.release(worst);
+      if (held) this.release(worst);
     }
-    const result = JSON.parse(new TextDecoder().decode(reply.raw));
-    this.record(path, result, reply.headers.get("Idempotent-Replayed") === "true", opts.tag);
-    return result;
   }
   // #endregion
 
@@ -545,7 +549,10 @@ export class StackClient {
   // #endregion
 
   // #region ledger
-  private record(endpoint: string, result: Json, replayed: boolean, tag?: string, spend = true): void {
+  /** Appends a ledger row. A paid call's list price counts against FOLDBUN_MAX_CREDITS (`spend`); on the free tier
+   * nothing is charged, so the list price is shown in the ledger but never counted against the cap. `hold` is a
+   * reservation given back together with the spend. */
+  private record(endpoint: string, result: Json, replayed: boolean, tag?: string, spend = true, hold = 0): void {
     const billing = result.billing ?? {};
     const row: LedgerRow = {
       endpoint,
@@ -558,7 +565,8 @@ export class StackClient {
       replayed,
     };
     this.ledger.push([tag, row]);
-    if (!replayed && spend) this.spent += row.list;
+    this.reserved -= hold;
+    if (!replayed && spend && !this.free) this.spent += row.list;
   }
 
   /** Ledger rows (the `calls[]` of result.json), optionally only those made with `tag`. */

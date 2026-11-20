@@ -583,7 +583,6 @@ func (c *Client) Post(path string, body any, o Opts) (json.RawMessage, error) {
 		headers["Idempotency-Key"] = key
 	}
 	rep, err := func() (*reply, error) {
-		defer c.release(worst)
 		c.sem <- struct{}{}
 		defer func() { <-c.sem }()
 		rep, err := c.send("POST", path, data, headers, read, true, false, model)
@@ -604,9 +603,12 @@ func (c *Client) Post(path string, body any, o Opts) (json.RawMessage, error) {
 		return rep, err
 	}()
 	if err != nil {
+		c.release(worst)
 		return nil, err
 	}
-	if err := c.record(path, rep.raw, rep.header.Get("Idempotent-Replayed") == "true", o.Tag); err != nil {
+	// On success the reservation turns into spend in one critical section, so a concurrent call never sees the
+	// reservation gone before the spend is counted.
+	if err := c.recordRow(path, rep.raw, rep.header.Get("Idempotent-Replayed") == "true", o.Tag, true, worst); err != nil {
 		return nil, err
 	}
 	return rep.raw, nil
@@ -871,7 +873,7 @@ func (c *Client) recordJobItem(id string, item JobItem, tag string) error {
 	if seen {
 		return nil
 	}
-	return c.recordRow("/v1/jobs", item.Result, false, tag, false)
+	return c.recordRow("/v1/jobs", item.Result, false, tag, false, 0)
 }
 
 // EstimateJob is the worst-case cost of an async job: the async price (`AsyncPrices` of the model) of every item.
@@ -902,10 +904,13 @@ func estimateJob(models map[string]Model, model string, items []view) float64 {
 
 // region ledger
 func (c *Client) record(endpoint string, raw []byte, replayed bool, tag string) error {
-	return c.recordRow(endpoint, raw, replayed, tag, true)
+	return c.recordRow(endpoint, raw, replayed, tag, true, 0)
 }
 
-func (c *Client) recordRow(endpoint string, raw []byte, replayed bool, tag string, spend bool) error {
+// recordRow appends a ledger row. A paid call's list price counts against FOLDBUN_MAX_CREDITS (spend); on the free
+// tier nothing is charged, so the list price is shown in the ledger but never counted against the cap. hold is a
+// reservation that is given back in the same critical section, so reserved + spent never dips between the two.
+func (c *Client) recordRow(endpoint string, raw []byte, replayed bool, tag string, spend bool, hold float64) error {
 	var r struct {
 		Model   *string  `json:"model"`
 		Cost    *float64 `json:"cost"`
@@ -920,6 +925,7 @@ func (c *Client) recordRow(endpoint string, raw []byte, replayed bool, tag strin
 		} `json:"timing"`
 	}
 	if err := json.Unmarshal(raw, &r); err != nil {
+		c.release(hold)
 		return err
 	}
 	cost := 0.0
@@ -938,7 +944,8 @@ func (c *Client) recordRow(endpoint string, raw []byte, replayed bool, tag strin
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.ledger = append(c.ledger, entry{tag, row})
-	if !replayed && spend {
+	c.reserved -= hold
+	if !replayed && spend && !c.free {
 		c.spent += row.List
 	}
 	return nil

@@ -213,6 +213,7 @@ class StackClient:
         if not self.free:
             headers["Idempotency-Key"] = idempotency_key or str(uuid.uuid4())
         data = json.dumps(body).encode()
+        held = True
         try:
             with self._sem:
                 try:
@@ -226,10 +227,14 @@ class StackClient:
                     self.upload(*self._uploads[handle])
                     headers["Idempotency-Key"] = str(uuid.uuid4())
                     resp, raw = self._send("POST", path, data, headers, timeout, gate=model)
+            result = json.loads(raw)
+            # On success the reservation turns into spend in one critical section, so a concurrent call never sees
+            # the reservation gone before the spend is counted.
+            self._record(path, result, resp.getheader("Idempotent-Replayed") == "true", tag, hold=worst)
+            held = False
         finally:
-            self._release(worst)
-        result = json.loads(raw)
-        self._record(path, result, resp.getheader("Idempotent-Replayed") == "true", tag)
+            if held:
+                self._release(worst)
         return result
 
     # endregion
@@ -353,7 +358,10 @@ class StackClient:
     # endregion
 
     # region ledger
-    def _record(self, endpoint, result, replayed, tag, spend=True):
+    def _record(self, endpoint, result, replayed, tag, spend=True, hold=0.0):
+        """Append a ledger row. A paid call's list price counts against FOLDBUN_MAX_CREDITS (`spend`); on the free tier
+        nothing is charged, so the list price is shown in the ledger but never counted against the cap. `hold` is a
+        reservation given back in the same critical section."""
         billing = result.get("billing") or {}
         row = {
             "endpoint": endpoint,
@@ -367,7 +375,8 @@ class StackClient:
         }
         with self._lock:
             self.ledger.append((tag, row))
-            if not replayed and spend:
+            self._reserved -= hold
+            if not replayed and spend and not self.free:
                 self._spent += row["list"]
 
     def calls(self, tag=None):
